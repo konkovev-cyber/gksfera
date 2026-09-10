@@ -1,0 +1,152 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Сфера — тёплая образовательная палитра */
+    --background: 42 33% 98%;
+    --foreground: 200 25% 12%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 200 25% 12%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 200 25% 12%;
+
+    /* Тёплый янтарный — основной цвет бренда */
+    --primary: 32 85% 52%;
+    --primary-foreground: 0 0% 100%;
+
+    /* Глубокий тил — акцент */
+    --secondary: 178 45% 28%;
+    --secondary-foreground: 0 0% 100%;
+
+    --muted: 42 23% 93%;
+    --muted-foreground: 200 10% 42%;
+
+    /* Мягкий персик для подложек */
+    --accent: 20 70% 93%;
+    --accent-foreground: 20 60% 25%;
+
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 42 20% 87%;
+    --input: 42 20% 87%;
+    --ring: 32 85% 52%;
+
+    --chart-1: 32 85% 52%;
+    --chart-2: 178 45% 28%;
+    --chart-3: 142 52% 42%;
+    --chart-4: 45 85% 60%;
+    --chart-5: 12 76% 56%;
+
+    --radius: 1.25rem;
+
+    /* Дополнительные фирменные цвета */
+    --brand-warm: 32 85% 52%;
+    --brand-warm-light: 32 90% 96%;
+    --brand-teal: 178 45% 28%;
+    --brand-teal-light: 172 40% 92%;
+    --brand-cream: 42 40% 96%;
+    --brand-sand: 38 30% 88%;
+  }
+
+  .dark {
+    --background: 200 25% 9%;
+    --foreground: 42 25% 95%;
+    --card: 200 22% 13%;
+    --card-foreground: 42 25% 95%;
+    --popover: 200 22% 13%;
+    --popover-foreground: 42 25% 95%;
+    --primary: 32 80% 55%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 178 35% 35%;
+    --secondary-foreground: 0 0% 100%;
+    --muted: 200 15% 18%;
+    --muted-foreground: 200 10% 60%;
+    --accent: 20 40% 20%;
+    --accent-foreground: 20 60% 85%;
+    --border: 200 15% 20%;
+    --input: 200 15% 20%;
+    --ring: 32 80% 55%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+  html {
+    scroll-behavior: smooth;
+    scroll-padding-top: 80px;
+  }
+}
+
+@layer components {
+  .section-padding {
+    @apply px-4 py-16 sm:px-6 md:py-24 lg:px-8;
+  }
+  .container-max {
+    @apply mx-auto max-w-7xl;
+  }
+  .text-balance {
+    text-wrap: balance;
+  }
+}
+
+/* Декоративные сферы / орбиты */
+.sphere-decoration {
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Мягкий hover-эффект для карточек */
+.card-hover {
+  transition: box-shadow 0.3s ease, transform 0.3s ease;
+}
+.card-hover:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 20px 40px -12px hsl(200 25% 12% / 0.12);
+}
+
+/* Стиль скроллбара */
+::-webkit-scrollbar {
+  width: 10px;
+}
+::-webkit-scrollbar-track {
+  background: hsl(var(--muted));
+}
+::-webkit-scrollbar-thumb {
+  background: hsl(var(--brand-sand));
+  border-radius: 5px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--brand-warm));
+}
+
+/* Focus-visible для доступности */
+*:focus-visible {
+  outline: 2px solid hsl(var(--brand-warm));
+  outline-offset: 2px;
+}
+
+/* Prefers reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
