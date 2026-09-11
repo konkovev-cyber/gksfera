@@ -249,31 +249,34 @@ export function Hero() {
       </div>
 
       {/* Бегущая строка направлений */}
-      <div className="mt-14 md:mt-16 relative z-10 border-y border-border/60 bg-card/60 backdrop-blur-sm py-3.5 overflow-hidden">
-        {fineMotion ? (
+      <div className="mt-14 md:mt-16 relative z-10 overflow-hidden">
+        {/* Тень-градиент сверху и снизу */}
+        <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-brand-warm/40 to-transparent" aria-hidden="true" />
+        <div className="absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-brand-warm/40 to-transparent" aria-hidden="true" />
+        <div className="absolute inset-0 bg-gradient-to-b from-brand-warm/5 via-card to-brand-warm/5" aria-hidden="true" />
+
+        <div className="relative py-4 overflow-hidden shadow-[inset_0_2px_8px_-4px_rgba(0,0,0,0.06),inset_0_-2px_8px_-4px_rgba(0,0,0,0.06)]">
           <div className="flex w-max animate-marquee">
             {[...marqueeItems, ...marqueeItems].map((t, i) => (
               <span
                 key={i}
-                className="flex items-center gap-2.5 pr-10 text-sm font-semibold text-brand-warm whitespace-nowrap"
+                className="flex items-center whitespace-nowrap"
               >
-                {t}
+                <span className="text-sm sm:text-[0.95rem] font-display font-bold text-brand-warm tracking-wide uppercase">
+                  {t}
+                </span>
                 <span
-                  className="w-1.5 h-1.5 rounded-full bg-brand-teal/70 inline-block"
+                  className="mx-5 sm:mx-7 flex items-center gap-1"
                   aria-hidden="true"
-                />
+                >
+                  <span className="w-1 h-1 rounded-full bg-brand-teal" />
+                  <span className="w-1.5 h-1.5 rounded-full bg-brand-warm" />
+                  <span className="w-1 h-1 rounded-full bg-brand-teal" />
+                </span>
               </span>
             ))}
           </div>
-        ) : (
-          <div className="flex flex-wrap justify-center gap-x-8 gap-y-2 px-4">
-            {marqueeItems.map((t) => (
-              <span key={t} className="text-sm font-semibold text-brand-warm">
-                {t}
-              </span>
-            ))}
-          </div>
-        )}
+        </div>
       </div>
     </section>
   );

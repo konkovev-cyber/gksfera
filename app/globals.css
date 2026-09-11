@@ -139,14 +139,9 @@
   outline-offset: 2px;
 }
 
-/* Prefers reduced motion */
+/* Prefers reduced motion — только скролл, анимации управляются MotionConfig */
 @media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
+  html {
     scroll-behavior: auto !important;
   }
 }
@@ -161,7 +156,7 @@
   }
 }
 .animate-marquee {
-  animation: marquee 36s linear infinite;
+  animation: marquee 36s linear infinite !important;
 }
 
 @keyframes text-shimmer {
@@ -171,5 +166,5 @@
 }
 .text-shimmer {
   background-size: 200% auto;
-  animation: text-shimmer 5s linear infinite;
+  animation: text-shimmer 5s linear infinite !important;
 }
