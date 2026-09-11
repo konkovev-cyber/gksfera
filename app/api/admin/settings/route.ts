@@ -18,6 +18,7 @@ export async function GET() {
   return NextResponse.json({
     siteConfig: data.siteConfig,
     heroContent: data.heroContent,
+    learningExperience: data.learningExperience,
     programs: data.programs,
     gallery: data.gallery,
     visibility,
@@ -32,6 +33,7 @@ export async function PUT(req: NextRequest) {
     settings?: Record<string, unknown>;
     hero?: Record<string, unknown>;
     visibility?: Record<string, boolean>;
+    learningExperience?: Record<string, unknown>;
   } | null;
   if (!body) return NextResponse.json({ error: "bad body" }, { status: 400 });
 
@@ -61,6 +63,15 @@ export async function PUT(req: NextRequest) {
       }
     }
     await db.from("site_settings").delete().eq("key", "settings");
+  }
+
+  if (body.learningExperience && typeof body.learningExperience === "object") {
+    const { error } = await db.from("site_settings").upsert({
+      key: "learningExperience",
+      value: body.learningExperience,
+      updated_at: new Date().toISOString(),
+    });
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
   revalidatePath("/");

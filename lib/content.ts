@@ -1,6 +1,6 @@
 import { createClient } from "@supabase/supabase-js";
 import * as defaults from "@/data/site";
-import type { Program, GalleryItem } from "@/data/site";
+import type { Program, GalleryItem, Review } from "@/data/site";
 
 export type SiteData = typeof defaults;
 
@@ -26,7 +26,7 @@ const service = () =>
 
 /**
  * Собирает снапшот контента: значения из Supabase поверх статических по умолчанию.
- * Вызывается на сервере (page.tsx), результат передаётся в ContentProvider.
+ * Вызывается на сервере (page.tsx, layout.tsx), результат передаётся в ContentProvider.
  */
 export async function getContent(): Promise<{
   data: SiteData;
@@ -42,7 +42,7 @@ export async function getContent(): Promise<{
     programs: [...defaults.programs] as Program[],
     gallery: [...defaults.gallery] as GalleryItem[],
     teachers: [...defaults.teachers],
-    reviews: [...defaults.reviews],
+    reviews: [...defaults.reviews] as Review[],
     events: [...defaults.events],
     parentOptions: [...defaults.parentOptions],
     navItems: [...defaults.navItems],
@@ -64,7 +64,7 @@ export async function getContent(): Promise<{
 
   try {
     const db = service();
-    const [settingsRes, photosRes, progsRes] = await Promise.all([
+    const [settingsRes, photosRes, progsRes, reviewsRes] = await Promise.all([
       db.from("site_settings").select("key,value"),
       db
         .from("gallery_photos")
@@ -76,6 +76,12 @@ export async function getContent(): Promise<{
         .select("*")
         .order("sort_order", { ascending: true })
         .order("id", { ascending: true }),
+      db
+        .from("reviews")
+        .select("*")
+        .eq("visible", true)
+        .order("sort_order", { ascending: true })
+        .order("id", { ascending: true }),
     ]);
 
     for (const row of settingsRes.data ?? []) {
@@ -84,6 +90,8 @@ export async function getContent(): Promise<{
         Object.assign(visibility, value);
       } else if (key === "hero" && value && typeof value === "object") {
         Object.assign(data.heroContent, value);
+      } else if (key === "learningExperience" && value && typeof value === "object") {
+        Object.assign(data.learningExperience, value);
       } else if (key in data.siteConfig && value != null) {
         (data.siteConfig as unknown as Record<string, unknown>)[key] = value;
       }
@@ -104,8 +112,6 @@ export async function getContent(): Promise<{
       data.programs = (progsRes.data as Record<string, unknown>[])
         .filter((p) => p.is_visible !== false && p.visible !== false)
         .map((p) => {
-          // Старая схема таблицы: age, short_desc, is_visible; фото могли не
-          // заполнить — подставляем значения по умолчанию по совпадению названия.
           const fallback = defaults.programs.find((s) => s.title === p.title);
           return {
             id: String(p.id),
@@ -121,13 +127,26 @@ export async function getContent(): Promise<{
           } satisfies Program;
         });
     }
+
+    if (reviewsRes.data && reviewsRes.data.length > 0) {
+      data.reviews = (reviewsRes.data as Record<string, unknown>[]).map(
+        (r) => ({
+          id: String(r.id ?? ""),
+          author: String(r.author ?? ""),
+          source: String(r.source ?? ""),
+          sourceUrl: String(r.source_url ?? r.sourceUrl ?? "") || undefined,
+          text: String(r.text ?? ""),
+          childInfo: String(r.child_info ?? r.childInfo ?? "") || undefined,
+        } satisfies Review)
+      );
+    }
+
     // Фильтруем navItems по show-функциям серверно и удаляем функции (RSC не сериализует)
     data.navItems = defaults.navItems
       .filter((item) => !item.show || item.show())
       .map(({ show, ...rest }) => rest) as typeof defaults.navItems;
   } catch (e) {
     console.error("[content] Supabase недоступен, используем значения по умолчанию:", e);
-    // Фильтруем даже в fallback — функции всё равно не сериализуются
     data.navItems = defaults.navItems
       .filter((item) => !item.show || item.show())
       .map(({ show, ...rest }) => rest) as typeof defaults.navItems;

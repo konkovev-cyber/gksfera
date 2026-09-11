@@ -44,6 +44,16 @@ alter table enrollments add column if not exists status text default 'new';
 alter table programs add column if not exists image text default '';
 alter table programs add column if not exists image_alt text default '';
 
+create table if not exists reviews (
+  id bigint generated always as identity primary key,
+  name text not null default '',
+  text text not null default '',
+  rating int default 5,
+  visible boolean default true,
+  sort_order int default 0,
+  created_at timestamptz default now()
+);
+
 insert into storage.buckets (id, name, public)
 values ('media', 'media', true)
 on conflict (id) do nothing;
