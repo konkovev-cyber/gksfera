@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import { Menu, X, Phone } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useContent } from "./ContentContext";
+import { ThemeToggle } from "./ThemeToggle";
 
 import { cn } from "@/lib/utils";
 
@@ -97,6 +98,7 @@ export function Header() {
 
           {/* Кнопка записи + телефон */}
           <div className="flex items-center gap-2 sm:gap-3">
+            <ThemeToggle />
             <a
               href={content.siteConfig.phoneHref}
               className="hidden xl:flex items-center gap-2 text-sm font-medium text-foreground/70 hover:text-primary transition-colors"

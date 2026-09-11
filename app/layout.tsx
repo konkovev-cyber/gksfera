@@ -91,14 +91,17 @@ const jsonLd = {
   ],
 };
 
+const themeScript = `(function(){try{var t=localStorage.getItem('sfera-theme');var d=t?t==='dark':window.matchMedia('(prefers-color-scheme: dark)').matches;document.documentElement.classList.toggle('dark',d);}catch(e){}})();`;
+
 export default function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
   return (
-    <html lang="ru" className={`${inter.variable} ${manrope.variable}`}>
+    <html lang="ru" className={`${inter.variable} ${manrope.variable}`} suppressHydrationWarning>
       <head>
+        <script dangerouslySetInnerHTML={{ __html: themeScript }} />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
