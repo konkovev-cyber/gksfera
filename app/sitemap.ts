@@ -1,15 +1,25 @@
 import type { MetadataRoute } from 'next';
+import { getContent, getAllNews } from '@/lib/content';
+import { slugify } from '@/lib/utils';
 
-export default function sitemap(): MetadataRoute.Sitemap {
+export const revalidate = 3600;
+
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = 'https://sfera-goryachiy-klyuch.ru';
   const lastModified = new Date();
 
-  return [
+  const entries: MetadataRoute.Sitemap = [
     {
       url: baseUrl,
       lastModified,
-      changeFrequency: 'monthly',
+      changeFrequency: 'daily',
       priority: 1,
+    },
+    {
+      url: `${baseUrl}/news`,
+      lastModified,
+      changeFrequency: 'daily',
+      priority: 0.8,
     },
     {
       url: `${baseUrl}/privacy`,
@@ -24,4 +34,28 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 0.3,
     },
   ];
+
+  try {
+    const [{ data }, news] = await Promise.all([getContent(), getAllNews()]);
+    for (const p of data.programs) {
+      entries.push({
+        url: `${baseUrl}/programs/${slugify(p.title)}`,
+        lastModified,
+        changeFrequency: 'monthly',
+        priority: 0.9,
+      });
+    }
+    for (const n of news) {
+      entries.push({
+        url: `${baseUrl}/news/${n.vk_post_id}`,
+        lastModified: new Date(n.published_at),
+        changeFrequency: 'monthly',
+        priority: 0.6,
+      });
+    }
+  } catch {
+    // БД недоступна — отдаём базовые страницы
+  }
+
+  return entries;
 }
