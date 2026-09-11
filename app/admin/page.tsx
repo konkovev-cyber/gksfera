@@ -31,6 +31,41 @@ const VIS_LABELS: Record<string, string> = {
   events: "События", cta: "CTA-баннер", enrollment: "Форма записи", contacts: "Контакты и карта",
 };
 
+const SITE_LABELS: Record<string, string> = {
+  name: "Название (короткое)",
+  fullName: "Полное название",
+  tagline: "Слоган",
+  secondaryTagline: "Второй слоган",
+  city: "Город",
+  address: "Адрес",
+  addressDetails: "Детали адреса (этаж, офис)",
+  addressFull: "Адрес полностью",
+  phone: "Телефон",
+  phoneHref: "Телефон — ссылка (tel:)",
+  vkUrl: "Ссылка на группу VK",
+  vkDisplay: "VK — как показывать на сайте",
+  ageRange: "Возраст детей",
+  workingHours: "Часы работы (полные)",
+  workingHoursShort: "Часы работы (кратко)",
+  yearsExperience: "Опыт работы",
+  mapQuery: "Адрес для поиска на карте",
+  showTeachers: "Блок «Преподаватели»",
+  showEvents: "Блок «События»",
+  showReviews: "Блок «Отзывы»",
+};
+
+const HERO_LABELS: Record<string, string> = {
+  badge: "Бейдж над заголовком",
+  title: "Заголовок",
+  highlight: "Выделенное слово в заголовке",
+  tagline: "Слоган (мерцающая строка)",
+  description: "Описание под заголовком",
+  primaryCta: "Кнопка 1 — главная",
+  secondaryCta: "Кнопка 2 — вторичная",
+  image: "Фото — URL",
+  imageAlt: "Фото — описание (alt)",
+};
+
 const inputCls = "w-full h-10 px-3 text-sm rounded-lg border border-input bg-background focus:outline-none focus:ring-2 focus:ring-ring/60";
 const btnCls = "inline-flex items-center gap-2 h-10 px-4 rounded-full bg-primary text-primary-foreground text-sm font-semibold hover:bg-primary/90 disabled:opacity-50";
 
@@ -253,7 +288,7 @@ export default function AdminPage() {
         {tab === "settings" && (
           <div className="grid sm:grid-cols-2 gap-4 bg-card rounded-2xl border border-border/60 p-5">
             {cfgEntries.map(([k, v]) => (
-              <Field key={k} label={k}>
+              <Field key={k} label={SITE_LABELS[k] ?? k}>
                 {typeof v === "boolean" ? (
                   <label className="inline-flex items-center gap-2 h-10 text-sm">
                     <input type="checkbox" checked={v} onChange={(e) => setSiteConfig((p) => ({ ...p, [k]: e.target.checked }))} className="w-4 h-4" />
@@ -272,7 +307,7 @@ export default function AdminPage() {
         {tab === "hero" && (
           <div className="grid sm:grid-cols-2 gap-4 bg-card rounded-2xl border border-border/60 p-5">
             {Object.entries(hero).filter(([, v]) => typeof v === "string").map(([k, v]) => (
-              <Field key={k} label={k}>
+              <Field key={k} label={HERO_LABELS[k] ?? k}>
                 <input className={inputCls} value={String(v ?? "")} onChange={(e) => setHero((p) => ({ ...p, [k]: e.target.value }))} />
               </Field>
             ))}
