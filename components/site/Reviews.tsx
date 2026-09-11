@@ -2,14 +2,16 @@
 
 import { useState } from "react";
 import { Quote, ExternalLink, ChevronDown } from "lucide-react";
-import { reviews, siteConfig } from "@/data/site";
+import { useContent } from "./ContentContext";
+
 import { Reveal, Stagger, StaggerItem } from "./Reveal";
 import { cn } from "@/lib/utils";
 
 const MAX_LENGTH = 180;
 
 export function Reviews() {
-  if (!siteConfig.showReviews) return null;
+  const content = useContent();
+  if (!content.siteConfig.showReviews) return null;
 
   return (
     <section id="reviews" className="section-padding relative overflow-hidden">
@@ -31,7 +33,7 @@ export function Reviews() {
         </Reveal>
 
         <Stagger className="mt-12 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 lg:gap-6 items-start">
-          {reviews.map((review) => (
+          {content.reviews.map((review) => (
             <StaggerItem key={review.id}>
               <ReviewCard
                 text={review.text}

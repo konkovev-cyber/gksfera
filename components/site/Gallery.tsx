@@ -3,24 +3,25 @@
 import { useState, useEffect, useCallback } from "react";
 import Image from "next/image";
 import { X, ChevronLeft, ChevronRight } from "lucide-react";
-import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
-import { gallery } from "@/data/site";
+import { motion, AnimatePresence } from "framer-motion";
+import { useContent } from "./ContentContext";
+
 import { Reveal } from "./Reveal";
 import { cn } from "@/lib/utils";
 
 export function Gallery() {
+  const content = useContent();
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
-  const reduced = useReducedMotion();
 
   const closeLightbox = useCallback(() => setLightboxIndex(null), []);
   const goPrev = useCallback(() => {
     setLightboxIndex((prev) =>
-      prev === null ? null : (prev - 1 + gallery.length) % gallery.length
+      prev === null ? null : (prev - 1 + content.gallery.length) % content.gallery.length
     );
   }, []);
   const goNext = useCallback(() => {
     setLightboxIndex((prev) =>
-      prev === null ? null : (prev + 1) % gallery.length
+      prev === null ? null : (prev + 1) % content.gallery.length
     );
   }, []);
 
@@ -64,7 +65,7 @@ export function Gallery() {
         {/* Masonry grid на десктопе */}
         <Reveal delay={0.1}>
           <div className="mt-10 hidden md:grid grid-cols-4 auto-rows-[200px] gap-4">
-            {gallery.map((item, i) => (
+            {content.gallery.map((item, i) => (
               <button
                 key={i}
                 onClick={() => setLightboxIndex(i)}
@@ -80,6 +81,7 @@ export function Gallery() {
                   fill
                   sizes="(max-width: 1024px) 50vw, 25vw"
                   className="object-cover transition-transform duration-500 group-hover:scale-110"
+                  style={item.pos ? { objectPosition: item.pos } : undefined}
                 />
                 <div className="absolute inset-0 bg-foreground/0 group-hover:bg-foreground/20 transition-colors duration-300" />
               </button>
@@ -90,7 +92,7 @@ export function Gallery() {
         {/* Мобильная горизонтальная прокрутка */}
         <Reveal delay={0.1}>
           <div className="mt-8 md:hidden flex gap-3 overflow-x-auto pb-4 -mx-4 px-4 snap-x snap-mandatory">
-            {gallery.map((item, i) => (
+            {content.gallery.map((item, i) => (
               <button
                 key={i}
                 onClick={() => setLightboxIndex(i)}
@@ -103,6 +105,7 @@ export function Gallery() {
                   fill
                   sizes="260px"
                   className="object-cover"
+                  style={item.pos ? { objectPosition: item.pos } : undefined}
                 />
               </button>
             ))}
@@ -141,15 +144,15 @@ export function Gallery() {
 
             <motion.div
               key={lightboxIndex}
-              initial={reduced ? {} : { opacity: 0, scale: 0.9 }}
+              initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.2 }}
               className="relative max-w-4xl w-full h-[70vh]"
               onClick={(e) => e.stopPropagation()}
             >
               <Image
-                src={gallery[lightboxIndex].src}
-                alt={gallery[lightboxIndex].alt}
+                src={content.gallery[lightboxIndex].src}
+                alt={content.gallery[lightboxIndex].alt}
                 fill
                 sizes="100vw"
                 className="object-contain"
@@ -168,7 +171,7 @@ export function Gallery() {
             </button>
 
             <div className="absolute bottom-6 left-1/2 -translate-x-1/2 text-white/70 text-sm">
-              {lightboxIndex + 1} / {gallery.length}
+              {lightboxIndex + 1} / {content.gallery.length}
             </div>
           </motion.div>
         )}

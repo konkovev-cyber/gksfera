@@ -2,7 +2,8 @@
 
 import Image from "next/image";
 import { CalendarDays } from "lucide-react";
-import { events, siteConfig } from "@/data/site";
+import { useContent } from "./ContentContext";
+
 import { Reveal, Stagger, StaggerItem } from "./Reveal";
 
 function formatDate(dateStr: string): string {
@@ -19,7 +20,8 @@ function formatDate(dateStr: string): string {
 }
 
 export function Events() {
-  if (!siteConfig.showEvents) return null;
+  const content = useContent();
+  if (!content.siteConfig.showEvents) return null;
 
   return (
     <section id="events" className="section-padding bg-brand-cream/50 relative overflow-hidden">
@@ -37,7 +39,7 @@ export function Events() {
         </Reveal>
 
         <Stagger className="mt-12 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 lg:gap-6">
-          {events.map((event) => (
+          {content.events.map((event) => (
             <StaggerItem key={event.id}>
               <article className="card-hover bg-card rounded-2xl overflow-hidden border border-border/60 h-full">
                 <div className="relative aspect-[16/10] overflow-hidden">
@@ -47,6 +49,7 @@ export function Events() {
                     fill
                     sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
                     className="object-cover"
+                    style={event.pos ? { objectPosition: event.pos } : undefined}
                   />
                 </div>
                 <div className="p-5">

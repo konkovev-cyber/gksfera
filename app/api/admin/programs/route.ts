@@ -1,0 +1,101 @@
+import { NextRequest, NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
+import { checkAdmin } from "@/lib/admin-auth";
+import { createClient } from "@supabase/supabase-js";
+
+const service = () =>
+  createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!,
+    { auth: { persistSession: false } }
+  );
+
+/**
+ * Таблица programs существует со старой схемой:
+ * id uuid, title, short_desc, full_desc, age, badge, accent_color, features jsonb,
+ * schedule_hint, sort_order, is_visible (+ добавленные image, image_alt).
+ * Для UI админки нормализуем к полям: age_range, description, image, image_alt, visible.
+ */
+
+type ProgItem = {
+  id?: number | string;
+  title: string;
+  ageRange?: string;
+  description?: string;
+  image?: string;
+  imageAlt?: string;
+  visible?: boolean;
+  sortOrder?: number;
+};
+
+const normalize = (p: Record<string, unknown>) => ({
+  id: p.id,
+  title: p.title ?? "",
+  age_range: p.age ?? p.age_range ?? "",
+  description: p.short_desc ?? p.description ?? "",
+  image: p.image ?? "",
+  image_alt: p.image_alt ?? "",
+  visible: p.is_visible !== false && p.visible !== false,
+  sort_order: p.sort_order ?? 0,
+});
+
+export async function GET() {
+  const denied = await checkAdmin();
+  if (denied) return denied;
+  const db = service();
+  const { data, error } = await db
+    .from("programs")
+    .select("*")
+    .order("sort_order", { ascending: true })
+    .order("id", { ascending: true });
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+
+  if (!data || data.length === 0) {
+    const { programs } = await import("@/data/site");
+    const seed = programs.map((p, i) => ({
+      title: p.title,
+      short_desc: p.description,
+      full_desc: p.description,
+      age: p.ageRange,
+      image: p.image,
+      image_alt: p.imageAlt,
+      is_visible: true,
+      sort_order: i + 1,
+    }));
+    const { data: seeded, error: seedErr } = await db.from("programs").insert(seed).select();
+    if (seedErr) return NextResponse.json({ error: seedErr.message }, { status: 500 });
+    revalidatePath("/");
+    return NextResponse.json({ programs: (seeded ?? []).map(normalize) });
+  }
+
+  return NextResponse.json({ programs: data.map(normalize) });
+}
+
+export async function PUT(req: NextRequest) {
+  const denied = await checkAdmin();
+  if (denied) return denied;
+  const db = service();
+  const body = (await req.json().catch(() => null)) as { items?: ProgItem[] } | null;
+  if (!body?.items) return NextResponse.json({ error: "bad body" }, { status: 400 });
+
+  for (let i = 0; i < body.items.length; i++) {
+    const it = body.items[i];
+    const row = {
+      title: it.title,
+      age: it.ageRange ?? "",
+      short_desc: it.description ?? "",
+      image: it.image ?? "",
+      image_alt: it.imageAlt ?? "",
+      is_visible: it.visible ?? true,
+      sort_order: it.sortOrder ?? i + 1,
+      updated_at: new Date().toISOString(),
+    };
+    const { error } = it.id
+      ? await db.from("programs").update(row).eq("id", it.id)
+      : await db.from("programs").insert({ ...row, full_desc: it.description ?? "" });
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+
+  revalidatePath("/");
+  return NextResponse.json({ ok: true });
+}

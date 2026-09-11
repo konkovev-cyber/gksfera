@@ -34,3 +34,11 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# local runtime artifacts
+dev.log
+dev_err.log
+_dom_check.html
+
+# source photos (site uses public/images)
+/FOTO/

@@ -2,7 +2,7 @@ import './globals.css';
 import type { Metadata } from 'next';
 import { Inter, Manrope } from 'next/font/google';
 import { siteConfig } from '@/data/site';
-
+import { MotionProvider } from '@/components/site/MotionProvider';
 const inter = Inter({
   subsets: ['cyrillic', 'latin'],
   variable: '--font-inter',
@@ -17,6 +17,7 @@ const manrope = Manrope({
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://sfera-goryachiy-klyuch.ru'),
+  themeColor: 'hsl(32 85% 52%)',
   title: {
     default:
       'Учебно-развивающая студия «Сфера» — занятия для детей в Горячем Ключе',
@@ -82,13 +83,6 @@ export const metadata: Metadata = {
   manifest: '/manifest.webmanifest',
 };
 
-export const viewport = {
-  width: 'device-width',
-  initialScale: 1,
-  maximumScale: 5,
-  themeColor: 'hsl(32 85% 52%)',
-};
-
 const jsonLd = {
   '@context': 'https://schema.org',
   '@type': 'EducationalOrganization',
@@ -130,7 +124,9 @@ export default function RootLayout({
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
       </head>
-      <body className="font-sans antialiased">{children}</body>
+      <body className="font-sans antialiased">
+        <MotionProvider>{children}</MotionProvider>
+      </body>
     </html>
   );
 }

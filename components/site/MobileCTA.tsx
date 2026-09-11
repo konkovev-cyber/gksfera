@@ -2,9 +2,11 @@
 
 import { useEffect, useState } from "react";
 import { Phone, MessageCircle, Pencil } from "lucide-react";
-import { siteConfig } from "@/data/site";
+import { useContent } from "./ContentContext";
+
 
 export function MobileCTA() {
+  const content = useContent();
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
@@ -29,7 +31,7 @@ export function MobileCTA() {
       <div className="bg-background/95 backdrop-blur-xl border-t border-border shadow-[0_-4px_20px_-4px_rgba(0,0,0,0.1)] px-3 py-2.5 pb-[max(0.625rem,env(safe-area-inset-bottom))]">
         <div className="flex items-center gap-2">
           <a
-            href={siteConfig.phoneHref}
+            href={content.siteConfig.phoneHref}
             className="flex flex-col items-center justify-center flex-1 h-12 rounded-xl bg-card border border-border/60 active:scale-95 transition-transform"
             aria-label="Позвонить"
           >
@@ -37,7 +39,7 @@ export function MobileCTA() {
             <span className="text-[10px] font-medium text-foreground">Позвонить</span>
           </a>
           <a
-            href={siteConfig.vkUrl}
+            href={content.siteConfig.vkUrl}
             target="_blank"
             rel="noopener noreferrer"
             className="flex flex-col items-center justify-center flex-1 h-12 rounded-xl bg-card border border-border/60 active:scale-95 transition-transform"

@@ -1,10 +1,12 @@
 "use client";
 
 import { Compass } from "lucide-react";
-import { parentOptions, programs } from "@/data/site";
+import { useContent } from "./ContentContext";
+
 import { Reveal, Stagger, StaggerItem } from "./Reveal";
 
 export function ParentNavigator() {
+  const content = useContent();
   const scrollToProgram = (programId: string) => {
     const el = document.querySelector("#programs");
     if (el) {
@@ -46,7 +48,7 @@ export function ParentNavigator() {
         </Reveal>
 
         <Stagger className="mt-10 grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4 max-w-3xl mx-auto" delay={0.1}>
-          {parentOptions.map((option) => (
+          {content.parentOptions.map((option) => (
             <StaggerItem key={option.id}>
               <button
                 onClick={() => scrollToProgram(option.targetProgramId)}

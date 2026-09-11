@@ -1,7 +1,8 @@
 "use client";
 
 import { BookOpen, Sparkles, Users, HeartHandshake } from "lucide-react";
-import { aboutContent } from "@/data/site";
+import { useContent } from "./ContentContext";
+
 import { Reveal, Stagger, StaggerItem } from "./Reveal";
 
 const iconMap: Record<string, React.ElementType> = {
@@ -12,6 +13,7 @@ const iconMap: Record<string, React.ElementType> = {
 };
 
 export function About() {
+  const content = useContent();
   return (
     <section id="about" className="section-padding relative overflow-hidden">
       {/* Декоративная сфера */}
@@ -23,18 +25,18 @@ export function About() {
       <div className="container-max relative z-10">
         <Reveal>
           <p className="text-sm font-semibold uppercase tracking-widest text-brand-warm mb-3">
-            {aboutContent.subtitle}
+            {content.aboutContent.subtitle}
           </p>
           <h2 className="font-display font-extrabold text-3xl sm:text-4xl md:text-5xl text-foreground text-balance max-w-3xl leading-[1.15]">
-            {aboutContent.title}
+            {content.aboutContent.title}
           </h2>
           <p className="mt-6 text-lg text-muted-foreground max-w-2xl leading-relaxed">
-            {aboutContent.intro}
+            {content.aboutContent.intro}
           </p>
         </Reveal>
 
         <Stagger className="mt-12 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-          {aboutContent.principles.map((principle) => {
+          {content.aboutContent.principles.map((principle) => {
             const Icon = iconMap[principle.icon] ?? Sparkles;
             return (
               <StaggerItem key={principle.title}>

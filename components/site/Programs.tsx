@@ -3,7 +3,9 @@
 import Image from "next/image";
 import { motion, useReducedMotion } from "framer-motion";
 import { Backpack, Pencil, Languages, PenLine, BrainCircuit, Drama, House, GraduationCap, PenTool, ArrowRight } from "lucide-react";
-import { programs, type Program } from "@/data/site";
+import { useContent } from "./ContentContext";
+import { type Program } from "@/data/site";
+
 import { Reveal, Stagger, StaggerItem } from "./Reveal";
 
 const iconMap: Record<string, React.ElementType> = {
@@ -19,6 +21,7 @@ const iconMap: Record<string, React.ElementType> = {
 };
 
 export function Programs() {
+  const content = useContent();
   return (
     <section id="programs" className="section-padding bg-brand-cream/50 relative overflow-hidden">
       <div
@@ -40,7 +43,7 @@ export function Programs() {
         </Reveal>
 
         <Stagger className="mt-12 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 lg:gap-6">
-          {programs.map((program) => (
+          {content.programs.map((program) => (
             <StaggerItem key={program.id}>
               <ProgramCard program={program} />
             </StaggerItem>

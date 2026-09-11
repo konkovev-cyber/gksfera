@@ -2,9 +2,11 @@
 
 import Link from "next/link";
 import { Phone, MapPin, MessageCircle } from "lucide-react";
-import { siteConfig, footerLinks } from "@/data/site";
+import { useContent } from "./ContentContext";
+
 
 export function Footer() {
+  const content = useContent();
   const handleNavClick = (
     e: React.MouseEvent<HTMLAnchorElement>,
     href: string
@@ -51,10 +53,10 @@ export function Footer() {
               </div>
             </div>
             <p className="text-sm text-background/70 leading-relaxed max-w-xs">
-              {siteConfig.fullName}
+              {content.siteConfig.fullName}
             </p>
             <p className="mt-4 font-display font-semibold text-base text-brand-warm/90">
-              {siteConfig.tagline}
+              {content.siteConfig.tagline}
             </p>
           </div>
 
@@ -64,7 +66,7 @@ export function Footer() {
               Разделы
             </h3>
             <ul className="space-y-2.5">
-              {footerLinks.navigation.map((item) => (
+              {content.footerLinks.navigation.map((item) => (
                 <li key={item.href}>
                   <Link
                     href={item.href}
@@ -87,27 +89,27 @@ export function Footer() {
               <li className="flex items-start gap-2.5">
                 <MapPin className="w-4 h-4 text-brand-warm flex-shrink-0 mt-0.5" />
                 <span className="text-sm text-background/60 leading-relaxed">
-                  {siteConfig.city}, {siteConfig.address}
+                  {content.siteConfig.city}, {content.siteConfig.address}
                 </span>
               </li>
               <li>
                 <a
-                  href={siteConfig.phoneHref}
+                  href={content.siteConfig.phoneHref}
                   className="flex items-center gap-2.5 text-sm text-background/60 hover:text-brand-warm transition-colors"
                 >
                   <Phone className="w-4 h-4 text-brand-warm flex-shrink-0" />
-                  {siteConfig.phone}
+                  {content.siteConfig.phone}
                 </a>
               </li>
               <li>
                 <a
-                  href={siteConfig.vkUrl}
+                  href={content.siteConfig.vkUrl}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center gap-2.5 text-sm text-background/60 hover:text-brand-warm transition-colors"
                 >
                   <MessageCircle className="w-4 h-4 text-brand-warm flex-shrink-0" />
-                  {siteConfig.vkDisplay}
+                  {content.siteConfig.vkDisplay}
                 </a>
               </li>
             </ul>
@@ -119,7 +121,7 @@ export function Footer() {
               Документы
             </h3>
             <ul className="space-y-2.5">
-              {footerLinks.legal.map((item) => (
+              {content.footerLinks.legal.map((item) => (
                 <li key={item.href}>
                   <Link
                     href={item.href}
@@ -136,7 +138,7 @@ export function Footer() {
         {/* Нижняя полоса */}
         <div className="mt-12 pt-6 border-t border-background/10">
           <p className="text-xs text-background/50 text-center">
-            © {new Date().getFullYear()} {siteConfig.fullName}. Все права защищены.
+            © {new Date().getFullYear()} {content.siteConfig.fullName}. Все права защищены.
           </p>
         </div>
       </div>

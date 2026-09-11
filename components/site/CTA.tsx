@@ -1,10 +1,12 @@
 "use client";
 
 import { ArrowRight, Send } from "lucide-react";
-import { siteConfig } from "@/data/site";
+import { useContent } from "./ContentContext";
+
 import { Reveal } from "./Reveal";
 
 export function CTA() {
+  const content = useContent();
   const scrollTo = (href: string) => {
     const el = document.querySelector(href);
     if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -51,12 +53,12 @@ export function CTA() {
                   Записаться / задать вопрос
                 </button>
                 <a
-                  href={siteConfig.vkUrl}
+                  href={content.siteConfig.vkUrl}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex items-center justify-center gap-2 h-12 sm:h-13 px-7 rounded-full border-2 border-white/40 text-white font-semibold text-base hover:bg-white/10 transition-all"
                 >
-                  Написать во VK
+                  Написать в VK
                   <ArrowRight className="w-5 h-5" />
                 </a>
               </div>

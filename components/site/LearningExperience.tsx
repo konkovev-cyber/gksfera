@@ -9,7 +9,8 @@ import {
   Palette,
   HeartHandshake,
 } from "lucide-react";
-import { learningExperience } from "@/data/site";
+import { useContent } from "./ContentContext";
+
 import { Reveal, Stagger, StaggerItem } from "./Reveal";
 
 const iconMap: Record<string, React.ElementType> = {
@@ -22,6 +23,7 @@ const iconMap: Record<string, React.ElementType> = {
 };
 
 export function LearningExperience() {
+  const content = useContent();
   return (
     <section className="section-padding relative overflow-hidden">
       <div className="container-max">
@@ -30,8 +32,8 @@ export function LearningExperience() {
           <Reveal>
             <div className="relative aspect-[4/3] rounded-3xl overflow-hidden shadow-xl">
               <Image
-                src={learningExperience.image}
-                alt={learningExperience.imageAlt}
+                src={content.learningExperience.image}
+                alt={content.learningExperience.imageAlt}
                 fill
                 sizes="(max-width: 1024px) 100vw, 50vw"
                 className="object-cover"
@@ -45,18 +47,18 @@ export function LearningExperience() {
           <div>
             <Reveal>
               <p className="text-sm font-semibold uppercase tracking-widest text-brand-warm mb-3">
-                {learningExperience.subtitle}
+                {content.learningExperience.subtitle}
               </p>
               <h2 className="font-display font-extrabold text-3xl sm:text-4xl md:text-5xl text-foreground text-balance leading-[1.15]">
-                {learningExperience.title}
+                {content.learningExperience.title}
               </h2>
               <p className="mt-6 text-lg text-muted-foreground leading-relaxed">
-                {learningExperience.intro}
+                {content.learningExperience.intro}
               </p>
             </Reveal>
 
             <Stagger className="mt-8 grid grid-cols-1 sm:grid-cols-2 gap-4" delay={0.1}>
-              {learningExperience.items.map((item) => {
+              {content.learningExperience.items.map((item) => {
                 const Icon = iconMap[item.icon] ?? Lightbulb;
                 return (
                   <StaggerItem key={item.title}>

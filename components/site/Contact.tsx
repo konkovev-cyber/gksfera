@@ -1,13 +1,34 @@
 "use client";
 
+import { useEffect, useRef } from "react";
 import { Phone, MessageCircle, MapPin, Navigation, Clock } from "lucide-react";
-import { siteConfig } from "@/data/site";
+import { useContent } from "./ContentContext";
+
 import { Reveal } from "./Reveal";
 
 export function Contact() {
-  const mapsLink = `https://yandex.ru/maps/?text=${encodeURIComponent(siteConfig.mapQuery)}`;
-  const routeLink = `https://yandex.ru/maps/?rtext=~${encodeURIComponent(siteConfig.mapQuery)}`;
-  const mapEmbed = `https://yandex.ru/map-widget/v1/?text=${encodeURIComponent(siteConfig.mapQuery)}&z=17`;
+  const content = useContent();
+  const mapsLink = `https://yandex.ru/maps/?text=${encodeURIComponent(content.siteConfig.mapQuery)}`;
+  const routeLink = `https://yandex.ru/maps/?rtext=~${encodeURIComponent(content.siteConfig.mapQuery)}`;
+  const mapRef = useRef<HTMLDivElement>(null);
+
+  // Официальный скрипт конструктора карт Яндекса (точное расположение студии).
+  // Созданную скриптом карту (500x400) растягиваем на весь контейнер через CSS.
+  useEffect(() => {
+    const container = mapRef.current;
+    if (!container) return;
+    container.innerHTML = "";
+    const script = document.createElement("script");
+    script.type = "text/javascript";
+    script.charset = "utf-8";
+    script.async = true;
+    script.src =
+      "https://api-maps.yandex.ru/services/constructor/1.0/js/?um=constructor%3Ad3f3eb39182b3e71170e5ef69aed2b44de44fcead1b8d9d1786563aa6328b3fe&width=500&height=400&lang=ru_RU&scroll=true";
+    container.appendChild(script);
+    return () => {
+      container.innerHTML = "";
+    };
+  }, []);
 
   return (
     <section id="contacts" className="section-padding bg-brand-cream/50 relative overflow-hidden">
@@ -27,7 +48,7 @@ export function Contact() {
             <div className="flex flex-col gap-5">
               <div className="bg-card rounded-2xl p-6 border border-border/60">
                 <h3 className="font-display font-bold text-lg text-foreground mb-4">
-                  {siteConfig.fullName}
+                  {content.siteConfig.fullName}
                 </h3>
 
                 <div className="space-y-4">
@@ -38,9 +59,9 @@ export function Contact() {
                     <div>
                       <p className="text-sm text-muted-foreground">Адрес</p>
                       <p className="text-base font-medium text-foreground">
-                        {siteConfig.city}, {siteConfig.address}
+                        {content.siteConfig.city}, {content.siteConfig.address}
                       </p>
-                      <p className="text-xs text-muted-foreground mt-0.5">{siteConfig.addressDetails}</p>
+                      <p className="text-xs text-muted-foreground mt-0.5">{content.siteConfig.addressDetails}</p>
                     </div>
                   </div>
 
@@ -51,10 +72,10 @@ export function Contact() {
                     <div>
                       <p className="text-sm text-muted-foreground">Телефон</p>
                       <a
-                        href={siteConfig.phoneHref}
+                        href={content.siteConfig.phoneHref}
                         className="text-base font-medium text-foreground hover:text-brand-warm transition-colors"
                       >
-                        {siteConfig.phone}
+                        {content.siteConfig.phone}
                       </a>
                     </div>
                   </div>
@@ -66,12 +87,12 @@ export function Contact() {
                     <div>
                       <p className="text-sm text-muted-foreground">Социальная сеть</p>
                       <a
-                        href={siteConfig.vkUrl}
+                        href={content.siteConfig.vkUrl}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="text-base font-medium text-foreground hover:text-brand-warm transition-colors"
                       >
-                        {siteConfig.vkDisplay}
+                        {content.siteConfig.vkDisplay}
                       </a>
                     </div>
                   </div>
@@ -83,7 +104,7 @@ export function Contact() {
                     <div>
                       <p className="text-sm text-muted-foreground">Режим работы</p>
                       <p className="text-base font-medium text-foreground">
-                        {siteConfig.workingHoursShort}
+                        {content.siteConfig.workingHoursShort}
                       </p>
                       <p className="text-xs text-muted-foreground mt-0.5">По предварительной записи</p>
                     </div>
@@ -92,14 +113,14 @@ export function Contact() {
 
                 <div className="mt-6 flex flex-col sm:flex-row gap-3">
                   <a
-                    href={siteConfig.phoneHref}
+                    href={content.siteConfig.phoneHref}
                     className="inline-flex items-center justify-center gap-2 h-11 px-5 rounded-full bg-primary text-primary-foreground font-semibold text-sm hover:bg-primary/90 transition-colors flex-1"
                   >
                     <Phone className="w-4 h-4" />
                     Позвонить
                   </a>
                   <a
-                    href={siteConfig.vkUrl}
+                    href={content.siteConfig.vkUrl}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="inline-flex items-center justify-center gap-2 h-11 px-5 rounded-full border-2 border-border text-foreground font-semibold text-sm hover:border-primary hover:text-primary transition-colors flex-1"
@@ -134,17 +155,16 @@ export function Contact() {
             </div>
           </Reveal>
 
-          {/* Карта */}
+          {/* Карта — конструктор Яндекса */}
           <Reveal delay={0.1}>
-            <div className="relative aspect-square lg:aspect-auto lg:min-h-[420px] rounded-3xl overflow-hidden border border-border/60 shadow-lg">
-              <iframe
-                src={mapEmbed}
-                className="w-full h-full"
-                style={{ border: 0 }}
-                title="Карта — Учебно-развивающая студия «Сфера»"
-                loading="lazy"
-                allowFullScreen
+            <div className="relative w-full h-full min-h-[420px] lg:min-h-0 rounded-3xl overflow-hidden border border-border/60 shadow-lg">
+              <style
+                dangerouslySetInnerHTML={{
+                  __html:
+                    ".ymaps-constructor>iframe{position:absolute!important;inset:0!important;width:100%!important;height:100%!important;border:0!important;}",
+                }}
               />
+              <div ref={mapRef} className="ymaps-constructor absolute inset-0" />
             </div>
           </Reveal>
         </div>

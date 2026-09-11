@@ -1,6 +1,6 @@
 "use client";
 
-import { motion, useReducedMotion } from "framer-motion";
+import { motion } from "framer-motion";
 import { type ReactNode } from "react";
 
 type RevealProps = {
@@ -10,13 +10,13 @@ type RevealProps = {
   className?: string;
 };
 
+/**
+ * Анимации появления при скролле.
+ * Без ветвлений по useReducedMotion — глобальный MotionConfig (reducedMotion="user")
+ * сам отключает движение для пользователей с включённой системной настройкой.
+ * Это устраняет hydration mismatch и гарантирует, что контент всегда видим.
+ */
 export function Reveal({ children, delay = 0, y = 24, className }: RevealProps) {
-  const reduced = useReducedMotion();
-
-  if (reduced) {
-    return <div className={className}>{children}</div>;
-  }
-
   return (
     <motion.div
       className={className}
@@ -37,12 +37,6 @@ type StaggerProps = {
 };
 
 export function Stagger({ children, className, delay = 0 }: StaggerProps) {
-  const reduced = useReducedMotion();
-
-  if (reduced) {
-    return <div className={className}>{children}</div>;
-  }
-
   return (
     <motion.div
       className={className}
@@ -68,12 +62,6 @@ export function StaggerItem({
   children: ReactNode;
   className?: string;
 }) {
-  const reduced = useReducedMotion();
-
-  if (reduced) {
-    return <div className={className}>{children}</div>;
-  }
-
   return (
     <motion.div
       className={className}

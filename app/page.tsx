@@ -13,27 +13,36 @@ import { Contact } from "@/components/site/Contact";
 import { EnrollmentForm } from "@/components/site/EnrollmentForm";
 import { Footer } from "@/components/site/Footer";
 import { MobileCTA } from "@/components/site/MobileCTA";
+import { BackToTop } from "@/components/site/BackToTop";
+import { ScrollProgress } from "@/components/site/ScrollProgress";
+import { getContent } from "@/lib/content";
+import { ContentProvider } from "@/components/site/ContentContext";
 
-export default function Home() {
+export const dynamic = "force-dynamic";
+
+export default async function Home() {
+  const { data, visibility } = await getContent();
   return (
-    <>
+    <ContentProvider value={data}>
+      <ScrollProgress />
       <Header />
       <main>
         <Hero />
-        <About />
-        <Programs />
-        <LearningExperience />
-        <Gallery />
-        <Teachers />
-        <Reviews />
-        <Events />
+        {visibility.about && <About />}
+        {visibility.programs && <Programs />}
+        {visibility.learning && <LearningExperience />}
+        {visibility.gallery && <Gallery />}
+        {visibility.teachers && <Teachers />}
+        {visibility.reviews && <Reviews />}
+        {visibility.events && <Events />}
         <ParentNavigator />
-        <CTA />
-        <EnrollmentForm />
-        <Contact />
+        {visibility.cta && <CTA />}
+        {visibility.enrollment && <EnrollmentForm />}
+        {visibility.contacts && <Contact />}
       </main>
       <Footer />
       <MobileCTA />
-    </>
+      <BackToTop />
+    </ContentProvider>
   );
 }

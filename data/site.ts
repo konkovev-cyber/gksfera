@@ -30,6 +30,7 @@ export type GalleryItem = {
   src: string;
   alt: string;
   span?: "tall" | "wide" | "normal";
+  pos?: string;
 };
 
 export type EventItem = {
@@ -39,6 +40,7 @@ export type EventItem = {
   description: string;
   image: string;
   imageAlt: string;
+  pos?: string;
 };
 
 export type ParentOption = {
@@ -77,14 +79,14 @@ export const siteConfig = {
 export const heroContent = {
   badge: "Учебно-развивающая студия · Горячий Ключ",
   title: "Место, где интересно учиться и хочется развиваться",
+  highlight: "интересно",
   tagline: "Лучшее время — сейчас, лучшее место — здесь!",
   description:
     "Занятия для дошкольников и школьников: подготовка к школе, помощь в учёбе, английский язык, творчество, театр и другие развивающие направления.",
   primaryCta: "Записаться в «Сферу»",
   secondaryCta: "Посмотреть направления",
-  image:
-    "https://images.pexels.com/photos/8618068/pexels-photo-8618068.jpeg?auto=compress&cs=tinysrgb&w=1200",
-  imageAlt: "Дети занимаются в светлой учебной студии",
+  image: "/images/PF6A7622_resized.jpg",
+  imageAlt: "Дети занимаются в учебной студии «Сфера»",
 };
 
 export const aboutContent = {
@@ -124,9 +126,8 @@ export const programs: Program[] = [
     ageRange: "5–7 лет · 1 или 2 года",
     description:
       "Для будущих первоклассников. Помогаем ребёнку уверенно подойти к школьному порогу: чтение, письмо, счёт, развитие внимания и усидчивости. Программа рассчитана на 1 или 2 года.",
-    image:
-      "https://images.pexels.com/photos/8087864/pexels-photo-8087864.jpeg?auto=compress&cs=tinysrgb&w=800",
-    imageAlt: "Дети занимаются с карточками букв",
+    image: "/images/PF6A7648_resized.jpg",
+    imageAlt: "Подготовка к школе в студии «Сфера»",
     icon: "Backpack",
     featured: true,
   },
@@ -136,9 +137,8 @@ export const programs: Program[] = [
     ageRange: "7–10 лет",
     description:
       "Поддержка по ключевым предметам для учеников начальной школы. Помогаем разобраться в материале, восполнить пробелы и наладить отношения с учёбой.",
-    image:
-      "https://images.pexels.com/photos/5621962/pexels-photo-5621962.jpeg?auto=compress&cs=tinysrgb&w=800",
-    imageAlt: "Школьники работают за партой вместе",
+    image: "/images/PF6A7681_resized.jpg",
+    imageAlt: "Занятия в начальной школе в «Сфере»",
     icon: "Pencil",
   },
   {
@@ -147,9 +147,8 @@ export const programs: Program[] = [
     ageRange: "11–15 лет",
     description:
       "Занятия для учеников средней школы: укрепление знаний, устранение пробелов и рост успеваемости по ключевым предметам.",
-    image:
-      "https://images.pexels.com/photos/8423410/pexels-photo-8423410.jpeg?auto=compress&cs=tinysrgb&w=800",
-    imageAlt: "Школьницы занимаются вместе с книгами",
+    image: "/images/PF6A7844_resized.jpg",
+    imageAlt: "Занятия для средней школы в «Сфере»",
     icon: "GraduationCap",
   },
   {
@@ -158,9 +157,8 @@ export const programs: Program[] = [
     ageRange: "1–9 классы",
     description:
       "Изучение языка в понятной и интересной форме. Игры, диалоги, живая практика — без скучной зубрёжки.",
-    image:
-      "https://images.pexels.com/photos/7156130/pexels-photo-7156130.jpeg?auto=compress&cs=tinysrgb&w=800",
-    imageAlt: "Учитель занимается с детьми с карточками",
+    image: "/images/PF6A8076_resized.jpg",
+    imageAlt: "Изучение английского языка в «Сфере»",
     icon: "Languages",
   },
   {
@@ -169,9 +167,8 @@ export const programs: Program[] = [
     ageRange: "5–10 лет",
     description:
       "Коррекция почерка. Работа над красивым, уверенным и аккуратным письмом. Развиваем мелкую моторику и привычку к аккуратности.",
-    image:
-      "https://images.pexels.com/photos/5905865/pexels-photo-5905865.jpeg?auto=compress&cs=tinysrgb&w=800",
-    imageAlt: "Дети пишут в тетрадях за столом",
+    image: "/images/PF6A8076_resized.jpg",
+    imageAlt: "Чистописание и развитие мелкой моторики",
     icon: "PenLine",
   },
   {
@@ -180,9 +177,8 @@ export const programs: Program[] = [
     ageRange: "6–15 лет",
     description:
       "Освоение сценического мастерства, создание спектаклей. Сцена, творчество, речь, взаимодействие и уверенность.",
-    image:
-      "https://images.pexels.com/photos/5801571/pexels-photo-5801571.jpeg?auto=compress&cs=tinysrgb&w=800",
-    imageAlt: "Дети в театральных костюмах на сцене",
+    image: "/images/PF6A8152_resized.jpg",
+    imageAlt: "Театральные занятия в студии «Сфера»",
     icon: "Drama",
   },
   {
@@ -191,9 +187,8 @@ export const programs: Program[] = [
     ageRange: "8–15 лет",
     description:
       "Журналистика и риторика. Развиваем умение формулировать мысли, рассказывать истории и выступать перед аудиторией.",
-    image:
-      "https://images.pexels.com/photos/8087862/pexels-photo-8087862.jpeg?auto=compress&cs=tinysrgb&w=800",
-    imageAlt: "Дети занимаются с развивающими материалами",
+    image: "/images/PF6A8218_resized.jpg",
+    imageAlt: "Писательский клуб в «Сфере»",
     icon: "PenTool",
   },
   {
@@ -202,9 +197,8 @@ export const programs: Program[] = [
     ageRange: "по запросу",
     description:
       "Консультация и рекомендации по нейропсихологической коррекции обучения. Уточняйте детали по телефону.",
-    image:
-      "https://images.pexels.com/photos/8466903/pexels-photo-8466903.jpeg?auto=compress&cs=tinysrgb&w=800",
-    imageAlt: "Дети занимаются в дошкольной группе",
+    image: "/images/PF6A8218_resized.jpg",
+    imageAlt: "Нейропсихологическая коррекция в «Сфере»",
     icon: "BrainCircuit",
   },
 ];
@@ -222,51 +216,51 @@ export const learningExperience = {
     { icon: "Palette", title: "Творческие проекты", text: "Соединяем знания с творчеством — от рисования до театра." },
     { icon: "HeartHandshake", title: "Внимание к ребёнку", text: "Стараемся понять, что интересно и что получается лучше всего." },
   ],
-  image:
-    "https://images.pexels.com/photos/8364065/pexels-photo-8364065.jpeg?auto=compress&cs=tinysrgb&w=1200",
-  imageAlt: "Дети собрались вокруг педагога в светлой аудитории",
+  image: "/images/PF6A7648_resized.jpg",
+  imageAlt: "Атмосфера занятий в студии «Сфера»",
 };
 
 export const gallery: GalleryItem[] = [
   {
-    src: "https://images.pexels.com/photos/8618068/pexels-photo-8618068.jpeg?auto=compress&cs=tinysrgb&w=900",
-    alt: "Дети внимательно занимаются в классе",
+    src: "/images/PF6A7622_resized.jpg",
+    alt: "Дети занимаются в учебной студии «Сфера»",
     span: "tall",
   },
   {
-    src: "https://images.pexels.com/photos/8467265/pexels-photo-8467265.jpeg?auto=compress&cs=tinysrgb&w=900",
-    alt: "Учительница помогает детям на творческом занятии",
+    src: "/images/PF6A7648_resized.jpg",
+    alt: "Занятия с педагогом в «Сфере»",
     span: "wide",
   },
   {
-    src: "https://images.pexels.com/photos/8363052/pexels-photo-8363052.jpeg?auto=compress&cs=tinysrgb&w=600",
-    alt: "Дети тянут руки на уроке",
+    src: "/images/PF6A7681_resized.jpg",
+    alt: "Дети внимательно слушают на уроке",
     span: "normal",
   },
   {
-    src: "https://images.pexels.com/photos/5801564/pexels-photo-5801564.jpeg?auto=compress&cs=tinysrgb&w=600",
-    alt: "Дети в театральных костюмах на сцене",
+    src: "/images/PF6A7844_resized.jpg",
+    alt: "Групповые занятия в студии",
     span: "normal",
   },
   {
-    src: "https://images.pexels.com/photos/8088099/pexels-photo-8088099.jpeg?auto=compress&cs=tinysrgb&w=900",
-    alt: "Светлый интерьер учебного класса",
+    src: "/images/PF6A7999_resized.jpg",
+    alt: "Творческие занятия в «Сфере»",
     span: "wide",
+    pos: "50% 20%",
   },
   {
-    src: "https://images.pexels.com/photos/8467277/pexels-photo-8467277.jpeg?auto=compress&cs=tinysrgb&w=600",
-    alt: "Девочки показывают свои рисунки",
+    src: "/images/PF6A8076_resized.jpg",
+    alt: "Дети работают за партами",
     span: "normal",
   },
   {
-    src: "https://images.pexels.com/photos/8613118/pexels-photo-8613118.jpeg?auto=compress&cs=tinysrgb&w=600",
-    alt: "Дети поднимают руки на занятии",
+    src: "/images/PF6A8152_resized.jpg",
+    alt: "Театральные постановки в студии",
     span: "normal",
   },
   {
-    src: "https://images.pexels.com/photos/8088100/pexels-photo-8088100.jpeg?auto=compress&cs=tinysrgb&w=900",
-    alt: "Девочка уверенно позирует в классе",
-    span: "tall",
+    src: "/images/PF6A8162_resized.jpg",
+    alt: "Уютная атмосфера учебного класса",
+    span: "normal",
   },
 ];
 
@@ -321,7 +315,7 @@ export const events: EventItem[] = [
     date: "2025-12-15",
     title: "Название события",
     description: "Короткое описание события — спектакль, праздник, мастер-класс или набор группы.",
-    image: "https://images.pexels.com/photos/5801571/pexels-photo-5801571.jpeg?auto=compress&cs=tinysrgb&w=800",
+    image: "/images/PF6A8152_resized.jpg",
     imageAlt: "Театральная постановка",
   },
   {
@@ -329,15 +323,16 @@ export const events: EventItem[] = [
     date: "2025-12-20",
     title: "Название события",
     description: "Короткое описание события.",
-    image: "https://images.pexels.com/photos/8467277/pexels-photo-8467277.jpeg?auto=compress&cs=tinysrgb&w=800",
+    image: "/images/PF6A7999_resized.jpg",
     imageAlt: "Творческое занятие",
+    pos: "50% 20%",
   },
   {
     id: "event-3",
     date: "2026-01-10",
     title: "Название события",
     description: "Короткое описание события.",
-    image: "https://images.pexels.com/photos/8363052/pexels-photo-8363052.jpeg?auto=compress&cs=tinysrgb&w=800",
+    image: "/images/PF6A7681_resized.jpg",
     imageAlt: "Занятие в студии",
   },
 ];

@@ -2,12 +2,15 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { Menu, X, Phone } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { navItems, siteConfig } from "@/data/site";
+import { useContent } from "./ContentContext";
+
 import { cn } from "@/lib/utils";
 
 export function Header() {
+  const content = useContent();
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
 
@@ -61,21 +64,21 @@ export function Header() {
             aria-label="Сфера — на главную"
           >
             <Logo scrolled={scrolled} />
-            <div className="hidden sm:flex flex-col leading-none">
+            <div className="hidden sm:flex flex-col leading-tight">
               <span className="font-display font-extrabold text-xl tracking-tight text-foreground">
                 СФЕРА
               </span>
-              <span className="text-[10px] text-muted-foreground mt-0.5 font-medium">
-                Студия · Горячий Ключ
+              <span className="text-[10px] md:text-[11px] text-muted-foreground mt-0.5 font-medium">
+                Учебно-развивающая студия
               </span>
             </div>
           </Link>
 
           {/* Десктоп-меню */}
           <nav className="hidden lg:flex items-center gap-1">
-            {navItems
-              .filter((item) => !item.show || item.show())
-              .map((item) => (
+            {content.navItems
+              .filter((item: any) => !item.show || item.show())
+              .map((item: any) => (
                 <Link
                   key={item.href}
                   href={item.href}
@@ -90,12 +93,12 @@ export function Header() {
           {/* Кнопка записи + телефон */}
           <div className="flex items-center gap-2 sm:gap-3">
             <a
-              href={siteConfig.phoneHref}
+              href={content.siteConfig.phoneHref}
               className="hidden xl:flex items-center gap-2 text-sm font-medium text-foreground/70 hover:text-primary transition-colors"
               aria-label="Позвонить в студию"
             >
               <Phone className="w-4 h-4" />
-              {siteConfig.phone}
+              {content.siteConfig.phone}
             </a>
             <Link
               href="#enrollment"
@@ -140,12 +143,12 @@ export function Header() {
               <div className="flex items-center justify-between p-5 border-b border-border">
                 <Link href="/" className="flex items-center gap-3">
                   <Logo scrolled={false} />
-                  <div className="flex flex-col leading-none">
+                  <div className="flex flex-col leading-tight">
                     <span className="font-display font-extrabold text-lg tracking-tight text-foreground">
                       СФЕРА
                     </span>
                     <span className="text-[10px] text-muted-foreground mt-0.5">
-                      Студия · Горячий Ключ
+                      Учебно-развивающая студия
                     </span>
                   </div>
                 </Link>
@@ -160,9 +163,9 @@ export function Header() {
 
               <nav className="flex-1 overflow-y-auto p-5">
                 <ul className="space-y-1">
-                  {navItems
-                    .filter((item) => !item.show || item.show())
-                    .map((item, i) => (
+                  {content.navItems
+                    .filter((item: any) => !item.show || item.show())
+                    .map((item: any, i: number) => (
                       <motion.li
                         key={item.href}
                         initial={{ opacity: 0, x: 20 }}
@@ -183,11 +186,11 @@ export function Header() {
 
               <div className="p-5 border-t border-border space-y-3">
                 <a
-                  href={siteConfig.phoneHref}
+                  href={content.siteConfig.phoneHref}
                   className="flex items-center justify-center gap-2 w-full h-12 rounded-xl border-2 border-border font-semibold text-foreground hover:bg-accent transition-colors"
                 >
                   <Phone className="w-5 h-5" />
-                  {siteConfig.phone}
+                  {content.siteConfig.phone}
                 </a>
                 <Link
                   href="#enrollment"
@@ -208,50 +211,14 @@ export function Header() {
 function Logo({ scrolled }: { scrolled: boolean }) {
   return (
     <div className="relative w-10 h-10 md:w-11 md:h-11 flex-shrink-0">
-      <svg
-        viewBox="0 0 44 44"
-        fill="none"
-        className="w-full h-full transition-transform duration-300 group-hover:scale-105"
-        aria-hidden="true"
-      >
-        {/* Внешняя сфера */}
-        <circle
-          cx="22"
-          cy="22"
-          r="20"
-          stroke="hsl(var(--brand-warm))"
-          strokeWidth="2"
-          opacity="0.3"
-        />
-        {/* Орбита */}
-        <ellipse
-          cx="22"
-          cy="22"
-          rx="20"
-          ry="8"
-          stroke="hsl(var(--brand-teal))"
-          strokeWidth="1.5"
-          opacity="0.4"
-          transform="rotate(-30 22 22)"
-        />
-        {/* Внутренний круг */}
-        <circle
-          cx="22"
-          cy="22"
-          r="13"
-          fill="hsl(var(--brand-warm))"
-        />
-        {/* Буква С в круге */}
-        <path
-          d="M27 18.5a6 6 0 1 0 0 7"
-          stroke="white"
-          strokeWidth="2.5"
-          strokeLinecap="round"
-          fill="none"
-        />
-        {/* Точка-орбита */}
-        <circle cx="38" cy="14" r="2.5" fill="hsl(var(--brand-teal))" />
-      </svg>
+      <Image
+        src="/images/logo.png"
+        alt="Логотип Сфера"
+        width={44}
+        height={44}
+        className="w-full h-full object-contain transition-transform duration-300 group-hover:scale-105"
+        priority
+      />
     </div>
   );
 }
