@@ -1,8 +1,9 @@
 "use client";
 
+import Link from "next/link";
 import { Reveal } from "./Reveal";
 import { useContent } from "./ContentContext";
-import { Calendar, ExternalLink } from "lucide-react";
+import { Calendar, ArrowRight } from "lucide-react";
 
 function formatDate(iso: string): string {
   try {
@@ -37,10 +38,8 @@ export function News() {
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
           {news.slice(0, 6).map((item, i) => (
             <Reveal key={item.vk_post_id ?? i} delay={i * 0.05}>
-              <a
-                href={item.source_url || "#"}
-                target="_blank"
-                rel="noopener noreferrer"
+              <Link
+                href={`/news/${item.vk_post_id}`}
                 className="group block bg-card rounded-2xl border border-border/60 overflow-hidden hover:shadow-lg transition-shadow h-full"
               >
                 {item.image_url && (
@@ -57,7 +56,7 @@ export function News() {
                 <div className="p-5">
                   <div className="flex items-center gap-2 text-xs text-muted-foreground mb-2">
                     <Calendar className="w-3.5 h-3.5" />
-                    {formatDate(item.published_at)}
+                    <time dateTime={item.published_at.slice(0, 10)}>{formatDate(item.published_at)}</time>
                   </div>
                   <h3 className="font-display font-bold text-foreground text-sm leading-snug mb-2 group-hover:text-brand-warm transition-colors line-clamp-2">
                     {item.title}
@@ -68,13 +67,26 @@ export function News() {
                     </p>
                   )}
                   <div className="mt-3 flex items-center gap-1.5 text-xs font-medium text-brand-warm opacity-0 group-hover:opacity-100 transition-opacity">
-                    Читать в VK <ExternalLink className="w-3 h-3" />
+                    Читать полностью <ArrowRight className="w-3 h-3" />
                   </div>
                 </div>
-              </a>
+              </Link>
             </Reveal>
           ))}
         </div>
+
+        {news.length > 6 && (
+          <Reveal>
+            <div className="text-center mt-10">
+              <Link
+                href="/news"
+                className="inline-flex items-center gap-2 h-11 px-6 rounded-full border-2 border-border bg-card text-sm font-semibold hover:border-brand-warm hover:text-brand-warm transition-colors"
+              >
+                Все новости <ArrowRight className="w-4 h-4" />
+              </Link>
+            </div>
+          </Reveal>
+        )}
       </div>
     </section>
   );

@@ -360,7 +360,7 @@ export const navItems = [
   { label: "О студии", href: "#about" },
   { label: "Направления", href: "#programs" },
   { label: "Отзывы", href: "#reviews", show: () => siteConfig.showReviews },
-  { label: "Жизнь Сферы", href: "#events", show: () => siteConfig.showEvents },
+  { label: "Новости", href: "/news" },
   { label: "Контакты", href: "#contacts" },
 ];
 
@@ -369,7 +369,7 @@ export const footerLinks = {
     { label: "О студии", href: "#about" },
     { label: "Направления", href: "#programs" },
     { label: "Отзывы", href: "#reviews" },
-    { label: "Жизнь Сферы", href: "#events" },
+    { label: "Новости", href: "/news" },
     { label: "Контакты", href: "#contacts" },
   ],
   legal: [

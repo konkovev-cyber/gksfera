@@ -1,24 +1,15 @@
 "use client";
 
+import Link from "next/link";
 import Image from "next/image";
 import { motion, useReducedMotion } from "framer-motion";
-import { Backpack, Pencil, Languages, PenLine, BrainCircuit, Drama, House, GraduationCap, PenTool, ArrowRight } from "lucide-react";
+import { Backpack, ArrowRight } from "lucide-react";
 import { useContent } from "./ContentContext";
 import { type Program } from "@/data/site";
+import { iconMap } from "./program-icons";
+import { slugify } from "@/lib/utils";
 
 import { Reveal, Stagger, StaggerItem } from "./Reveal";
-
-const iconMap: Record<string, React.ElementType> = {
-  Backpack,
-  Pencil,
-  Languages,
-  PenLine,
-  BrainCircuit,
-  Drama,
-  House,
-  GraduationCap,
-  PenTool,
-};
 
 export function Programs() {
   const content = useContent();
@@ -101,13 +92,13 @@ function ProgramCard({ program }: { program: Program }) {
           >
             Записаться
           </button>
-          <button
-            onClick={scrollToEnrollment}
+          <Link
+            href={`/programs/${slugify(program.title)}`}
             className="inline-flex items-center gap-1 text-sm font-medium text-foreground/60 hover:text-brand-warm transition-colors"
           >
             Подробнее
             <ArrowRight className="w-4 h-4" />
-          </button>
+          </Link>
         </div>
       </div>
     </motion.article>

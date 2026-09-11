@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import { Menu, X, Phone } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useContent } from "./ContentContext";
@@ -11,6 +12,7 @@ import { cn } from "@/lib/utils";
 
 export function Header() {
   const content = useContent();
+  const router = useRouter();
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
 
@@ -41,6 +43,9 @@ export function Header() {
       const el = document.querySelector(href);
       if (el) {
         el.scrollIntoView({ behavior: "smooth", block: "start" });
+      } else {
+        // Секции нет на текущей странице — ведём на главную к секции
+        router.push(`/${href}`);
       }
       setMobileOpen(false);
     }

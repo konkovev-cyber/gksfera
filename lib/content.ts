@@ -175,3 +175,47 @@ export async function getContent(): Promise<{
 
   return { data: data as SiteData, visibility };
 }
+
+function mapNewsRow(n: Record<string, unknown>): NewsItem {
+  return {
+    vk_post_id: String(n.vk_post_id ?? ""),
+    title: String(n.title ?? ""),
+    content: String(n.content ?? ""),
+    excerpt: String(n.excerpt ?? ""),
+    image_url: n.image_url ? String(n.image_url) : null,
+    source_url: String(n.source_url ?? ""),
+    published_at: String(n.published_at ?? ""),
+  };
+}
+
+/** Все видимые новости (для страницы /news). */
+export async function getAllNews(): Promise<NewsItem[]> {
+  try {
+    const db = service();
+    const { data } = await db
+      .from("news")
+      .select("vk_post_id,title,content,excerpt,image_url,source_url,published_at")
+      .eq("visible", true)
+      .order("published_at", { ascending: false })
+      .limit(50);
+    return (data ?? []).map(mapNewsRow);
+  } catch {
+    return [];
+  }
+}
+
+/** Одна новость по vk_post_id (для страницы /news/[id]). */
+export async function getNewsByVkId(id: string): Promise<NewsItem | null> {
+  try {
+    const db = service();
+    const { data } = await db
+      .from("news")
+      .select("vk_post_id,title,content,excerpt,image_url,source_url,published_at")
+      .eq("vk_post_id", id)
+      .eq("visible", true)
+      .maybeSingle();
+    return data ? mapNewsRow(data as Record<string, unknown>) : null;
+  } catch {
+    return null;
+  }
+}
