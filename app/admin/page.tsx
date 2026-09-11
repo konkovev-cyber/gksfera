@@ -5,8 +5,9 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import {
   Loader2, Save, Upload, Trash2, LogOut, ArrowUp, ArrowDown,
   Settings, Image as ImageIcon, LayoutDashboard, Inbox, School,
-  Eye, Star, BookOpen, Search, Download, Plus, Newspaper, RefreshCw, ExternalLink,
+  Eye, Star, BookOpen, Search, Download, Plus, Newspaper, RefreshCw, ExternalLink, X,
 } from "lucide-react";
+import { gallery as defaultGallery } from "@/data/site";
 
 type Tab = "settings" | "hero" | "visibility" | "programs" | "gallery" |
   "reviews" | "learning" | "news" | "seo" | "io" | "inbox";
@@ -93,6 +94,7 @@ export default function AdminPage() {
   const [news, setNews] = useState<any[]>([]);
   const [syncing, setSyncing] = useState(false);
   const [vkDomain, setVkDomain] = useState("");
+  const [pickerFor, setPickerFor] = useState<null | { kind: "program" | "hero" | "step"; index: number }>(null);
 
   const flash = (t: string) => { setMsg(t); setTimeout(() => setMsg(""), 2500); };
 
@@ -245,6 +247,31 @@ export default function AdminPage() {
     setNews((prev) => prev.filter((n) => n.id !== id));
   };
 
+  const applyPhoto = (src: string) => {
+    if (!pickerFor) return;
+    const { kind, index } = pickerFor;
+    if (kind === "program") {
+      setPrograms((prev) => prev.map((x, j) => (j === index ? { ...x, image: src } : x)));
+    } else if (kind === "hero") {
+      setHero((prev) => ({ ...prev, image: src }));
+    } else if (kind === "step") {
+      setLearning((p) => ({ ...p, steps: p.steps.map((s, j) => (j === index ? { ...s, image: src } : s)) }));
+    }
+    setPickerFor(null);
+    flash("Фото выбрано ✓");
+  };
+
+  const pickBtn = (kind: "program" | "hero" | "step", index: number) => (
+    <button
+      type="button"
+      onClick={() => setPickerFor({ kind, index })}
+      className="h-10 px-3 rounded-lg border border-border hover:bg-accent inline-flex items-center gap-1.5 text-sm shrink-0"
+      title="Выбрать из загруженных фото"
+    >
+      <ImageIcon className="w-4 h-4" /> Выбрать
+    </button>
+  );
+
   if (authed === null) return <div className="min-h-screen flex items-center justify-center"><Loader2 className="w-6 h-6 animate-spin text-brand-warm" /></div>;
 
   if (!authed) return (
@@ -308,7 +335,14 @@ export default function AdminPage() {
           <div className="grid sm:grid-cols-2 gap-4 bg-card rounded-2xl border border-border/60 p-5">
             {Object.entries(hero).filter(([, v]) => typeof v === "string").map(([k, v]) => (
               <Field key={k} label={HERO_LABELS[k] ?? k}>
-                <input className={inputCls} value={String(v ?? "")} onChange={(e) => setHero((p) => ({ ...p, [k]: e.target.value }))} />
+                {k === "image" ? (
+                  <div className="flex gap-2">
+                    <input className={inputCls + " flex-1"} value={String(v ?? "")} onChange={(e) => setHero((p) => ({ ...p, [k]: e.target.value }))} />
+                    {pickBtn("hero", 0)}
+                  </div>
+                ) : (
+                  <input className={inputCls} value={String(v ?? "")} onChange={(e) => setHero((p) => ({ ...p, [k]: e.target.value }))} />
+                )}
               </Field>
             ))}
             <div className="sm:col-span-2"><button onClick={saveSettings} disabled={saving} className={btnCls}>{saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />} Сохранить</button></div>
@@ -336,7 +370,12 @@ export default function AdminPage() {
                 <Field label="Название"><input className={inputCls} value={p.title ?? ""} onChange={(e) => setPrograms((prev) => prev.map((x, j) => j === i ? { ...x, title: e.target.value } : x))} /></Field>
                 <Field label="Возраст"><input className={inputCls} value={p.age_range ?? ""} onChange={(e) => setPrograms((prev) => prev.map((x, j) => j === i ? { ...x, age_range: e.target.value } : x))} /></Field>
                 <div className="sm:col-span-2"><Field label="Описание"><textarea rows={2} className={inputCls + " h-auto py-2"} value={p.description ?? ""} onChange={(e) => setPrograms((prev) => prev.map((x, j) => j === i ? { ...x, description: e.target.value } : x))} /></Field></div>
-                <Field label="Фото URL"><input className={inputCls} value={p.image ?? ""} onChange={(e) => setPrograms((prev) => prev.map((x, j) => j === i ? { ...x, image: e.target.value } : x))} /></Field>
+                <div className="sm:col-span-2"><Field label="Фото URL">
+                  <div className="flex gap-2">
+                    <input className={inputCls + " flex-1"} value={p.image ?? ""} onChange={(e) => setPrograms((prev) => prev.map((x, j) => j === i ? { ...x, image: e.target.value } : x))} />
+                    {pickBtn("program", i)}
+                  </div>
+                </Field></div>
                 <div className="flex items-end gap-4">
                   <label className="inline-flex items-center gap-2 text-sm h-10"><input type="checkbox" checked={p.visible !== false} onChange={(e) => setPrograms((prev) => prev.map((x, j) => j === i ? { ...x, visible: e.target.checked } : x))} className="w-4 h-4" />показывать</label>
                   <button onClick={() => move(programs, i, -1, setPrograms)} className="p-2 rounded-lg hover:bg-accent"><ArrowUp className="w-4 h-4" /></button>
@@ -412,7 +451,12 @@ export default function AdminPage() {
               <div key={i} className="bg-card rounded-2xl border border-border/60 p-4 space-y-3">
                 <Field label={`Шаг ${i + 1} — заголовок`}><input className={inputCls} value={step.title ?? ""} onChange={(e) => setLearning((p) => ({ ...p, steps: p.steps.map((s, j) => j === i ? { ...s, title: e.target.value } : s) }))} /></Field>
                 <Field label="Описание шага"><textarea rows={2} className={inputCls + " h-auto py-2"} value={step.description ?? ""} onChange={(e) => setLearning((p) => ({ ...p, steps: p.steps.map((s, j) => j === i ? { ...s, description: e.target.value } : s) }))} /></Field>
-                <Field label="Фото URL"><input className={inputCls} value={step.image ?? ""} onChange={(e) => setLearning((p) => ({ ...p, steps: p.steps.map((s, j) => j === i ? { ...s, image: e.target.value } : s) }))} /></Field>
+                <Field label="Фото URL">
+                  <div className="flex gap-2">
+                    <input className={inputCls + " flex-1"} value={step.image ?? ""} onChange={(e) => setLearning((p) => ({ ...p, steps: p.steps.map((s, j) => j === i ? { ...s, image: e.target.value } : s) }))} />
+                    {pickBtn("step", i)}
+                  </div>
+                </Field>
                 <div className="flex gap-2">
                   <button onClick={() => setLearning((p) => { const s = [...p.steps]; const j = i - 1; if (j >= 0) { [s[i], s[j]] = [s[j], s[i]]; } return { ...p, steps: s }; })} className="p-2 rounded-lg hover:bg-accent"><ArrowUp className="w-4 h-4" /></button>
                   <button onClick={() => setLearning((p) => { const s = [...p.steps]; const j = i + 1; if (j < s.length) { [s[i], s[j]] = [s[j], s[i]]; } return { ...p, steps: s }; })} className="p-2 rounded-lg hover:bg-accent"><ArrowDown className="w-4 h-4" /></button>
@@ -542,6 +586,52 @@ export default function AdminPage() {
                 </div>
               </div>
             ))}
+          </div>
+        )}
+
+        {/* ─── Пикер фото ─── */}
+        {pickerFor && (
+          <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4" onClick={() => setPickerFor(null)}>
+            <div className="bg-card rounded-2xl border border-border p-5 max-w-2xl w-full max-h-[80vh] overflow-auto" onClick={(e) => e.stopPropagation()}>
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="font-display font-bold text-base">Выберите фото</h3>
+                <button onClick={() => setPickerFor(null)} className="p-1.5 rounded-lg hover:bg-accent text-muted-foreground" title="Закрыть">
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+              {photos.length === 0 && defaultGallery.length === 0 ? (
+                <p className="text-sm text-muted-foreground py-6 text-center">
+                  Сначала загрузите фото во вкладке «Галерея» — потом их можно будет выбрать здесь.
+                </p>
+              ) : (
+                <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
+                  {photos.map((ph) => (
+                    <button
+                      key={ph.id}
+                      type="button"
+                      onClick={() => applyPhoto(ph.src)}
+                      className={"group rounded-xl overflow-hidden border-2 transition-colors " + (ph.src === (pickerFor.kind === "hero" ? hero.image : "") ? "border-brand-warm" : "border-transparent hover:border-brand-warm")}
+                      title={ph.src}
+                    >
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={ph.src} alt="" className="w-full aspect-square object-cover" />
+                    </button>
+                  ))}
+                  {defaultGallery.map((g, gi) => (
+                    <button
+                      key={"static-" + gi}
+                      type="button"
+                      onClick={() => applyPhoto(g.src)}
+                      className="group rounded-xl overflow-hidden border-2 border-transparent hover:border-brand-warm transition-colors"
+                      title={g.src}
+                    >
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={g.src} alt="" className="w-full aspect-square object-cover" />
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
         )}
       </div>
