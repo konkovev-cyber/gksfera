@@ -18,6 +18,16 @@ export type Review = {
   childInfo?: string;
 };
 
+export type NewsItem = {
+  vk_post_id: string;
+  title: string;
+  content: string;
+  excerpt: string;
+  image_url: string | null;
+  source_url: string;
+  published_at: string;
+};
+
 export type Teacher = {
   id: string;
   name: string;
@@ -379,3 +389,5 @@ export const enrollmentInterests = [
   "Нейропсихологическая коррекция",
   "Пока не знаю — нужна консультация",
 ];
+
+export const news: NewsItem[] = [];

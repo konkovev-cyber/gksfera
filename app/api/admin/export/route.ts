@@ -43,6 +43,12 @@ export async function GET() {
     .order("sort_order", { ascending: true })
     .order("id", { ascending: true });
 
+  // Все новости
+  const { data: news } = await db
+    .from("news")
+    .select("*")
+    .order("published_at", { ascending: false });
+
   return NextResponse.json({
     version: "sfera-export-1.0",
     exportedAt: new Date().toISOString(),
@@ -53,6 +59,7 @@ export async function GET() {
     photos: photos ?? [],
     programs: programs ?? [],
     reviews: reviews ?? [],
+    news: news ?? [],
   });
 }
 
@@ -154,6 +161,26 @@ export async function POST(req: NextRequest) {
           rating: Number(r.rating ?? 5),
           visible: r.visible !== false,
           sort_order: Number(r.sort_order ?? i + 1),
+        }))
+      );
+    }
+  }
+
+  // news: очистить и вставить заново
+  const news = body.news as Record<string, unknown>[] | undefined;
+  if (Array.isArray(news)) {
+    await db.from("news").delete().neq("id", 0);
+    if (news.length > 0) {
+      await db.from("news").insert(
+        news.map((n) => ({
+          vk_post_id: n.vk_post_id ? String(n.vk_post_id) : null,
+          title: String(n.title ?? ""),
+          content: String(n.content ?? ""),
+          excerpt: String(n.excerpt ?? ""),
+          image_url: n.image_url ? String(n.image_url) : null,
+          source_url: n.source_url ? String(n.source_url) : null,
+          published_at: n.published_at ? String(n.published_at) : new Date().toISOString(),
+          visible: n.visible !== false,
         }))
       );
     }

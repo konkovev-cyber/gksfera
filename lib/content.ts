@@ -1,6 +1,6 @@
 import { createClient } from "@supabase/supabase-js";
 import * as defaults from "@/data/site";
-import type { Program, GalleryItem, Review } from "@/data/site";
+import type { Program, GalleryItem, Review, NewsItem } from "@/data/site";
 
 export type SiteData = typeof defaults;
 
@@ -10,6 +10,7 @@ export type Visibility = {
   learning: boolean;
   gallery: boolean;
   reviews: boolean;
+  news: boolean;
   teachers: boolean;
   events: boolean;
   cta: boolean;
@@ -47,6 +48,7 @@ export async function getContent(): Promise<{
     parentOptions: [...defaults.parentOptions],
     navItems: [...defaults.navItems],
     enrollmentInterests: [...defaults.enrollmentInterests],
+    news: [...defaults.news] as NewsItem[],
   };
 
   const visibility: Visibility = {
@@ -55,6 +57,7 @@ export async function getContent(): Promise<{
     learning: true,
     gallery: true,
     reviews: defaults.siteConfig.showReviews,
+    news: true,
     teachers: defaults.siteConfig.showTeachers,
     events: defaults.siteConfig.showEvents,
     cta: true,
@@ -64,7 +67,7 @@ export async function getContent(): Promise<{
 
   try {
     const db = service();
-    const [settingsRes, photosRes, progsRes, reviewsRes] = await Promise.all([
+    const [settingsRes, photosRes, progsRes, reviewsRes, newsRes] = await Promise.all([
       db.from("site_settings").select("key,value"),
       db
         .from("gallery_photos")
@@ -82,6 +85,12 @@ export async function getContent(): Promise<{
         .eq("visible", true)
         .order("sort_order", { ascending: true })
         .order("id", { ascending: true }),
+      db
+        .from("news")
+        .select("vk_post_id,title,content,excerpt,image_url,source_url,published_at")
+        .eq("visible", true)
+        .order("published_at", { ascending: false })
+        .limit(12),
     ]);
 
     for (const row of settingsRes.data ?? []) {
@@ -139,6 +148,18 @@ export async function getContent(): Promise<{
           childInfo: String(r.child_info ?? r.childInfo ?? "") || undefined,
         } satisfies Review)
       );
+    }
+
+    if (newsRes.data && newsRes.data.length > 0) {
+      data.news = (newsRes.data as Record<string, unknown>[]).map((n) => ({
+        vk_post_id: String(n.vk_post_id ?? ""),
+        title: String(n.title ?? ""),
+        content: String(n.content ?? ""),
+        excerpt: String(n.excerpt ?? ""),
+        image_url: n.image_url ? String(n.image_url) : null,
+        source_url: String(n.source_url ?? ""),
+        published_at: String(n.published_at ?? ""),
+      } satisfies NewsItem));
     }
 
     // Фильтруем navItems по show-функциям серверно и удаляем функции (RSC не сериализует)

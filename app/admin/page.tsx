@@ -5,11 +5,11 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import {
   Loader2, Save, Upload, Trash2, LogOut, ArrowUp, ArrowDown,
   Settings, Image as ImageIcon, LayoutDashboard, Inbox, School,
-  Eye, Star, BookOpen, Search, Download, Plus,
+  Eye, Star, BookOpen, Search, Download, Plus, Newspaper, RefreshCw, ExternalLink,
 } from "lucide-react";
 
 type Tab = "settings" | "hero" | "visibility" | "programs" | "gallery" |
-  "reviews" | "learning" | "seo" | "io" | "inbox";
+  "reviews" | "learning" | "news" | "seo" | "io" | "inbox";
 
 const TABS: { id: Tab; label: string; icon: any }[] = [
   { id: "settings", label: "Настройки", icon: Settings },
@@ -19,6 +19,7 @@ const TABS: { id: Tab; label: string; icon: any }[] = [
   { id: "gallery", label: "Галерея", icon: ImageIcon },
   { id: "reviews", label: "Отзывы", icon: Star },
   { id: "learning", label: "Занятия", icon: BookOpen },
+  { id: "news", label: "Новости VK", icon: Newspaper },
   { id: "seo", label: "SEO", icon: Search },
   { id: "io", label: "Импорт", icon: Download },
   { id: "inbox", label: "Заявки", icon: Inbox },
@@ -26,7 +27,7 @@ const TABS: { id: Tab; label: string; icon: any }[] = [
 
 const VIS_LABELS: Record<string, string> = {
   about: "О студии", programs: "Направления", learning: "Как проходят занятия",
-  gallery: "Галерея", reviews: "Отзывы", teachers: "Преподаватели",
+  gallery: "Галерея", reviews: "Отзывы", news: "Новости VK", teachers: "Преподаватели",
   events: "События", cta: "CTA-баннер", enrollment: "Форма записи", contacts: "Контакты и карта",
 };
 
@@ -54,15 +55,19 @@ export default function AdminPage() {
   const [enrollments, setEnrollments] = useState<any[]>([]);
   const [reviews, setReviews] = useState<any[]>([]);
   const [learning, setLearning] = useState<{ title: string; description: string; steps: any[] }>({ title: "", description: "", steps: [] });
+  const [news, setNews] = useState<any[]>([]);
+  const [syncing, setSyncing] = useState(false);
+  const [vkDomain, setVkDomain] = useState("");
 
   const flash = (t: string) => { setMsg(t); setTimeout(() => setMsg(""), 2500); };
 
   const loadAll = useCallback(async () => {
-    const [s, p, e, r] = await Promise.all([
+    const [s, p, e, r, n] = await Promise.all([
       fetch("/api/admin/settings").then((r) => (r.ok ? r.json() : null)),
       fetch("/api/admin/programs").then((r) => (r.ok ? r.json() : null)),
       fetch("/api/admin/enrollments").then((r) => (r.ok ? r.json() : null)),
       fetch("/api/admin/reviews").then((r) => (r.ok ? r.json() : null)),
+      fetch("/api/admin/news").then((r) => (r.ok ? r.json() : null)),
     ]);
     if (!s) { setAuthed(false); return; }
     setAuthed(true);
@@ -72,6 +77,7 @@ export default function AdminPage() {
     setPrograms(p?.programs ?? []);
     setEnrollments(e?.enrollments ?? []);
     setReviews(r?.reviews ?? []);
+    setNews(n?.news ?? []);
     setLearning(s.learningExperience ?? { title: "", description: "", steps: [] });
     const g = await fetch("/api/admin/photos").then((r) => (r.ok ? r.json() : null));
     setPhotos(g?.photos ?? []);
@@ -169,6 +175,39 @@ export default function AdminPage() {
     setSaving(false);
     if (res.ok) { flash("Импорт выполнен ✓"); await loadAll(); }
     else flash("Ошибка импорта");
+  };
+
+  const syncVK = async () => {
+    setSyncing(true);
+    try {
+      const res = await fetch("/api/admin/news/sync", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ domain: vkDomain || undefined, count: 10 }),
+      });
+      const j = await res.json().catch(() => ({}));
+      if (res.ok) {
+        flash(`Синхронизировано: ${j.imported ?? 0} новых из ${j.total ?? 0}`);
+        const n = await fetch("/api/admin/news").then((r) => r.json());
+        setNews(n?.news ?? []);
+      } else flash(j.error ?? "Ошибка синхронизации");
+    } catch {
+      flash("Ошибка сети");
+    }
+    setSyncing(false);
+  };
+
+  const toggleNewsVisible = async (id: string, visible: boolean) => {
+    setNews((prev) => prev.map((n) => n.id === id ? { ...n, visible } : n));
+    await fetch("/api/admin/news", {
+      method: "PATCH", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id, visible }),
+    });
+  };
+
+  const deleteNewsItem = async (id: string) => {
+    if (!confirm("Удалить новость?")) return;
+    await fetch(`/api/admin/news?id=${id}`, { method: "DELETE" });
+    setNews((prev) => prev.filter((n) => n.id !== id));
   };
 
   if (authed === null) return <div className="min-h-screen flex items-center justify-center"><Loader2 className="w-6 h-6 animate-spin text-brand-warm" /></div>;
@@ -350,6 +389,64 @@ export default function AdminPage() {
               <button onClick={() => setLearning((p) => ({ ...p, steps: [...(p.steps ?? []), { title: "", description: "", image: "" }] }))} className={btnCls + " bg-card border border-border text-foreground hover:bg-accent"}><Plus className="w-4 h-4" /> Добавить шаг</button>
               <button onClick={saveSettings} disabled={saving} className={btnCls}>{saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />} Сохранить</button>
             </div>
+          </div>
+        )}
+
+        {/* ─── News VK ─── */}
+        {tab === "news" && (
+          <div className="space-y-4">
+            <div className="bg-card rounded-2xl border border-border/60 p-5">
+              <h3 className="font-display font-bold text-base mb-3">Синхронизация с VK</h3>
+              <p className="text-sm text-muted-foreground mb-4">Загрузить последние новости из сообщества VK. Фото, заголовки и текст извлекаются автоматически.</p>
+              <div className="flex flex-wrap gap-3 items-end">
+                <div className="flex-1 min-w-[200px]">
+                  <Field label="VK-домен (необязательно)">
+                    <input className={inputCls} value={vkDomain} onChange={(e) => setVkDomain(e.target.value)} placeholder="sfera_gk" />
+                  </Field>
+                </div>
+                <button onClick={syncVK} disabled={syncing} className={btnCls}>
+                  {syncing ? <Loader2 className="w-4 h-4 animate-spin" /> : <RefreshCw className="w-4 h-4" />}
+                  {syncing ? "Синхронизация…" : "Загрузить из VK"}
+                </button>
+              </div>
+            </div>
+
+            {news.length === 0 && !syncing && (
+              <p className="text-sm text-muted-foreground">Новостей пока нет. Нажмите «Загрузить из VK» чтобы получить новости.</p>
+            )}
+            {news.map((n) => (
+              <div key={n.id} className="bg-card rounded-2xl border border-border/60 p-4">
+                <div className="flex items-start gap-3">
+                  {n.image_url && (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={n.image_url} alt="" className="w-20 h-14 object-cover rounded-lg border border-border shrink-0" />
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="text-xs text-muted-foreground">
+                        {n.published_at ? new Date(n.published_at).toLocaleDateString("ru-RU", { day: "numeric", month: "short", year: "numeric" }) : ""}
+                      </span>
+                    </div>
+                    <p className="text-sm font-medium text-foreground line-clamp-2">{n.title}</p>
+                    {n.excerpt && <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{n.excerpt}</p>}
+                  </div>
+                  <div className="flex items-center gap-2 shrink-0">
+                    <label className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
+                      <input type="checkbox" checked={n.visible !== false} onChange={(e) => toggleNewsVisible(n.id, e.target.checked)} className="w-3.5 h-3.5" />
+                      видна
+                    </label>
+                    {n.source_url && (
+                      <a href={n.source_url} target="_blank" rel="noopener noreferrer" className="p-1.5 rounded-lg hover:bg-accent text-muted-foreground" title="Открыть в VK">
+                        <ExternalLink className="w-3.5 h-3.5" />
+                      </a>
+                    )}
+                    <button onClick={() => deleteNewsItem(n.id)} className="p-1.5 rounded-lg hover:bg-destructive/10 text-destructive" title="Удалить">
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
         )}
 

@@ -7,6 +7,7 @@ import { Gallery } from "@/components/site/Gallery";
 import { Teachers } from "@/components/site/Teachers";
 import { Reviews } from "@/components/site/Reviews";
 import { Events } from "@/components/site/Events";
+import { News } from "@/components/site/News";
 import { ParentNavigator } from "@/components/site/ParentNavigator";
 import { CTA } from "@/components/site/CTA";
 import { Contact } from "@/components/site/Contact";
@@ -35,6 +36,7 @@ export default async function Home() {
         {visibility.teachers && <Teachers />}
         {visibility.reviews && <Reviews />}
         {visibility.events && <Events />}
+        {visibility.news && <News />}
         <ParentNavigator />
         {visibility.cta && <CTA />}
         {visibility.enrollment && <EnrollmentForm />}
