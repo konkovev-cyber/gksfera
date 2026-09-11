@@ -167,7 +167,7 @@ export const programs: Program[] = [
     ageRange: "5–10 лет",
     description:
       "Коррекция почерка. Работа над красивым, уверенным и аккуратным письмом. Развиваем мелкую моторику и привычку к аккуратности.",
-    image: "/images/PF6A8076_resized.jpg",
+    image: "/images/PF6A7999_resized.jpg",
     imageAlt: "Чистописание и развитие мелкой моторики",
     icon: "PenLine",
   },
@@ -197,7 +197,7 @@ export const programs: Program[] = [
     ageRange: "по запросу",
     description:
       "Консультация и рекомендации по нейропсихологической коррекции обучения. Уточняйте детали по телефону.",
-    image: "/images/PF6A8218_resized.jpg",
+    image: "/images/PF6A8162_resized.jpg",
     imageAlt: "Нейропсихологическая коррекция в «Сфере»",
     icon: "BrainCircuit",
   },
@@ -216,7 +216,7 @@ export const learningExperience = {
     { icon: "Palette", title: "Творческие проекты", text: "Соединяем знания с творчеством — от рисования до театра." },
     { icon: "HeartHandshake", title: "Внимание к ребёнку", text: "Стараемся понять, что интересно и что получается лучше всего." },
   ],
-  image: "/images/PF6A7648_resized.jpg",
+  image: "/images/PF6A7622_resized.jpg",
   imageAlt: "Атмосфера занятий в студии «Сфера»",
 };
 
