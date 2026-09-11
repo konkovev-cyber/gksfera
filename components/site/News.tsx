@@ -1,3 +1,5 @@
+"use client";
+
 import { Reveal } from "./Reveal";
 import { useContent } from "./ContentContext";
 import { Calendar, ExternalLink } from "lucide-react";
