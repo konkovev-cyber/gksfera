@@ -20,6 +20,7 @@ export async function GET() {
     heroContent: data.heroContent,
     learningExperience: data.learningExperience,
     teachers: data.teachers,
+    faqs: data.faqs,
     programs: data.programs,
     gallery: data.gallery,
     visibility,
@@ -36,6 +37,7 @@ export async function PUT(req: NextRequest) {
     visibility?: Record<string, boolean>;
     learningExperience?: Record<string, unknown>;
     teachers?: unknown[];
+    faqs?: unknown[];
   } | null;
   if (!body) return NextResponse.json({ error: "bad body" }, { status: 400 });
 
@@ -80,6 +82,15 @@ export async function PUT(req: NextRequest) {
     const { error } = await db.from("site_settings").upsert({
       key: "teachers",
       value: body.teachers,
+      updated_at: new Date().toISOString(),
+    });
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+
+  if (body.faqs && Array.isArray(body.faqs)) {
+    const { error } = await db.from("site_settings").upsert({
+      key: "faqs",
+      value: body.faqs,
       updated_at: new Date().toISOString(),
     });
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });

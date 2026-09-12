@@ -6,12 +6,12 @@ import {
   Loader2, Save, Upload, Trash2, LogOut, ArrowUp, ArrowDown,
   Settings, Image as ImageIcon, LayoutDashboard, Inbox, School,
   Eye, Star, BookOpen, Search, Download, Plus, Newspaper, RefreshCw, ExternalLink, X,
-  GraduationCap,
+  GraduationCap, HelpCircle,
 } from "lucide-react";
 import { gallery as defaultGallery } from "@/data/site";
 
 type Tab = "settings" | "hero" | "visibility" | "programs" | "gallery" |
-  "teachers" | "reviews" | "learning" | "news" | "seo" | "io" | "inbox";
+  "teachers" | "reviews" | "learning" | "faq" | "news" | "seo" | "io" | "inbox";
 
 const TABS: { id: Tab; label: string; icon: any }[] = [
   { id: "settings", label: "Настройки", icon: Settings },
@@ -22,6 +22,7 @@ const TABS: { id: Tab; label: string; icon: any }[] = [
   { id: "teachers", label: "Педагоги", icon: GraduationCap },
   { id: "reviews", label: "Отзывы", icon: Star },
   { id: "learning", label: "Занятия", icon: BookOpen },
+  { id: "faq", label: "Вопросы", icon: HelpCircle },
   { id: "news", label: "Новости VK", icon: Newspaper },
   { id: "seo", label: "SEO", icon: Search },
   { id: "io", label: "Импорт", icon: Download },
@@ -30,8 +31,8 @@ const TABS: { id: Tab; label: string; icon: any }[] = [
 
 const VIS_LABELS: Record<string, string> = {
   about: "О студии", programs: "Направления", learning: "Как проходят занятия",
-  gallery: "Галерея", reviews: "Отзывы", news: "Новости VK", teachers: "Преподаватели",
-  events: "События", cta: "CTA-баннер", enrollment: "Форма записи", contacts: "Контакты и карта",
+  gallery: "Галерея", teachers: "Преподаватели", reviews: "Отзывы", news: "Новости VK",
+  faq: "Частые вопросы", events: "События", cta: "CTA-баннер", enrollment: "Форма записи", contacts: "Контакты и карта",
 };
 
 const SITE_LABELS: Record<string, string> = {
@@ -95,6 +96,7 @@ export default function AdminPage() {
   const [reviews, setReviews] = useState<any[]>([]);
   const [learning, setLearning] = useState<{ title: string; description: string; steps: any[] }>({ title: "", description: "", steps: [] });
   const [teachers, setTeachers] = useState<any[]>([]);
+  const [faqs, setFaqs] = useState<any[]>([]);
   const [news, setNews] = useState<any[]>([]);
   const [syncing, setSyncing] = useState(false);
   const [vkDomain, setVkDomain] = useState("");
@@ -121,6 +123,7 @@ export default function AdminPage() {
     setNews(n?.news ?? []);
     setLearning(s.learningExperience ?? { title: "", description: "", steps: [] });
     setTeachers(s.teachers ?? []);
+    setFaqs(s.faqs ?? []);
     const g = await fetch("/api/admin/photos").then((r) => (r.ok ? r.json() : null));
     setPhotos(g?.photos ?? []);
   }, []);
@@ -140,7 +143,7 @@ export default function AdminPage() {
     setSaving(true);
     const res = await fetch("/api/admin/settings", {
       method: "PUT", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ settings: siteConfig, hero, visibility, learningExperience: learning, teachers }),
+      body: JSON.stringify({ settings: siteConfig, hero, visibility, learningExperience: learning, teachers, faqs }),
     });
     setSaving(false);
     flash(res.ok ? "Сохранено ✓" : "Ошибка");
@@ -509,6 +512,28 @@ export default function AdminPage() {
             ))}
             <div className="flex gap-3">
               <button onClick={() => setLearning((p) => ({ ...p, steps: [...(p.steps ?? []), { title: "", description: "", image: "" }] }))} className={btnCls + " bg-card border border-border text-foreground hover:bg-accent"}><Plus className="w-4 h-4" /> Добавить шаг</button>
+              <button onClick={saveSettings} disabled={saving} className={btnCls}>{saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />} Сохранить</button>
+            </div>
+          </div>
+        )}
+
+        {/* ─── FAQ ─── */}
+        {tab === "faq" && (
+          <div className="space-y-4">
+            <p className="text-sm text-muted-foreground">Вопросы и ответы показываются на сайте с разметкой для Яндекса и Google (богатые сниппеты).</p>
+            {faqs.map((faq, i) => (
+              <div key={i} className="bg-card rounded-2xl border border-border/60 p-4 space-y-3">
+                <Field label="Вопрос"><input className={inputCls} value={faq.question ?? ""} onChange={(e) => setFaqs((prev) => prev.map((x, j) => j === i ? { ...x, question: e.target.value } : x))} /></Field>
+                <Field label="Ответ"><textarea rows={3} className={inputCls + " h-auto py-2"} value={faq.answer ?? ""} onChange={(e) => setFaqs((prev) => prev.map((x, j) => j === i ? { ...x, answer: e.target.value } : x))} /></Field>
+                <div className="flex items-center gap-2">
+                  <button onClick={() => move(faqs, i, -1, setFaqs)} className="p-2 rounded-lg hover:bg-accent"><ArrowUp className="w-4 h-4" /></button>
+                  <button onClick={() => move(faqs, i, 1, setFaqs)} className="p-2 rounded-lg hover:bg-accent"><ArrowDown className="w-4 h-4" /></button>
+                  <button onClick={() => setFaqs((prev) => prev.filter((_, j) => j !== i))} className="p-2 rounded-lg hover:bg-destructive/10 text-destructive"><Trash2 className="w-4 h-4" /></button>
+                </div>
+              </div>
+            ))}
+            <div className="flex flex-col sm:flex-row gap-3">
+              <button onClick={() => setFaqs((prev) => [...prev, { question: "", answer: "" }])} className={btnCls + " bg-card border border-border text-foreground hover:bg-accent"}><Plus className="w-4 h-4" /> Добавить вопрос</button>
               <button onClick={saveSettings} disabled={saving} className={btnCls}>{saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />} Сохранить</button>
             </div>
           </div>

@@ -57,6 +57,7 @@ export async function GET() {
     hero: data.heroContent,
     learningExperience: data.learningExperience,
     teachers: data.teachers,
+    faqs: data.faqs,
     photos: photos ?? [],
     programs: programs ?? [],
     reviews: reviews ?? [],
@@ -114,6 +115,14 @@ export async function POST(req: NextRequest) {
     await db.from("site_settings").upsert({
       key: "teachers",
       value: body.teachers,
+      updated_at: new Date().toISOString(),
+    });
+  }
+  // faqs
+  if (body.faqs && Array.isArray(body.faqs)) {
+    await db.from("site_settings").upsert({
+      key: "faqs",
+      value: body.faqs,
       updated_at: new Date().toISOString(),
     });
   }

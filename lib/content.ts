@@ -1,6 +1,6 @@
 import { createClient } from "@supabase/supabase-js";
 import * as defaults from "@/data/site";
-import type { Program, GalleryItem, Review, NewsItem } from "@/data/site";
+import type { Program, GalleryItem, Review, NewsItem, FAQItem } from "@/data/site";
 
 export type SiteData = typeof defaults;
 
@@ -12,6 +12,7 @@ export type Visibility = {
   reviews: boolean;
   news: boolean;
   teachers: boolean;
+  faq: boolean;
   events: boolean;
   cta: boolean;
   enrollment: boolean;
@@ -48,6 +49,7 @@ export async function getContent(): Promise<{
     parentOptions: [...defaults.parentOptions],
     navItems: [...defaults.navItems],
     enrollmentInterests: [...defaults.enrollmentInterests],
+    faqs: [...defaults.faqs] as FAQItem[],
     news: [...defaults.news] as NewsItem[],
   };
 
@@ -59,6 +61,7 @@ export async function getContent(): Promise<{
     reviews: defaults.siteConfig.showReviews,
     news: true,
     teachers: defaults.siteConfig.showTeachers,
+    faq: true,
     events: defaults.siteConfig.showEvents,
     cta: true,
     enrollment: true,
@@ -103,6 +106,8 @@ export async function getContent(): Promise<{
         Object.assign(data.learningExperience, value);
       } else if (key === "teachers" && Array.isArray(value)) {
         data.teachers = value as typeof defaults.teachers;
+      } else if (key === "faqs" && Array.isArray(value)) {
+        data.faqs = value as FAQItem[];
       } else if (key in data.siteConfig && value != null) {
         (data.siteConfig as unknown as Record<string, unknown>)[key] = value;
       }
