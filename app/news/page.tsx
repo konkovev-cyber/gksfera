@@ -33,13 +33,13 @@ function NewsCard({ item }: { item: NewsItem }) {
       href={`/news/${item.vk_post_id}`}
       className="group block bg-card rounded-2xl border border-border/60 overflow-hidden hover:shadow-lg transition-shadow h-full"
     >
-      <div className="relative aspect-[16/10] overflow-hidden bg-accent">
+      <div className="relative aspect-[4/3] overflow-hidden bg-brand-cream/50">
         {item.image_url ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
             src={item.image_url}
             alt={item.title}
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+            className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-500"
             loading="lazy"
           />
         ) : (

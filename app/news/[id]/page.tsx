@@ -80,12 +80,14 @@ export default async function NewsDetailPage({ params }: Props) {
           </h1>
 
           {news.image_url && (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={news.image_url}
-              alt={news.title}
-              className="mt-8 w-full rounded-2xl border border-border/60 object-cover max-h-[480px]"
-            />
+            <div className="mt-8 w-full rounded-2xl border border-border/60 overflow-hidden bg-brand-cream/50 max-h-[600px]">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={news.image_url}
+                alt={news.title}
+                className="w-full h-full object-contain"
+              />
+            </div>
           )}
 
           <div className="mt-8 text-base sm:text-lg text-foreground/90 leading-relaxed whitespace-pre-line">
