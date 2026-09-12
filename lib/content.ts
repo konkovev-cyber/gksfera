@@ -101,6 +101,8 @@ export async function getContent(): Promise<{
         Object.assign(data.heroContent, value);
       } else if (key === "learningExperience" && value && typeof value === "object") {
         Object.assign(data.learningExperience, value);
+      } else if (key === "teachers" && Array.isArray(value)) {
+        data.teachers = value as typeof defaults.teachers;
       } else if (key in data.siteConfig && value != null) {
         (data.siteConfig as unknown as Record<string, unknown>)[key] = value;
       }

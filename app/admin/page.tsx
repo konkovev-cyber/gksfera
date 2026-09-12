@@ -6,11 +6,12 @@ import {
   Loader2, Save, Upload, Trash2, LogOut, ArrowUp, ArrowDown,
   Settings, Image as ImageIcon, LayoutDashboard, Inbox, School,
   Eye, Star, BookOpen, Search, Download, Plus, Newspaper, RefreshCw, ExternalLink, X,
+  GraduationCap,
 } from "lucide-react";
 import { gallery as defaultGallery } from "@/data/site";
 
 type Tab = "settings" | "hero" | "visibility" | "programs" | "gallery" |
-  "reviews" | "learning" | "news" | "seo" | "io" | "inbox";
+  "teachers" | "reviews" | "learning" | "news" | "seo" | "io" | "inbox";
 
 const TABS: { id: Tab; label: string; icon: any }[] = [
   { id: "settings", label: "Настройки", icon: Settings },
@@ -18,6 +19,7 @@ const TABS: { id: Tab; label: string; icon: any }[] = [
   { id: "visibility", label: "Блоки", icon: Eye },
   { id: "programs", label: "Направления", icon: School },
   { id: "gallery", label: "Галерея", icon: ImageIcon },
+  { id: "teachers", label: "Педагоги", icon: GraduationCap },
   { id: "reviews", label: "Отзывы", icon: Star },
   { id: "learning", label: "Занятия", icon: BookOpen },
   { id: "news", label: "Новости VK", icon: Newspaper },
@@ -92,10 +94,11 @@ export default function AdminPage() {
   const [enrollments, setEnrollments] = useState<any[]>([]);
   const [reviews, setReviews] = useState<any[]>([]);
   const [learning, setLearning] = useState<{ title: string; description: string; steps: any[] }>({ title: "", description: "", steps: [] });
+  const [teachers, setTeachers] = useState<any[]>([]);
   const [news, setNews] = useState<any[]>([]);
   const [syncing, setSyncing] = useState(false);
   const [vkDomain, setVkDomain] = useState("");
-  const [pickerFor, setPickerFor] = useState<null | { kind: "program" | "hero" | "step"; index: number }>(null);
+  const [pickerFor, setPickerFor] = useState<null | { kind: "program" | "hero" | "step" | "teacher"; index: number }>(null);
 
   const flash = (t: string) => { setMsg(t); setTimeout(() => setMsg(""), 2500); };
 
@@ -117,6 +120,7 @@ export default function AdminPage() {
     setReviews(r?.reviews ?? []);
     setNews(n?.news ?? []);
     setLearning(s.learningExperience ?? { title: "", description: "", steps: [] });
+    setTeachers(s.teachers ?? []);
     const g = await fetch("/api/admin/photos").then((r) => (r.ok ? r.json() : null));
     setPhotos(g?.photos ?? []);
   }, []);
@@ -136,7 +140,7 @@ export default function AdminPage() {
     setSaving(true);
     const res = await fetch("/api/admin/settings", {
       method: "PUT", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ settings: siteConfig, hero, visibility, learningExperience: learning }),
+      body: JSON.stringify({ settings: siteConfig, hero, visibility, learningExperience: learning, teachers }),
     });
     setSaving(false);
     flash(res.ok ? "Сохранено ✓" : "Ошибка");
@@ -257,12 +261,14 @@ export default function AdminPage() {
       setHero((prev) => ({ ...prev, image: src }));
     } else if (kind === "step") {
       setLearning((p) => ({ ...p, steps: p.steps.map((s, j) => (j === index ? { ...s, image: src } : s)) }));
+    } else if (kind === "teacher") {
+      setTeachers((prev) => prev.map((x, j) => (j === index ? { ...x, photo: src } : x)));
     }
     setPickerFor(null);
     flash("Фото выбрано ✓");
   };
 
-  const pickBtn = (kind: "program" | "hero" | "step", index: number) => (
+  const pickBtn = (kind: "program" | "hero" | "step" | "teacher", index: number) => (
     <button
       type="button"
       onClick={() => setPickerFor({ kind, index })}
@@ -416,6 +422,37 @@ export default function AdminPage() {
               </div>
             ))}
             {photos.length > 0 && <button onClick={() => savePhotoOrder(photos)} disabled={saving} className={btnCls}>{saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />} Сохранить</button>}
+          </div>
+        )}
+
+        {/* ─── Teachers ─── */}
+        {tab === "teachers" && (
+          <div className="space-y-4">
+            <p className="text-sm text-muted-foreground">Добавьте карточки педагогов. Блок появится на сайте, когда в настройках включён переключатель «Блок «Преподаватели»».</p>
+            {teachers.map((t, i) => (
+              <div key={t.id ?? i} className="bg-card rounded-2xl border border-border/60 p-4 space-y-3">
+                <div className="grid sm:grid-cols-2 gap-3">
+                  <Field label="Имя и фамилия"><input className={inputCls} value={t.name ?? ""} onChange={(e) => setTeachers((prev) => prev.map((x, j) => j === i ? { ...x, name: e.target.value } : x))} /></Field>
+                  <Field label="Должность / направление"><input className={inputCls} value={t.role ?? ""} onChange={(e) => setTeachers((prev) => prev.map((x, j) => j === i ? { ...x, role: e.target.value } : x))} /></Field>
+                </div>
+                <Field label="О педагоге"><textarea rows={2} className={inputCls + " h-auto py-2"} value={t.bio ?? ""} onChange={(e) => setTeachers((prev) => prev.map((x, j) => j === i ? { ...x, bio: e.target.value } : x))} /></Field>
+                <Field label="Фото URL">
+                  <div className="flex gap-2">
+                    <input className={inputCls + " flex-1"} value={t.photo ?? ""} onChange={(e) => setTeachers((prev) => prev.map((x, j) => j === i ? { ...x, photo: e.target.value } : x))} />
+                    {pickBtn("teacher", i)}
+                  </div>
+                </Field>
+                <div className="flex items-center gap-2">
+                  <button onClick={() => move(teachers, i, -1, setTeachers)} className="p-2 rounded-lg hover:bg-accent"><ArrowUp className="w-4 h-4" /></button>
+                  <button onClick={() => move(teachers, i, 1, setTeachers)} className="p-2 rounded-lg hover:bg-accent"><ArrowDown className="w-4 h-4" /></button>
+                  <button onClick={() => setTeachers((prev) => prev.filter((_, j) => j !== i))} className="p-2 rounded-lg hover:bg-destructive/10 text-destructive"><Trash2 className="w-4 h-4" /></button>
+                </div>
+              </div>
+            ))}
+            <div className="flex flex-col sm:flex-row gap-3">
+              <button onClick={() => setTeachers((prev) => [...prev, { id: `new-${Date.now()}`, name: "", role: "", bio: "", photo: "" }])} className={btnCls + " bg-card border border-border text-foreground hover:bg-accent"}><Plus className="w-4 h-4" /> Добавить педагога</button>
+              <button onClick={saveSettings} disabled={saving} className={btnCls}>{saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />} Сохранить</button>
+            </div>
           </div>
         )}
 
