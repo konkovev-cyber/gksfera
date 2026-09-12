@@ -174,3 +174,12 @@
   background-size: 200% auto;
   animation: text-shimmer 5s linear infinite !important;
 }
+
+/* Скрыть скроллбар для горизонтальных вкладок админки */
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}

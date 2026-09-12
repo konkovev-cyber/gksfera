@@ -69,7 +69,7 @@ const HERO_LABELS: Record<string, string> = {
 };
 
 const inputCls = "w-full h-10 px-3 text-sm rounded-lg border border-input bg-background focus:outline-none focus:ring-2 focus:ring-ring/60";
-const btnCls = "inline-flex items-center gap-2 h-10 px-4 rounded-full bg-primary text-primary-foreground text-sm font-semibold hover:bg-primary/90 disabled:opacity-50";
+const btnCls = "inline-flex items-center justify-center gap-2 h-10 px-4 rounded-full bg-primary text-primary-foreground text-sm font-semibold hover:bg-primary/90 disabled:opacity-50 w-full sm:w-auto";
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return <label className="block"><span className="block text-xs font-medium text-foreground mb-1.5">{label}</span>{children}</label>;
@@ -292,22 +292,23 @@ export default function AdminPage() {
   return (
     <div className="min-h-screen bg-background">
       <header className="sticky top-0 z-20 bg-card/90 backdrop-blur border-b border-border">
-        <div className="max-w-5xl mx-auto px-4 h-14 flex items-center justify-between">
-          <span className="font-display font-extrabold">Админка «Сферы»</span>
-          <div className="flex items-center gap-3">
-            {msg && <span className="text-sm text-green-600 font-medium">{msg}</span>}
-            <a href="/" target="_blank" className="text-sm text-muted-foreground hover:text-foreground">Сайт ↗</a>
+        <div className="max-w-5xl mx-auto px-3 sm:px-4 h-14 flex items-center justify-between gap-2">
+          <span className="font-display font-extrabold text-sm sm:text-base truncate">Админка «Сферы»</span>
+          <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+            {msg && <span className="text-xs sm:text-sm text-green-600 font-medium truncate max-w-[120px] sm:max-w-none">{msg}</span>}
+            <a href="/" target="_blank" className="text-xs sm:text-sm text-muted-foreground hover:text-foreground hidden sm:inline">Сайт ↗</a>
             <button onClick={logout} className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-destructive"><LogOut className="w-4 h-4" /> Выйти</button>
           </div>
         </div>
       </header>
 
-      <div className="max-w-5xl mx-auto px-4 py-6">
-        <nav className="flex flex-wrap gap-2 mb-6">
+      <div className="max-w-5xl mx-auto px-3 sm:px-4 py-4 sm:py-6">
+        {/* Навигация по вкладкам: горизонтальный скролл на мобильных */}
+        <nav className="flex overflow-x-auto flex-nowrap gap-1.5 sm:gap-2 mb-5 pb-2 sm:pb-0 -mx-3 px-3 sm:mx-0 sm:px-0 scrollbar-hide">
           {TABS.map((t) => (
             <button key={t.id} onClick={() => setTab(t.id)}
-              className={"inline-flex items-center gap-1.5 h-9 px-4 rounded-full text-sm font-medium transition-colors " + (tab === t.id ? "bg-primary text-primary-foreground" : "bg-card border border-border hover:bg-accent")}>
-              <t.icon className="w-4 h-4" />{t.label}
+              className={"inline-flex items-center gap-1.5 h-9 px-3 sm:px-4 rounded-full text-xs sm:text-sm font-medium transition-colors whitespace-nowrap shrink-0 " + (tab === t.id ? "bg-primary text-primary-foreground" : "bg-card border border-border hover:bg-accent")}>
+              <t.icon className="w-4 h-4 shrink-0" /><span className="hidden min-[380px]:inline">{t.label}</span>
             </button>
           ))}
         </nav>
@@ -399,15 +400,19 @@ export default function AdminPage() {
               <span className="text-xs text-muted-foreground">Пока нет фото — показывается галерея по умолчанию</span>
             </div>
             {photos.map((ph, i) => (
-              <div key={ph.id} className="bg-card rounded-2xl border border-border/60 p-4 flex gap-3 items-center">
+              <div key={ph.id} className="bg-card rounded-2xl border border-border/60 p-3 sm:p-4 flex flex-col sm:flex-row gap-3 items-start sm:items-center">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={ph.src} alt="" className="w-20 h-14 object-cover rounded-lg border border-border" />
-                <input className={inputCls + " flex-1"} placeholder="alt" value={ph.alt ?? ""} onChange={(e) => setPhotos((prev) => prev.map((x, j) => j === i ? { ...x, alt: e.target.value } : x))} />
-                <select className={inputCls + " w-24"} value={ph.span ?? "normal"} onChange={(e) => setPhotos((prev) => prev.map((x, j) => j === i ? { ...x, span: e.target.value } : x))}><option value="normal">обычное</option><option value="wide">широкое</option><option value="tall">высокое</option></select>
-                <input className={inputCls + " w-28"} placeholder="50% 20%" value={ph.pos ?? ""} onChange={(e) => setPhotos((prev) => prev.map((x, j) => j === i ? { ...x, pos: e.target.value } : x))} />
-                <button onClick={() => move(photos, i, -1, setPhotos)} className="p-2 rounded-lg hover:bg-accent"><ArrowUp className="w-4 h-4" /></button>
-                <button onClick={() => move(photos, i, 1, setPhotos)} className="p-2 rounded-lg hover:bg-accent"><ArrowDown className="w-4 h-4" /></button>
-                <button onClick={() => deletePhoto(ph.id)} className="p-2 rounded-lg hover:bg-destructive/10 text-destructive"><Trash2 className="w-4 h-4" /></button>
+                <img src={ph.src} alt="" className="w-full sm:w-20 h-32 sm:h-14 object-cover rounded-lg border border-border shrink-0" />
+                <div className="flex-1 min-w-0 grid grid-cols-1 sm:grid-cols-3 gap-2 w-full">
+                  <input className={inputCls} placeholder="alt" value={ph.alt ?? ""} onChange={(e) => setPhotos((prev) => prev.map((x, j) => j === i ? { ...x, alt: e.target.value } : x))} />
+                  <select className={inputCls} value={ph.span ?? "normal"} onChange={(e) => setPhotos((prev) => prev.map((x, j) => j === i ? { ...x, span: e.target.value } : x))}><option value="normal">обычное</option><option value="wide">широкое</option><option value="tall">высокое</option></select>
+                  <input className={inputCls} placeholder="50% 20%" value={ph.pos ?? ""} onChange={(e) => setPhotos((prev) => prev.map((x, j) => j === i ? { ...x, pos: e.target.value } : x))} />
+                </div>
+                <div className="flex items-center gap-1 shrink-0 self-end sm:self-center">
+                  <button onClick={() => move(photos, i, -1, setPhotos)} className="p-2 rounded-lg hover:bg-accent"><ArrowUp className="w-4 h-4" /></button>
+                  <button onClick={() => move(photos, i, 1, setPhotos)} className="p-2 rounded-lg hover:bg-accent"><ArrowDown className="w-4 h-4" /></button>
+                  <button onClick={() => deletePhoto(ph.id)} className="p-2 rounded-lg hover:bg-destructive/10 text-destructive"><Trash2 className="w-4 h-4" /></button>
+                </div>
               </div>
             ))}
             {photos.length > 0 && <button onClick={() => savePhotoOrder(photos)} disabled={saving} className={btnCls}>{saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />} Сохранить</button>}
@@ -495,11 +500,11 @@ export default function AdminPage() {
               <p className="text-sm text-muted-foreground">Новостей пока нет. Нажмите «Загрузить из VK» чтобы получить новости.</p>
             )}
             {news.map((n) => (
-              <div key={n.id} className="bg-card rounded-2xl border border-border/60 p-4">
-                <div className="flex items-start gap-3">
+              <div key={n.id} className="bg-card rounded-2xl border border-border/60 p-3 sm:p-4">
+                <div className="flex gap-3">
                   {n.image_url && (
                     // eslint-disable-next-line @next/next/no-img-element
-                    <img src={n.image_url} alt="" className="w-20 h-14 object-cover rounded-lg border border-border shrink-0" />
+                    <img src={n.image_url} alt="" className="w-16 h-12 sm:w-20 sm:h-14 object-cover rounded-lg border border-border shrink-0" />
                   )}
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1">
@@ -508,22 +513,22 @@ export default function AdminPage() {
                       </span>
                     </div>
                     <p className="text-sm font-medium text-foreground line-clamp-2">{n.title}</p>
-                    {n.excerpt && <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{n.excerpt}</p>}
+                    {n.excerpt && <p className="text-xs text-muted-foreground mt-1 line-clamp-1 sm:line-clamp-2">{n.excerpt}</p>}
                   </div>
-                  <div className="flex items-center gap-2 shrink-0">
-                    <label className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
-                      <input type="checkbox" checked={n.visible !== false} onChange={(e) => toggleNewsVisible(n.id, e.target.checked)} className="w-3.5 h-3.5" />
-                      видна
-                    </label>
-                    {n.source_url && (
-                      <a href={n.source_url} target="_blank" rel="noopener noreferrer" className="p-1.5 rounded-lg hover:bg-accent text-muted-foreground" title="Открыть в VK">
-                        <ExternalLink className="w-3.5 h-3.5" />
-                      </a>
-                    )}
-                    <button onClick={() => deleteNewsItem(n.id)} className="p-1.5 rounded-lg hover:bg-destructive/10 text-destructive" title="Удалить">
-                      <Trash2 className="w-3.5 h-3.5" />
-                    </button>
-                  </div>
+                </div>
+                <div className="flex items-center gap-2 mt-2 sm:mt-0 sm:self-start">
+                  <label className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
+                    <input type="checkbox" checked={n.visible !== false} onChange={(e) => toggleNewsVisible(n.id, e.target.checked)} className="w-3.5 h-3.5" />
+                    видна
+                  </label>
+                  {n.source_url && (
+                    <a href={n.source_url} target="_blank" rel="noopener noreferrer" className="p-1.5 rounded-lg hover:bg-accent text-muted-foreground" title="Открыть в VK">
+                      <ExternalLink className="w-3.5 h-3.5" />
+                    </a>
+                  )}
+                  <button onClick={() => deleteNewsItem(n.id)} className="p-1.5 rounded-lg hover:bg-destructive/10 text-destructive" title="Удалить">
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </button>
                 </div>
               </div>
             ))}
@@ -566,9 +571,9 @@ export default function AdminPage() {
           <div className="space-y-3">
             {enrollments.length === 0 && <p className="text-sm text-muted-foreground">Заявок пока нет.</p>}
             {enrollments.map((en) => (
-              <div key={en.id} className="bg-card rounded-2xl border border-border/60 p-4">
-                <div className="flex items-start justify-between gap-3">
-                  <div>
+              <div key={en.id} className="bg-card rounded-2xl border border-border/60 p-3 sm:p-4">
+                <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 sm:gap-3">
+                  <div className="flex-1 min-w-0">
                     <p className="font-semibold text-sm">{en.parent_name ?? "—"} · {en.phone ?? "—"}</p>
                     <p className="text-xs text-muted-foreground mt-0.5">
                       {en.child_age && <>ребёнок: {en.child_age} · </>}
@@ -576,13 +581,13 @@ export default function AdminPage() {
                     </p>
                     {en.comment && <p className="text-sm mt-2">{en.comment}</p>}
                   </div>
-                  <div className="flex items-center gap-2">
-                    <select className={inputCls + " w-36"} value={en.status ?? "new"} onChange={async (e) => { const status = e.target.value; setEnrollments((prev) => prev.map((x) => x.id === en.id ? { ...x, status } : x)); await fetch("/api/admin/enrollments", { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id: en.id, status }) }); }}>
+                  <div className="flex items-center gap-2 shrink-0">
+                    <select className={inputCls + " flex-1 sm:w-36"} value={en.status ?? "new"} onChange={async (e) => { const status = e.target.value; setEnrollments((prev) => prev.map((x) => x.id === en.id ? { ...x, status } : x)); await fetch("/api/admin/enrollments", { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id: en.id, status }) }); }}>
                       <option value="new">новая</option>
                       <option value="contacted">связались</option>
                       <option value="enrolled">записан</option>
                     </select>
-                    <button onClick={async () => { if (!confirm("Удалить?")) return; await fetch(`/api/admin/enrollments?id=${en.id}`, { method: "DELETE" }); setEnrollments((prev) => prev.filter((x) => x.id !== en.id)); }} className="p-2 rounded-lg hover:bg-destructive/10 text-destructive"><Trash2 className="w-4 h-4" /></button>
+                    <button onClick={async () => { if (!confirm("Удалить?")) return; await fetch(`/api/admin/enrollments?id=${en.id}`, { method: "DELETE" }); setEnrollments((prev) => prev.filter((x) => x.id !== en.id)); }} className="p-2 rounded-lg hover:bg-destructive/10 text-destructive shrink-0"><Trash2 className="w-4 h-4" /></button>
                   </div>
                 </div>
               </div>
