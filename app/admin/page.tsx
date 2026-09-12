@@ -45,6 +45,7 @@ const SITE_LABELS: Record<string, string> = {
   phoneHref: "Телефон — ссылка (tel:)",
   vkUrl: "Ссылка на группу VK",
   vkDisplay: "VK — как показывать на сайте",
+  maxUrl: "MAX Messenger — ссылка",
   ageRange: "Возраст детей",
   workingHours: "Часы работы (полные)",
   workingHoursShort: "Часы работы (кратко)",

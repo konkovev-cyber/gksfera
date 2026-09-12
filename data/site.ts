@@ -72,6 +72,7 @@ export const siteConfig = {
   phoneHref: "tel:+79284349108",
   vkUrl: "https://vk.ru/sferaznanei",
   vkDisplay: "vk.ru/sferaznanei",
+  maxUrl: "",  // Ссылка на MAX Messenger (https://max.me/...) — заполните в админке
   ageRange: "от 5 до 15 лет",
   // Подтверждено из источников: Zoon, GdeProf, Skidkom
   workingHours: "Пн–Пт: 09:30–18:30 (по предварительной записи)",
@@ -389,5 +390,17 @@ export const enrollmentInterests = [
   "Нейропсихологическая коррекция",
   "Пока не знаю — нужна консультация",
 ];
+
+/** Маппинг: slug страницы направления → значение в select «Что интересует?» */
+export const programInterestMap: Record<string, string> = {
+  "podgotovka-k-shkole": "Подготовка к школе",
+  "nachalnaya-stupen-1-4-klassy": "Начальная ступень (1–4 классы)",
+  "srednyaya-stupen-5-9-klassy": "Средняя ступень (5–9 классы)",
+  "angliyskiy-yazyk": "Английский язык",
+  "chistopisanie": "Чистописание",
+  "teatr": "Театр",
+  "pisatelskiy-klub": "Писательский клуб",
+  "neyropsihologicheskaya-korrekciya": "Нейропсихологическая коррекция",
+};
 
 export const news: NewsItem[] = [];

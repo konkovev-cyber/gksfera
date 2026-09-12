@@ -112,6 +112,19 @@ export function Footer() {
                   {content.siteConfig.vkDisplay}
                 </a>
               </li>
+              {content.siteConfig.maxUrl && (
+                <li>
+                  <a
+                    href={content.siteConfig.maxUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-2.5 text-sm text-background/60 hover:text-brand-warm transition-colors"
+                  >
+                    <MessageCircle className="w-4 h-4 text-brand-teal flex-shrink-0" />
+                    MAX Messenger
+                  </a>
+                </li>
+              )}
             </ul>
           </div>
 

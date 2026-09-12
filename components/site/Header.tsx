@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { Menu, X, Phone } from "lucide-react";
+import { Menu, X, Phone, MessageCircle } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useContent } from "./ContentContext";
 import { ThemeToggle } from "./ThemeToggle";
@@ -199,6 +199,17 @@ export function Header() {
                   <Phone className="w-5 h-5" />
                   {content.siteConfig.phone}
                 </a>
+                {content.siteConfig.maxUrl && (
+                  <a
+                    href={content.siteConfig.maxUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center justify-center gap-2 w-full h-12 rounded-xl border-2 border-brand-teal/30 text-brand-teal font-semibold hover:bg-brand-teal/10 transition-colors"
+                  >
+                    <MessageCircle className="w-5 h-5" />
+                    Написать в MAX
+                  </a>
+                )}
                 <Link
                   href="#enrollment"
                   onClick={(e) => handleNavClick(e, "#enrollment")}

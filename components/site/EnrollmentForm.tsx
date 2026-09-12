@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { useState, useEffect, type FormEvent } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
 import {
   Send,
   CheckCircle2,
@@ -40,9 +41,24 @@ const inputClass =
 
 export function EnrollmentForm() {
   const content = useContent();
+  const searchParams = useSearchParams();
+  const router = useRouter();
   const [form, setForm] = useState<FormState>(initialState);
   const [status, setStatus] = useState<SubmitStatus>("idle");
   const [errorMsg, setErrorMsg] = useState("");
+
+  // Автоподбор направления из query-параметра (?interest=...)
+  useEffect(() => {
+    const interest = searchParams.get("interest");
+    if (interest && content.enrollmentInterests.includes(interest)) {
+      setForm((prev) => ({ ...prev, interest }));
+      // Убираем параметр из URL, чтобы при обновлении не сбрасывался
+      const url = new URL(window.location.href);
+      url.searchParams.delete("interest");
+      router.replace(url.pathname + url.hash, { scroll: false });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
@@ -159,6 +175,19 @@ export function EnrollmentForm() {
                   </span>
                   Написать в VK
                 </a>
+                {content.siteConfig.maxUrl && (
+                  <a
+                    href={content.siteConfig.maxUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-3 h-12 px-5 rounded-xl bg-card border border-border/60 font-medium text-sm text-foreground hover:bg-accent transition-colors flex-1"
+                  >
+                    <span className="w-8 h-8 rounded-lg bg-brand-warm/10 flex items-center justify-center flex-shrink-0">
+                      <MessageCircle className="w-4 h-4 text-brand-warm" />
+                    </span>
+                    Написать в MAX
+                  </a>
+                )}
               </div>
 
               <p className="mt-4 flex items-center gap-2 text-sm text-muted-foreground">

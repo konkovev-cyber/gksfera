@@ -18,6 +18,7 @@ import { BackToTop } from "@/components/site/BackToTop";
 import { ScrollProgress } from "@/components/site/ScrollProgress";
 import { getContent } from "@/lib/content";
 import { ContentProvider } from "@/components/site/ContentContext";
+import { Suspense } from "react";
 
 export const dynamic = "force-dynamic";
 
@@ -39,7 +40,11 @@ export default async function Home() {
         {visibility.news && <News />}
         <ParentNavigator />
         {visibility.cta && <CTA />}
-        {visibility.enrollment && <EnrollmentForm />}
+        {visibility.enrollment && (
+          <Suspense fallback={null}>
+            <EnrollmentForm />
+          </Suspense>
+        )}
         {visibility.contacts && <Contact />}
       </main>
       <Footer />

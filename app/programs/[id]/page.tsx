@@ -13,7 +13,7 @@ import { Header } from "@/components/site/Header";
 import { Footer } from "@/components/site/Footer";
 import { MobileCTA } from "@/components/site/MobileCTA";
 import { iconMap } from "@/components/site/program-icons";
-import type { Program } from "@/data/site";
+import { type Program, programInterestMap } from "@/data/site";
 
 type Props = { params: { id: string } };
 
@@ -41,6 +41,11 @@ export default async function ProgramPage({ params }: Props) {
 
   const others = data.programs.filter((p) => p.id !== program.id).slice(0, 3);
   const Icon = iconMap[program.icon] ?? Sparkles;
+  const slug = slugify(program.title);
+  const interestValue = programInterestMap[slug] ?? "";
+  const enrollmentHref = interestValue
+    ? `/?interest=${encodeURIComponent(interestValue)}#enrollment`
+    : "/#enrollment";
 
   const jsonLd = {
     "@context": "https://schema.org",
@@ -140,7 +145,8 @@ export default async function ProgramPage({ params }: Props) {
 
               <div className="mt-8 flex flex-col sm:flex-row gap-3">
                 <Link
-                  href="/#enrollment"
+                  href={enrollmentHref}
+                  prefetch={false}
                   className="group inline-flex items-center justify-center gap-2 h-12 px-7 rounded-full bg-primary text-primary-foreground font-semibold hover:bg-primary/90 transition-all shadow-lg hover:shadow-xl"
                 >
                   Записаться на «{program.title}»
