@@ -365,7 +365,7 @@ export const parentOptions: ParentOption[] = [
 export const navItems = [
   { label: "О студии", href: "#about" },
   { label: "Направления", href: "#programs" },
-  { label: "Отзывы", href: "#reviews", show: () => siteConfig.showReviews },
+  { label: "Отзывы", href: "/reviews", show: () => siteConfig.showReviews },
   { label: "Новости", href: "/news" },
   { label: "Контакты", href: "#contacts" },
 ];
@@ -374,7 +374,7 @@ export const footerLinks = {
   navigation: [
     { label: "О студии", href: "#about" },
     { label: "Направления", href: "#programs" },
-    { label: "Отзывы", href: "#reviews" },
+    { label: "Отзывы", href: "/reviews" },
     { label: "Новости", href: "/news" },
     { label: "Контакты", href: "#contacts" },
   ],
