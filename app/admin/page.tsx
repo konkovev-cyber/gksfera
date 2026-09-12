@@ -678,7 +678,7 @@ export default function AdminPage() {
                       key={ph.id}
                       type="button"
                       onClick={() => applyPhoto(ph.src)}
-                      className={"group rounded-xl overflow-hidden border-2 transition-colors " + (ph.src === (pickerFor.kind === "hero" ? hero.image : "") ? "border-brand-warm" : "border-transparent hover:border-brand-warm")}
+                      className={"group rounded-xl overflow-hidden border-2 transition-colors " + (ph.src === (pickerFor.kind === "hero" ? hero.image : pickerFor.kind === "teacher" && teachers[pickerFor.index] ? teachers[pickerFor.index].photo : "") ? "border-brand-warm" : "border-transparent hover:border-brand-warm")}
                       title={ph.src}
                     >
                       {/* eslint-disable-next-line @next/next/no-img-element */}

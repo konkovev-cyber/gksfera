@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { Quote, ExternalLink } from "lucide-react";
 import { getContent } from "@/lib/content";
 import { ContentProvider } from "@/components/site/ContentContext";
 import { Header } from "@/components/site/Header";
 import { Footer } from "@/components/site/Footer";
 import { MobileCTA } from "@/components/site/MobileCTA";
-import { Reviews } from "@/components/site/Reviews";
 
 export const metadata: Metadata = {
   title: "Отзывы родителей",
@@ -15,9 +15,9 @@ export const metadata: Metadata = {
 };
 
 export default async function ReviewsPage() {
-  const { data, visibility } = await getContent();
-
+  const { data } = await getContent();
   const reviews = data.reviews ?? [];
+
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "LocalBusiness",
@@ -59,14 +59,57 @@ export default async function ReviewsPage() {
             Что говорят родители
           </h1>
           <p className="mt-4 text-lg text-muted-foreground max-w-2xl leading-relaxed">
-            Реальные мнения родителей наших учеников. Если вы тоже занимались у нас — оставьте отзыв, это поможет другим семьям сделать выбор.
+            Реальные мнения родителей наших учеников. Если вы тоже занимались у нас — напишите отзыв в нашей группе VK, это поможет другим семьям.
           </p>
         </div>
 
-        {/* Рендерим тот же компонент отзывов, что и на главной */}
-        <div className="container-max mt-10">
-          <Reviews />
-        </div>
+        {reviews.length === 0 ? (
+          <div className="container-max mt-12">
+            <div className="bg-card rounded-2xl border border-border/60 p-8 text-center max-w-lg">
+              <p className="text-muted-foreground">Отзывов пока нет. Загляните в нашу группу VK — там живые отзывы от родителей.</p>
+              {data.siteConfig.vkUrl && (
+                <a
+                  href={data.siteConfig.vkUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 mt-5 h-10 px-5 rounded-full bg-primary text-primary-foreground text-sm font-semibold hover:bg-primary/90 transition-colors"
+                >
+                  Группа VK
+                </a>
+              )}
+            </div>
+          </div>
+        ) : (
+          <div className="container-max mt-10 grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
+            {reviews.map((r) => (
+              <div key={r.id} className="bg-card rounded-2xl border border-border/60 p-5 sm:p-6 flex flex-col">
+                <Quote className="w-8 h-8 text-brand-warm/20 mb-3" />
+                <p className="text-sm text-foreground leading-relaxed flex-1 whitespace-pre-line">{r.text}</p>
+                <div className="mt-4 pt-4 border-t border-border/60">
+                  <p className="font-display font-semibold text-sm text-foreground">{r.author}</p>
+                  {r.childInfo && (
+                    <p className="text-xs text-muted-foreground mt-0.5">{r.childInfo}</p>
+                  )}
+                  <div className="flex items-center gap-2 mt-2">
+                    {r.source && (
+                      <span className="text-xs text-muted-foreground">{r.source}</span>
+                    )}
+                    {r.sourceUrl && (
+                      <a
+                        href={r.sourceUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1 text-xs text-brand-warm hover:underline"
+                      >
+                        ссылка <ExternalLink className="w-3 h-3" />
+                      </a>
+                    )}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
 
         <div className="container-max mt-12">
           <Link href="/" className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-brand-warm transition-colors">
