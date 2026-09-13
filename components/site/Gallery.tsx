@@ -2,12 +2,13 @@
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import Image from "next/image";
-import { X, ChevronLeft, ChevronRight, ZoomIn, ZoomOut } from "lucide-react";
+import { X, ChevronLeft, ChevronRight, ZoomIn, ZoomOut, Play } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useContent } from "./ContentContext";
 
 import { Reveal } from "./Reveal";
 import { cn } from "@/lib/utils";
+import { isVideoSrc } from "@/lib/compress";
 
 export function Gallery() {
   const content = useContent();
@@ -85,52 +86,96 @@ export function Gallery() {
         {/* Masonry grid на десктопе */}
         <Reveal delay={0.1}>
           <div className="mt-10 hidden md:grid grid-cols-4 auto-rows-[200px] gap-4">
-            {content.gallery.map((item, i) => (
-              <button
-                key={i}
-                onClick={() => setLightboxIndex(i)}
-                className={cn(
-                  "relative rounded-2xl overflow-hidden group cursor-pointer",
-                  spanClass(item.span)
-                )}
-                aria-label={`Открыть фото: ${item.alt}`}
-              >
-                <Image
-                  src={item.src}
-                  alt={item.alt}
-                  fill
-                  sizes="(max-width: 1024px) 50vw, 25vw"
-                  className="object-cover transition-transform duration-500 group-hover:scale-110"
-                  style={item.pos ? { objectPosition: item.pos } : undefined}
-                />
-                <div className="absolute inset-0 bg-foreground/0 group-hover:bg-foreground/20 transition-colors duration-300 flex items-center justify-center">
-                  <ZoomIn className="w-8 h-8 text-white opacity-0 group-hover:opacity-80 transition-opacity" />
-                </div>
-              </button>
-            ))}
+            {content.gallery.map((item, i) => {
+              const video = isVideoSrc(item.src);
+              return (
+                <button
+                  key={i}
+                  onClick={() => setLightboxIndex(i)}
+                  className={cn(
+                    "relative rounded-2xl overflow-hidden group cursor-pointer bg-muted",
+                    spanClass(item.span)
+                  )}
+                  aria-label={`${video ? "Открыть видео" : "Открыть фото"}: ${item.alt}`}
+                >
+                  {video ? (
+                    <video
+                      src={item.src}
+                      muted
+                      playsInline
+                      preload="metadata"
+                      className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                      style={item.pos ? { objectPosition: item.pos } : undefined}
+                    />
+                  ) : (
+                    <Image
+                      src={item.src}
+                      alt={item.alt}
+                      fill
+                      sizes="(max-width: 1024px) 50vw, 25vw"
+                      className="object-cover transition-transform duration-500 group-hover:scale-110"
+                      style={item.pos ? { objectPosition: item.pos } : undefined}
+                    />
+                  )}
+                  {video && (
+                    <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                      <div className="w-14 h-14 rounded-full bg-black/50 backdrop-blur-sm flex items-center justify-center border-2 border-white/70 group-hover:bg-black/70 group-hover:scale-110 transition-all">
+                        <Play className="w-6 h-6 text-white fill-white ml-1" />
+                      </div>
+                    </div>
+                  )}
+                  <div className="absolute inset-0 bg-foreground/0 group-hover:bg-foreground/20 transition-colors duration-300 flex items-center justify-center">
+                    {!video && (
+                      <ZoomIn className="w-8 h-8 text-white opacity-0 group-hover:opacity-80 transition-opacity" />
+                    )}
+                  </div>
+                </button>
+              );
+            })}
           </div>
         </Reveal>
 
         {/* Мобильная горизонтальная прокрутка */}
         <Reveal delay={0.1}>
           <div className="mt-8 md:hidden flex gap-3 overflow-x-auto pb-4 -mx-4 px-4 snap-x snap-mandatory">
-            {content.gallery.map((item, i) => (
-              <button
-                key={i}
-                onClick={() => setLightboxIndex(i)}
-                className="relative flex-shrink-0 w-[260px] h-[200px] rounded-2xl overflow-hidden snap-start"
-                aria-label={`Открыть фото: ${item.alt}`}
-              >
-                <Image
-                  src={item.src}
-                  alt={item.alt}
-                  fill
-                  sizes="260px"
-                  className="object-cover"
-                  style={item.pos ? { objectPosition: item.pos } : undefined}
-                />
-              </button>
-            ))}
+            {content.gallery.map((item, i) => {
+              const video = isVideoSrc(item.src);
+              return (
+                <button
+                  key={i}
+                  onClick={() => setLightboxIndex(i)}
+                  className="relative flex-shrink-0 w-[260px] h-[200px] rounded-2xl overflow-hidden snap-start bg-muted"
+                  aria-label={`${video ? "Открыть видео" : "Открыть фото"}: ${item.alt}`}
+                >
+                  {video ? (
+                    <video
+                      src={item.src}
+                      muted
+                      playsInline
+                      preload="metadata"
+                      className="absolute inset-0 w-full h-full object-cover"
+                      style={item.pos ? { objectPosition: item.pos } : undefined}
+                    />
+                  ) : (
+                    <Image
+                      src={item.src}
+                      alt={item.alt}
+                      fill
+                      sizes="260px"
+                      className="object-cover"
+                      style={item.pos ? { objectPosition: item.pos } : undefined}
+                    />
+                  )}
+                  {video && (
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <div className="w-12 h-12 rounded-full bg-black/50 backdrop-blur-sm flex items-center justify-center border-2 border-white/70">
+                        <Play className="w-5 h-5 text-white fill-white ml-1" />
+                      </div>
+                    </div>
+                  )}
+                </button>
+              );
+            })}
           </div>
         </Reveal>
       </div>
@@ -156,14 +201,16 @@ export function Gallery() {
               <X className="w-6 h-6" />
             </button>
 
-            {/* Кнопка зума */}
-            <button
-              className="absolute top-4 right-20 w-12 h-12 rounded-full bg-card/20 text-white flex items-center justify-center hover:bg-card/30 transition-colors z-20"
-              onClick={(e) => { e.stopPropagation(); setZoomed((z) => !z); }}
-              aria-label={zoomed ? "Уменьшить" : "Увеличить"}
-            >
-              {zoomed ? <ZoomOut className="w-6 h-6" /> : <ZoomIn className="w-6 h-6" />}
-            </button>
+            {/* Кнопка зума (только для изображений) */}
+            {!isVideoSrc(content.gallery[lightboxIndex].src) && (
+              <button
+                className="absolute top-4 right-20 w-12 h-12 rounded-full bg-card/20 text-white flex items-center justify-center hover:bg-card/30 transition-colors z-20"
+                onClick={(e) => { e.stopPropagation(); setZoomed((z) => !z); }}
+                aria-label={zoomed ? "Уменьшить" : "Увеличить"}
+              >
+                {zoomed ? <ZoomOut className="w-6 h-6" /> : <ZoomIn className="w-6 h-6" />}
+              </button>
+            )}
 
             {/* Стрелки навигации */}
             {!zoomed && (
@@ -185,28 +232,45 @@ export function Gallery() {
               </>
             )}
 
-            {/* Фото */}
+            {/* Фото / видео */}
             <motion.div
               key={lightboxIndex}
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.2 }}
               className={cn(
-                "relative w-full transition-transform duration-300 cursor-pointer",
-                zoomed ? "h-[90vh] overflow-auto" : "max-w-4xl h-[70vh]"
+                "relative w-full transition-transform duration-300",
+                isVideoSrc(content.gallery[lightboxIndex].src)
+                  ? "max-w-4xl h-[70vh] flex items-center justify-center"
+                  : cn("cursor-pointer", zoomed ? "h-[90vh] overflow-auto" : "max-w-4xl h-[70vh]"),
               )}
-              onClick={(e) => { e.stopPropagation(); setZoomed((z) => !z); }}
+              onClick={
+                isVideoSrc(content.gallery[lightboxIndex].src)
+                  ? (e) => e.stopPropagation()
+                  : (e) => { e.stopPropagation(); setZoomed((z) => !z); }
+              }
             >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={content.gallery[lightboxIndex].src}
-                alt={content.gallery[lightboxIndex].alt}
-                className={cn(
-                  "w-full h-full transition-transform duration-300",
-                  zoomed ? "object-contain scale-150 origin-center" : "object-contain"
-                )}
-                draggable={false}
-              />
+              {isVideoSrc(content.gallery[lightboxIndex].src) ? (
+                <video
+                  src={content.gallery[lightboxIndex].src}
+                  controls
+                  autoPlay
+                  playsInline
+                  poster=""
+                  className="w-full h-full max-h-[70vh] object-contain rounded-xl bg-black"
+                />
+              ) : (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={content.gallery[lightboxIndex].src}
+                  alt={content.gallery[lightboxIndex].alt}
+                  className={cn(
+                    "w-full h-full transition-transform duration-300",
+                    zoomed ? "object-contain scale-150 origin-center" : "object-contain"
+                  )}
+                  draggable={false}
+                />
+              )}
             </motion.div>
 
             {/* Счётчик */}

@@ -6,9 +6,10 @@ import {
   Loader2, Save, Upload, Trash2, LogOut, ArrowUp, ArrowDown,
   Settings, Image as ImageIcon, LayoutDashboard, Inbox, School,
   Eye, Star, BookOpen, Search, Download, Plus, Newspaper, RefreshCw, ExternalLink, X,
-  GraduationCap, HelpCircle, PenTool,
+  GraduationCap, HelpCircle, PenTool, Play,
 } from "lucide-react";
 import { gallery as defaultGallery } from "@/data/site";
+import { compressImageFile, isVideoSrc, humanSize, IMAGE_MAX, VIDEO_MAX } from "@/lib/compress";
 
 type Tab = "settings" | "hero" | "visibility" | "programs" | "gallery" |
   "teachers" | "reviews" | "learning" | "faq" | "blog" | "news" | "seo" | "io" | "inbox" | "blocks";
@@ -105,6 +106,7 @@ export default function AdminPage() {
   const [tab, setTab] = useState<Tab>("settings");
   const [saving, setSaving] = useState(false);
   const [msg, setMsg] = useState("");
+  const [uploadQueue, setUploadQueue] = useState<{ name: string; status: "pending" | "compressing" | "uploading" | "done" | "error"; message?: string; saved?: number }[]>([]);
   const fileRef = useRef<HTMLInputElement>(null);
 
   const [siteConfig, setSiteConfig] = useState<Record<string, any>>({});
@@ -206,14 +208,110 @@ export default function AdminPage() {
     flash(res.ok ? "Сохранено ✓" : "Ошибка");
   };
 
+  const updateQueueItem = (idx: number, patch: Partial<{ status: "pending" | "compressing" | "uploading" | "done" | "error"; message?: string; saved?: number }>) => {
+    setUploadQueue((prev) => prev.map((x, j) => (j === idx ? { ...x, ...patch } : x)));
+  };
+
+  /** Загрузить файл через signed URL (обходит лимит тела функции Vercel),
+   *  предварительно сжав изображения на клиенте. */
+  const uploadSingle = async (rawFile: File, idx: number) => {
+    const isVideo = rawFile.type.startsWith("video/");
+    const maxBytes = isVideo ? VIDEO_MAX : IMAGE_MAX;
+    if (rawFile.size > maxBytes) {
+      updateQueueItem(idx, { status: "error", message: `${humanSize(rawFile.size)} > лимита ${humanSize(maxBytes)}` });
+      return;
+    }
+
+    let file = rawFile;
+    if (!isVideo) {
+      updateQueueItem(idx, { status: "compressing" });
+      const res = await compressImageFile(rawFile);
+      file = res.file;
+      if (res.savedBytes > 0) {
+        updateQueueItem(idx, { saved: res.savedBytes });
+      }
+    }
+
+    updateQueueItem(idx, { status: "uploading" });
+
+    // 1. подписать URL
+    const signRes = await fetch("/api/admin/photos/sign", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ filename: file.name, size: file.size, contentType: file.type }),
+    });
+    const sign = await signRes.json().catch(() => ({}));
+    if (!signRes.ok || sign.error) {
+      updateQueueItem(idx, { status: "error", message: sign.error ?? "не удалось получить ссылку" });
+      return;
+    }
+
+    // 2. PUT файла напрямую в Supabase Storage через signed URL
+    const putRes = await fetch(sign.signedUrl, {
+      method: "PUT",
+      headers: {
+        "Content-Type": file.type || (isVideoSrc(sign.publicUrl) ? "video/mp4" : "image/jpeg"),
+        Authorization: `Bearer ${process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? ""}`,
+        "x-upsert": "false",
+      },
+      body: file,
+    });
+    if (!putRes.ok) {
+      const txt = await putRes.text().catch(() => "");
+      updateQueueItem(idx, { status: "error", message: txt || `upload HTTP ${putRes.status}` });
+      return;
+    }
+
+    // 3. зарегистрировать строку в gallery_photos
+    const regRes = await fetch("/api/admin/photos", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ src: sign.publicUrl, alt: "", span: "normal" }),
+    });
+    const reg = await regRes.json().catch(() => ({}));
+    if (!regRes.ok) {
+      updateQueueItem(idx, { status: "error", message: reg.error ?? "не удалось добавить в галерею" });
+      return;
+    }
+    setPhotos((prev) => [...prev, reg.photo]);
+    updateQueueItem(idx, { status: "done" });
+  };
+
+  /** Массовая загрузка: обрабатываем файлы последовательно, чтобы
+   *  не завалить браузер и Supabase, и показывать прогресс. */
+  const uploadFiles = async (files: FileList | File[]) => {
+    const list = Array.from(files).filter((f) => f.type.startsWith("image/") || f.type.startsWith("video/") || /\.(jpe?g|png|webp|gif|mp4|webm|mov|m4v)$/i.test(f.name));
+    if (list.length === 0) { flash("Нет подходящих файлов (только jpg/png/webp/gif/mp4/webm/mov)"); return; }
+    setUploadQueue(list.map((f) => ({ name: f.name, status: "pending" as const })));
+    for (let i = 0; i < list.length; i++) {
+      await uploadSingle(list[i], i);
+    }
+    const ok = list.length;
+    const failed = uploadQueue.filter((x) => x.status === "error").length;
+    flash(
+      failed === 0
+        ? `Загружено ${ok} файл${ok === 1 ? "" : ok < 5 ? "а" : "ов"} ✓`
+        : `Загружено ${ok - failed}, ошибок: ${failed}`,
+    );
+    // Автоскрытие очереди через 5 секунд
+    setTimeout(() => setUploadQueue([]), 5000);
+  };
+
   const uploadPhoto = async (file: File, alt: string) => {
-    setSaving(true);
-    const fd = new FormData(); fd.append("file", file); fd.append("alt", alt);
-    const res = await fetch("/api/admin/photos", { method: "POST", body: fd });
-    const j = await res.json().catch(() => ({}));
-    setSaving(false);
-    if (res.ok) { setPhotos((prev) => [...prev, j.photo]); flash("Фото загружено ✓"); }
-    else flash(j.error ?? "Ошибка загрузки");
+    if (alt) {
+      // single-shot совместимость (например, из picker):
+      setSaving(true);
+      const fd = new FormData();
+      fd.append("file", file);
+      fd.append("alt", alt);
+      const res = await fetch("/api/admin/photos", { method: "POST", body: fd });
+      const j = await res.json().catch(() => ({}));
+      setSaving(false);
+      if (res.ok) { setPhotos((prev) => [...prev, j.photo]); flash("Фото загружено ✓"); }
+      else flash(j.error ?? "Ошибка загрузки");
+    } else {
+      uploadFiles([file]);
+    }
   };
 
   const deletePhoto = async (id: number) => {
@@ -520,36 +618,91 @@ export default function AdminPage() {
           <div className="space-y-4">
             <div className="bg-card rounded-2xl border border-border/60 p-4 flex flex-wrap items-center gap-3">
               <label className="inline-flex items-center gap-2 h-10 px-4 rounded-full border-2 border-border text-sm font-semibold cursor-pointer hover:border-primary hover:text-primary">
-                <Upload className="w-4 h-4" /> Загрузить фото
-                <input type="file" accept="image/*" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) uploadPhoto(f, ""); e.target.value = ""; }} />
+                <Upload className="w-4 h-4" /> Загрузить фото или видео
+                <input
+                  type="file"
+                  accept="image/*,video/mp4,video/webm,video/quicktime,video/x-m4v"
+                  multiple
+                  className="hidden"
+                  disabled={uploadQueue.some((q) => q.status === "uploading" || q.status === "compressing")}
+                  onChange={(e) => {
+                    const fs = e.target.files;
+                    if (fs && fs.length > 0) uploadFiles(fs);
+                    e.target.value = "";
+                  }}
+                />
               </label>
+              <span className="text-[10px] text-muted-foreground">
+                картинки до {IMAGE_MAX / 1024 / 1024}MB · видео до {VIDEO_MAX / 1024 / 1024}MB
+              </span>
               {photos.length > 0 ? (
                 <span className="text-xs text-muted-foreground">
-                  В базе <b className="text-foreground">{photos.length}</b> фото · они и показываются в галерее на сайте.
-                  Можно добавить ещё или загрузить из <code className="text-[10px] px-1 bg-accent rounded">/images/</code> через поле URL
-                  в блоке Hero/Program.
+                  В базе <b className="text-foreground">{photos.length}</b> медиа · они показываются в галерее на сайте.
                 </span>
               ) : (
                 <span className="text-xs text-muted-foreground">
-                  Пока нет своих фото — на сайте показывается <b>галерея по умолчанию</b> из файла
-                  <code className="text-[10px] px-1 mx-1 bg-accent rounded">data/site.ts</code>
-                  (фото <code className="text-[10px] px-1 bg-accent rounded">studio-XX.jpg</code> и
-                  <code className="text-[10px] px-1 mx-1 bg-accent rounded">gallery-X.jpg</code> из
-                  <code className="text-[10px] px-1 mx-1 bg-accent rounded">/public/images/</code>).
+                  Пока нет своих файлов — на сайте показывается <b>галерея по умолчанию</b> из
+                  <code className="text-[10px] px-1 mx-1 bg-accent rounded">data/site.ts</code>.
                   Загрузите свои — они заменят дефолт.
                 </span>
               )}
             </div>
+
+            {/* Прогресс загрузки */}
+            {uploadQueue.length > 0 && (
+              <div className="bg-card rounded-2xl border border-border/60 p-3">
+                <div className="text-xs font-semibold mb-2 text-muted-foreground">Очередь загрузки</div>
+                <ul className="space-y-1 text-xs max-h-40 overflow-auto">
+                  {uploadQueue.map((q, i) => {
+                    const icon = q.status === "done"
+                      ? <span className="text-emerald-500">✓</span>
+                      : q.status === "error"
+                        ? <span className="text-destructive">✕</span>
+                        : q.status === "uploading" || q.status === "compressing"
+                          ? <Loader2 className="w-3 h-3 animate-inline inline-block" />
+                          : <span className="text-muted-foreground">•</span>;
+                    const status = q.status === "pending" ? "в очереди"
+                      : q.status === "compressing" ? "сжимаю…"
+                      : q.status === "uploading" ? "загружаю…"
+                      : q.status === "done" ? (q.saved ? `готово (сэкономлено ${humanSize(q.saved)})` : "готово")
+                      : `ошибка: ${q.message ?? ""}`;
+                    return (
+                      <li key={i} className="flex items-center gap-2">
+                        {icon}
+                        <span className="flex-1 truncate">{q.name}</span>
+                        <span className={q.status === "error" ? "text-destructive" : "text-muted-foreground"}>{status}</span>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </div>
+            )}
+            <style jsx>{`
+              @keyframes spin { from { transform: rotate(0); } to { transform: rotate(360deg); } }
+              .animate-inline { animation: spin 1s linear infinite; }
+            `}</style>
             {photos.length > 0 ? (
               photos.map((ph, i) => (
                 <div key={ph.id} className="bg-card rounded-2xl border border-border/60 p-3 sm:p-4 flex flex-col sm:flex-row gap-3 items-start sm:items-center">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <div className="relative w-full sm:w-24 shrink-0">
-                    <img src={ph.src} alt="" className="w-full sm:h-16 h-32 object-cover rounded-lg border border-border" />
-                    {ph.src?.startsWith("/images/") && (
-                      <span className="absolute top-1 left-1 text-[9px] font-semibold uppercase tracking-wide px-1.5 py-0.5 rounded bg-black/70 text-white" title="Файл из /public/images/, не из Supabase Storage">
-                        локальное
-                      </span>
+                    {isVideoSrc(ph.src) ? (
+                      <>
+                        <video src={ph.src} muted playsInline preload="metadata" className="w-full sm:h-16 h-32 object-cover rounded-lg border border-border bg-black" />
+                        <div className="absolute inset-0 flex items-center justify-center pointer-events-none rounded-lg bg-black/20">
+                          <Play className="w-6 h-6 text-white drop-shadow" fill="currentColor" />
+                        </div>
+                        <span className="absolute top-1 left-1 text-[9px] font-semibold uppercase tracking-wide px-1.5 py-0.5 rounded bg-black/70 text-white">видео</span>
+                      </>
+                    ) : (
+                      <>
+                        <img src={ph.src} alt="" className="w-full sm:h-16 h-32 object-cover rounded-lg border border-border" />
+                        {ph.src?.startsWith("/images/") && (
+                          <span className="absolute top-1 left-1 text-[9px] font-semibold uppercase tracking-wide px-1.5 py-0.5 rounded bg-black/70 text-white" title="Файл лежит в /public/images/ на сервере сайта. Для замены — загрузите новый вариант через кнопку выше.">
+                            файл
+                          </span>
+                        )}
+                      </>
                     )}
                   </div>
                   <div className="flex-1 min-w-0 grid grid-cols-1 sm:grid-cols-3 gap-2 w-full">

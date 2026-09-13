@@ -36,6 +36,39 @@ export async function POST(req: NextRequest) {
   if (denied) return denied;
   const db = service();
 
+  // Две схемы:
+  // 1) application/json — файл уже загружен в Supabase Storage через
+  //    /api/admin/photos/sign (signed URL, минуя тело серверной функции).
+  //    В body приходит { src, alt, span, pos }.
+  // 2) multipart/form-data — старая схема (небольшое изображение напрямую).
+  const ct = req.headers.get("content-type") ?? "";
+  if (ct.includes("application/json")) {
+    const body = (await req.json().catch(() => ({}))) as Record<string, unknown>;
+    const src = String(body.src ?? "").trim();
+    const alt = String(body.alt ?? "").trim();
+    const span = String(body.span ?? "normal").trim() || "normal";
+    const pos = String(body.pos ?? "").trim() || null;
+    if (!src) return NextResponse.json({ error: "src обязателен" }, { status: 400 });
+    if (!/^https?:\/\//i.test(src) && !src.startsWith("/images/")) {
+      return NextResponse.json({ error: "некорректный src" }, { status: 400 });
+    }
+    const { data: maxRow } = await db
+      .from("gallery_photos")
+      .select("sort_order")
+      .order("sort_order", { ascending: false })
+      .limit(1);
+    const nextSort = ((maxRow?.[0]?.sort_order as number) ?? 0) + 1;
+    const { data: inserted, error } = await db
+      .from("gallery_photos")
+      .insert({ src, alt, span, pos, sort_order: nextSort })
+      .select()
+      .single();
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+    revalidatePath("/");
+    return NextResponse.json({ photo: inserted });
+  }
+
+  // multipart (обратная совместимость)
   const form = await req.formData();
   const file = form.get("file");
   if (!(file instanceof File)) {
