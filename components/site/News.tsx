@@ -1,9 +1,10 @@
 "use client";
 
+import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { Reveal } from "./Reveal";
 import { useContent } from "./ContentContext";
-import { Calendar, ArrowRight } from "lucide-react";
+import { Calendar, ArrowRight, ChevronLeft, ChevronRight } from "lucide-react";
 
 function formatDate(iso: string): string {
   try {
@@ -19,6 +20,32 @@ function formatDate(iso: string): string {
 
 export function News() {
   const { news } = useContent();
+
+  // Карусель: 4 карточки в ряд на десктопе, остальные — прокруткой.
+  const scrollerRef = useRef<HTMLDivElement>(null);
+  const [edges, setEdges] = useState({ start: true, end: false, scrollable: false });
+  const updateEdges = useCallback(() => {
+    const el = scrollerRef.current;
+    if (!el) return;
+    const max = el.scrollWidth - el.clientWidth;
+    setEdges({ start: el.scrollLeft <= 4, end: el.scrollLeft >= max - 4, scrollable: max > 8 });
+  }, []);
+  useEffect(() => {
+    updateEdges();
+    const el = scrollerRef.current;
+    if (!el) return;
+    el.addEventListener("resize", updateEdges);
+    return () => el.removeEventListener("resize", updateEdges);
+  }, [updateEdges, news?.length]);
+  const scrollByCards = (dir: 1 | -1) => {
+    const el = scrollerRef.current;
+    if (!el) return;
+    const card = el.querySelector<HTMLElement>("[data-news-card]");
+    const gap = parseFloat(getComputedStyle(el).columnGap || "20") || 20;
+    const step = card ? card.clientWidth + gap : el.clientWidth * 0.8;
+    el.scrollBy({ left: dir * step, behavior: "smooth" });
+  };
+
   if (!news || news.length === 0) return null;
 
   return (
@@ -35,49 +62,93 @@ export function News() {
           </div>
         </Reveal>
 
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
-          {news.slice(0, 6).map((item, i) => (
-            <Reveal key={item.vk_post_id ?? i} delay={i * 0.05}>
-              <Link
-                href={`/news/${item.vk_post_id}`}
-                className="group block bg-card rounded-2xl border border-border/60 overflow-hidden hover:shadow-lg transition-shadow h-full"
+        <div className="relative">
+          {/* Стрелки прокрутки по бокам ленты (только когда есть что листать) */}
+          {edges.scrollable && (
+            <>
+              <button
+                onClick={() => scrollByCards(-1)}
+                disabled={edges.start}
+                aria-label="Предыдущие новости"
+                className="hidden md:flex absolute left-1 lg:-left-4 top-[42%] -translate-y-1/2 z-10 w-11 h-11 rounded-full border-2 border-border bg-card text-foreground items-center justify-center shadow-lg transition-all hover:border-primary hover:text-primary disabled:opacity-0 disabled:pointer-events-none"
               >
-                {item.image_url && (
-                  <div className="relative aspect-[4/3] overflow-hidden bg-brand-cream/50">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
-                      src={item.image_url}
-                      alt={item.title}
-                      className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-500"
-                      loading="lazy"
-                    />
-                  </div>
-                )}
-                <div className="p-5">
-                  <div className="flex items-center gap-2 text-xs text-muted-foreground mb-2">
-                    <Calendar className="w-3.5 h-3.5" />
-                    <time dateTime={item.published_at.slice(0, 10)}>{formatDate(item.published_at)}</time>
-                  </div>
-                  <h3 className="font-display font-bold text-foreground text-sm leading-snug mb-2 group-hover:text-brand-warm transition-colors line-clamp-2">
-                    {item.title}
-                  </h3>
-                  {item.excerpt && (
-                    <p className="text-sm text-muted-foreground leading-relaxed line-clamp-3">
-                      {item.excerpt}
-                    </p>
-                  )}
-                  <div className="mt-3 flex items-center gap-1.5 text-xs font-medium text-brand-warm opacity-0 group-hover:opacity-100 transition-opacity">
-                    Читать полностью <ArrowRight className="w-3 h-3" />
-                  </div>
+                <ChevronLeft className="w-5 h-5" />
+              </button>
+              <button
+                onClick={() => scrollByCards(1)}
+                disabled={edges.end}
+                aria-label="Следующие новости"
+                className="hidden md:flex absolute right-1 lg:-right-4 top-[42%] -translate-y-1/2 z-10 w-11 h-11 rounded-full border-2 border-border bg-card text-foreground items-center justify-center shadow-lg transition-all hover:border-primary hover:text-primary disabled:opacity-0 disabled:pointer-events-none"
+              >
+                <ChevronRight className="w-5 h-5" />
+              </button>
+            </>
+          )}
+
+          {/* Лента карточек: 4 в ряд + горизонтальная прокрутка */}
+          <Reveal delay={0.1}>
+            <div
+              ref={scrollerRef}
+              onScroll={updateEdges}
+              className="flex gap-5 overflow-x-auto snap-x snap-mandatory scroll-smooth pb-4 -mx-4 px-4 sm:mx-0 sm:px-0 scrollbar-hide overscroll-x-contain"
+            >
+              {news.map((item, i) => (
+                <div
+                  data-news-card
+                  key={item.vk_post_id ?? i}
+                  className="shrink-0 snap-start w-[82%] min-[420px]:w-[58%] sm:w-[calc((100%-1.25rem)/2)] md:w-[calc((100%-2.5rem)/3)] lg:w-[calc((100%-3.75rem)/4)]"
+                >
+                  <Link
+                    href={`/news/${item.vk_post_id}`}
+                    className="group block bg-card rounded-2xl border border-border/60 overflow-hidden hover:shadow-lg transition-shadow h-full"
+                  >
+                    {item.image_url && (
+                      <div className="relative aspect-[4/3] overflow-hidden bg-brand-cream/50">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={item.image_url}
+                          alt={item.title}
+                          className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-500"
+                          loading="lazy"
+                        />
+                      </div>
+                    )}
+                    <div className="p-5">
+                      <div className="flex items-center gap-2 text-xs text-muted-foreground mb-2">
+                        <Calendar className="w-3.5 h-3.5" />
+                        <time dateTime={item.published_at.slice(0, 10)}>{formatDate(item.published_at)}</time>
+                      </div>
+                      <h3 className="font-display font-bold text-foreground text-sm leading-snug mb-2 group-hover:text-brand-warm transition-colors line-clamp-2">
+                        {item.title}
+                      </h3>
+                      {item.excerpt && (
+                        <p className="text-sm text-muted-foreground leading-relaxed line-clamp-3">
+                          {item.excerpt}
+                        </p>
+                      )}
+                      <div className="mt-3 flex items-center gap-1.5 text-xs font-medium text-brand-warm opacity-0 group-hover:opacity-100 transition-opacity">
+                        Читать полностью <ArrowRight className="w-3 h-3" />
+                      </div>
+                    </div>
+                  </Link>
                 </div>
-              </Link>
-            </Reveal>
-          ))}
+              ))}
+            </div>
+          </Reveal>
         </div>
 
-        {news.length > 6 && (
+        {/* Подсказка «листайте» на мобильных */}
+        {edges.scrollable && (
+          <p className="md:hidden mt-1 text-center text-xs text-muted-foreground flex items-center justify-center gap-1.5">
+            <ChevronLeft className="w-3.5 h-3.5" />
+            листайте — всего {news.length}
+            <ChevronRight className="w-3.5 h-3.5" />
+          </p>
+        )}
+
+        {news.length > 4 && (
           <Reveal>
-            <div className="text-center mt-10">
+            <div className="text-center mt-6">
               <Link
                 href="/news"
                 className="inline-flex items-center gap-2 h-11 px-6 rounded-full border-2 border-border bg-card text-sm font-semibold hover:border-brand-warm hover:text-brand-warm transition-colors"
