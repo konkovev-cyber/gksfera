@@ -62,122 +62,142 @@ export function Gallery() {
     touchRef.current = null;
   };
 
-  const spanClass = (span?: string) => {
-    if (span === "tall") return "row-span-2";
-    if (span === "wide") return "col-span-2";
-    return "";
+  // Горизонтальная карусель: видно 4 плитки, остальные — прокруткой.
+  const scrollerRef = useRef<HTMLDivElement>(null);
+  const [edges, setEdges] = useState({ start: true, end: false, scrollable: false });
+  const updateEdges = useCallback(() => {
+    const el = scrollerRef.current;
+    if (!el) return;
+    const max = el.scrollWidth - el.clientWidth;
+    setEdges({
+      start: el.scrollLeft <= 4,
+      end: el.scrollLeft >= max - 4,
+      scrollable: max > 8,
+    });
+  }, []);
+  useEffect(() => {
+    updateEdges();
+    const el = scrollerRef.current;
+    if (!el) return;
+    el.addEventListener("resize", updateEdges);
+    return () => el.removeEventListener("resize", updateEdges);
+  }, [updateEdges, content.gallery.length]);
+  const scrollByCards = (dir: 1 | -1) => {
+    const el = scrollerRef.current;
+    if (!el) return;
+    const card = el.querySelector<HTMLElement>("[data-card]");
+    const gap = parseFloat(getComputedStyle(el).columnGap || "16") || 16;
+    const step = card ? card.clientWidth + gap : el.clientWidth * 0.8;
+    el.scrollBy({ left: dir * step, behavior: "smooth" });
+  };
+
+  const Tile = ({ item, i }: { item: (typeof content.gallery)[number]; i: number }) => {
+    const video = isVideoSrc(item.src);
+    return (
+      <button
+        data-card
+        onClick={() => setLightboxIndex(i)}
+        className={cn(
+          "group relative shrink-0 snap-start aspect-[4/5] w-[74%] min-[420px]:w-[52%] sm:w-[46%] md:w-[calc((100%-2rem)/3)] lg:w-[calc((100%-3rem)/4)] rounded-2xl overflow-hidden bg-muted cursor-pointer",
+        )}
+        aria-label={`${video ? "Открыть видео" : "Открыть фото"}: ${item.alt}`}
+      >
+        {video ? (
+          <video
+            src={item.src}
+            muted
+            playsInline
+            preload="metadata"
+            className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+            style={item.pos ? { objectPosition: item.pos } : undefined}
+          />
+        ) : (
+          <Image
+            src={item.src}
+            alt={item.alt}
+            fill
+            sizes="(max-width: 640px) 74vw, (max-width: 768px) 46vw, (max-width: 1024px) 33vw, 25vw"
+            className="object-cover transition-transform duration-500 group-hover:scale-110"
+            style={item.pos ? { objectPosition: item.pos } : undefined}
+          />
+        )}
+        {video && (
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+            <div className="w-14 h-14 rounded-full bg-black/50 backdrop-blur-sm flex items-center justify-center border-2 border-white/70 group-hover:bg-black/70 group-hover:scale-110 transition-all">
+              <Play className="w-6 h-6 text-white fill-white ml-1" />
+            </div>
+          </div>
+        )}
+        <div className="absolute inset-0 bg-foreground/0 group-hover:bg-foreground/20 transition-colors duration-300 flex items-center justify-center">
+          {!video && (
+            <ZoomIn className="w-8 h-8 text-white opacity-0 group-hover:opacity-80 transition-opacity" />
+          )}
+        </div>
+      </button>
+    );
   };
 
   return (
     <section id="gallery" className="section-padding bg-brand-cream/50 relative overflow-hidden">
       <div className="container-max relative z-10">
         <Reveal>
-          <p className="text-sm font-semibold uppercase tracking-widest text-brand-warm mb-3">
-            Галерея
-          </p>
-          <h2 className="font-display font-extrabold text-3xl sm:text-4xl md:text-5xl text-foreground text-balance leading-[1.15]">
-            Жизнь «Сферы» в фотографиях
-          </h2>
-          <p className="mt-6 text-lg text-muted-foreground max-w-2xl leading-relaxed">
-            Занятия, творчество, праздники и спектакли — загляните внутрь студии.
-          </p>
-        </Reveal>
-
-        {/* Masonry grid на десктопе */}
-        <Reveal delay={0.1}>
-          <div className="mt-10 hidden md:grid grid-cols-4 auto-rows-[200px] gap-4">
-            {content.gallery.map((item, i) => {
-              const video = isVideoSrc(item.src);
-              return (
+          <div className="flex flex-wrap items-end justify-between gap-4">
+            <div>
+              <p className="text-sm font-semibold uppercase tracking-widest text-brand-warm mb-3">
+                Галерея
+              </p>
+              <h2 className="font-display font-extrabold text-3xl sm:text-4xl md:text-5xl text-foreground text-balance leading-[1.15]">
+                Жизнь «Сферы» в фотографиях
+              </h2>
+              <p className="mt-6 text-lg text-muted-foreground max-w-2xl leading-relaxed">
+                Занятия, творчество, праздники и спектакли — загляните внутрь студии.
+              </p>
+            </div>
+            {/* Стрелки прокрутки (только когда есть что листать) */}
+            {edges.scrollable && (
+              <div className="hidden sm:flex items-center gap-2 pb-1 shrink-0">
                 <button
-                  key={i}
-                  onClick={() => setLightboxIndex(i)}
-                  className={cn(
-                    "relative rounded-2xl overflow-hidden group cursor-pointer bg-muted",
-                    spanClass(item.span)
-                  )}
-                  aria-label={`${video ? "Открыть видео" : "Открыть фото"}: ${item.alt}`}
+                  onClick={() => scrollByCards(-1)}
+                  disabled={edges.start}
+                  aria-label="Предыдущие фото"
+                  className="w-11 h-11 rounded-full border-2 border-border bg-card text-foreground flex items-center justify-center transition-all hover:border-primary hover:text-primary disabled:opacity-30 disabled:hover:border-border disabled:hover:text-foreground"
                 >
-                  {video ? (
-                    <video
-                      src={item.src}
-                      muted
-                      playsInline
-                      preload="metadata"
-                      className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                      style={item.pos ? { objectPosition: item.pos } : undefined}
-                    />
-                  ) : (
-                    <Image
-                      src={item.src}
-                      alt={item.alt}
-                      fill
-                      sizes="(max-width: 1024px) 50vw, 25vw"
-                      className="object-cover transition-transform duration-500 group-hover:scale-110"
-                      style={item.pos ? { objectPosition: item.pos } : undefined}
-                    />
-                  )}
-                  {video && (
-                    <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                      <div className="w-14 h-14 rounded-full bg-black/50 backdrop-blur-sm flex items-center justify-center border-2 border-white/70 group-hover:bg-black/70 group-hover:scale-110 transition-all">
-                        <Play className="w-6 h-6 text-white fill-white ml-1" />
-                      </div>
-                    </div>
-                  )}
-                  <div className="absolute inset-0 bg-foreground/0 group-hover:bg-foreground/20 transition-colors duration-300 flex items-center justify-center">
-                    {!video && (
-                      <ZoomIn className="w-8 h-8 text-white opacity-0 group-hover:opacity-80 transition-opacity" />
-                    )}
-                  </div>
+                  <ChevronLeft className="w-5 h-5" />
                 </button>
-              );
-            })}
+                <button
+                  onClick={() => scrollByCards(1)}
+                  disabled={edges.end}
+                  aria-label="Следующие фото"
+                  className="w-11 h-11 rounded-full border-2 border-border bg-card text-foreground flex items-center justify-center transition-all hover:border-primary hover:text-primary disabled:opacity-30 disabled:hover:border-border disabled:hover:text-foreground"
+                >
+                  <ChevronRight className="w-5 h-5" />
+                </button>
+              </div>
+            )}
           </div>
         </Reveal>
 
-        {/* Мобильная горизонтальная прокрутка */}
+        {/* Карусель: 4 плитки в ряд + горизонтальная прокрутка */}
         <Reveal delay={0.1}>
-          <div className="mt-8 md:hidden flex gap-3 overflow-x-auto pb-4 -mx-4 px-4 snap-x snap-mandatory">
-            {content.gallery.map((item, i) => {
-              const video = isVideoSrc(item.src);
-              return (
-                <button
-                  key={i}
-                  onClick={() => setLightboxIndex(i)}
-                  className="relative flex-shrink-0 w-[260px] h-[200px] rounded-2xl overflow-hidden snap-start bg-muted"
-                  aria-label={`${video ? "Открыть видео" : "Открыть фото"}: ${item.alt}`}
-                >
-                  {video ? (
-                    <video
-                      src={item.src}
-                      muted
-                      playsInline
-                      preload="metadata"
-                      className="absolute inset-0 w-full h-full object-cover"
-                      style={item.pos ? { objectPosition: item.pos } : undefined}
-                    />
-                  ) : (
-                    <Image
-                      src={item.src}
-                      alt={item.alt}
-                      fill
-                      sizes="260px"
-                      className="object-cover"
-                      style={item.pos ? { objectPosition: item.pos } : undefined}
-                    />
-                  )}
-                  {video && (
-                    <div className="absolute inset-0 flex items-center justify-center">
-                      <div className="w-12 h-12 rounded-full bg-black/50 backdrop-blur-sm flex items-center justify-center border-2 border-white/70">
-                        <Play className="w-5 h-5 text-white fill-white ml-1" />
-                      </div>
-                    </div>
-                  )}
-                </button>
-              );
-            })}
+          <div
+            ref={scrollerRef}
+            onScroll={updateEdges}
+            className="mt-8 sm:mt-10 -mx-4 px-4 sm:mx-0 sm:px-0 flex gap-4 sm:gap-4 overflow-x-auto snap-x snap-mandatory scroll-smooth pb-4 scrollbar-hide overscroll-x-contain"
+          >
+            {content.gallery.map((item, i) => (
+              <Tile key={i} item={item} i={i} />
+            ))}
           </div>
         </Reveal>
+
+        {/* Подсказка «листайте» на мобильных */}
+        {edges.scrollable && (
+          <p className="sm:hidden mt-1 text-center text-xs text-muted-foreground flex items-center justify-center gap-1.5">
+            <ChevronLeft className="w-3.5 h-3.5" />
+            листайте — всего {content.gallery.length}
+            <ChevronRight className="w-3.5 h-3.5" />
+          </p>
+        )}
       </div>
 
       {/* Lightbox */}
