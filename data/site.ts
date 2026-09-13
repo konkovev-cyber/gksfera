@@ -180,6 +180,14 @@ export const heroContent = {
   secondaryCta: "Смотреть направления",
   image: "/images/gallery-1.jpg",
   imageAlt: "Дети занимаются в учебной студии «Сфера»",
+  /** Набор фото для ротации в Hero. Если 2+ — плавно чередуются
+   *  (кроссфейд + медленный Ken Burns). Если пусто — показывается image. */
+  images: [
+    "/images/gallery-1.jpg",
+    "/images/PF6A7844_resized.jpg",
+    "/images/studio-07.jpg",
+    "/images/PF6A8152_resized.jpg",
+  ] as string[],
 };
 
 /**

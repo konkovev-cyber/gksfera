@@ -5,6 +5,7 @@ import Image from "next/image";
 import { ArrowRight, Sparkles } from "lucide-react";
 import {
   motion,
+  AnimatePresence,
   useMotionValue,
   useSpring,
   useTransform,
@@ -64,6 +65,24 @@ export function Hero() {
   // Заголовок по словам
   const words = content.heroContent.title.split(" ");
   const marqueeItems = content.programs.map((p) => p.title);
+
+  // Набор фото для ротации в Hero (fallback на одиночное image)
+  const heroImages = (
+    content.heroContent.images && content.heroContent.images.length > 0
+      ? content.heroContent.images
+      : [content.heroContent.image]
+  ).filter(Boolean) as string[];
+  const [activeImg, setActiveImg] = useState(0);
+  useEffect(() => {
+    if (!fineMotion || heroImages.length <= 1) return;
+    const id = window.setInterval(
+      () => setActiveImg((i) => (i + 1) % heroImages.length),
+      7000, // смена раз в 7 секунд — не слишком часто
+    );
+    return () => window.clearInterval(id);
+  }, [fineMotion, heroImages.length]);
+  // Защита от выхода за границы после изменения набора в админке
+  const safeIdx = heroImages.length > 0 ? activeImg % heroImages.length : 0;
 
   return (
     <section
@@ -216,17 +235,61 @@ export function Hero() {
             }
             className="relative aspect-[4/5] sm:aspect-[5/4] lg:aspect-[4/5] xl:aspect-square will-change-transform"
           >
-            <div className="absolute inset-0 rounded-3xl overflow-hidden shadow-2xl ring-1 ring-black/5">
-              <Image
-                src={content.heroContent.image}
-                alt={content.heroContent.imageAlt}
-                fill
-                priority
-                sizes="(max-width: 1024px) 100vw, 50vw"
-                className="object-cover"
-              />
+            <div className="absolute inset-0 rounded-3xl overflow-hidden shadow-2xl ring-1 ring-black/5 bg-muted" data-hero-rotate>
+              {/* Ротация фото: кроссфейд + медленный Ken Burns (scale). */}
+              <AnimatePresence>
+                {heroImages.map((src, i) =>
+                  i === safeIdx ? (
+                    <motion.div
+                      key={src + "-" + i}
+                      className="absolute inset-0"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      transition={{ duration: 1.4, ease: "easeInOut" }}
+                    >
+                      <motion.div
+                        className="absolute inset-0"
+                        initial={false}
+                        animate={
+                          fineMotion
+                            ? { scale: heroImages.length > 1 ? [1.02, 1.12] : 1 }
+                            : { scale: 1 }
+                        }
+                        transition={{ duration: 8, ease: "linear" }}
+                      >
+                        <Image
+                          src={src}
+                          alt={content.heroContent.imageAlt}
+                          fill
+                          priority={i === 0}
+                          sizes="(max-width: 1024px) 100vw, 50vw"
+                          className="object-cover"
+                        />
+                      </motion.div>
+                    </motion.div>
+                  ) : null,
+                )}
+              </AnimatePresence>
               {/* Блик-градиент поверх фото */}
-              <div className="absolute inset-0 bg-gradient-to-tr from-brand-teal/15 via-transparent to-brand-warm/10 mix-blend-overlay" />
+              <div className="absolute inset-0 bg-gradient-to-tr from-brand-teal/15 via-transparent to-brand-warm/10 mix-blend-overlay pointer-events-none" />
+
+              {/* Индикатор ротации — точки (только если фото больше одного) */}
+              {heroImages.length > 1 && (
+                <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex items-center gap-1.5 z-10">
+                  {heroImages.map((_, i) => (
+                    <button
+                      key={i}
+                      onClick={() => setActiveImg(i)}
+                      aria-label={`Показать фото ${i + 1}`}
+                      className={cn(
+                        "h-1.5 rounded-full transition-all duration-300",
+                        i === safeIdx ? "w-5 bg-white" : "w-1.5 bg-white/50 hover:bg-white/80",
+                      )}
+                    />
+                  ))}
+                </div>
+              )}
             </div>
             <div className="absolute -inset-3 rounded-[2rem] border-2 border-brand-warm/20 -z-10 hidden sm:block" />
             <motion.div
@@ -265,26 +328,37 @@ export function Hero() {
         <div className="absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-brand-warm/40 to-transparent" aria-hidden="true" />
         <div className="absolute inset-0 bg-gradient-to-b from-brand-warm/5 via-card to-brand-warm/5" aria-hidden="true" />
 
-        <div className="relative py-4 overflow-hidden shadow-[inset_0_2px_8px_-4px_rgba(0,0,0,0.06),inset_0_-2px_8px_-4px_rgba(0,0,0,0.06)]">
+        <div className="relative py-7 overflow-hidden shadow-[inset_0_2px_8px_-4px_rgba(0,0,0,0.06),inset_0_-2px_8px_-4px_rgba(0,0,0,0.06)]">
           <div className="flex w-max animate-marquee">
-            {[...marqueeItems, ...marqueeItems].map((t, i) => (
-              <span
-                key={i}
-                className="flex items-center whitespace-nowrap"
-              >
-                <span className="text-sm sm:text-[0.95rem] font-display font-bold text-brand-warm tracking-wide uppercase">
-                  {t}
-                </span>
-                <span
-                  className="mx-5 sm:mx-7 flex items-center gap-1"
-                  aria-hidden="true"
-                >
-                  <span className="w-1 h-1 rounded-full bg-brand-teal" />
-                  <span className="w-1.5 h-1.5 rounded-full bg-brand-warm" />
-                  <span className="w-1 h-1 rounded-full bg-brand-teal" />
-                </span>
-              </span>
-            ))}
+            {(() => {
+              const N = marqueeItems.length || 1;
+              const WAVE_PERIOD = 7; // сек — совпадает с @keyframes marquee-wave
+              return [...marqueeItems, ...marqueeItems].map((t, i) => {
+                // Фаза синусоиды по позиции элемента. Отрицательная задержка,
+                // чтобы волна была «в разгаре» сразу при рендере, и повторялась
+                // каждые N элементов — бесшовно на стыке дубля строки.
+                const delay = -((i % N) / N) * WAVE_PERIOD;
+                return (
+                  <span
+                    key={i}
+                    className={cn("flex items-center whitespace-nowrap", fineMotion && "marquee-wave")}
+                    style={{ animationDelay: `${delay}s` }}
+                  >
+                    <span className="text-sm sm:text-[0.95rem] font-display font-bold text-brand-warm tracking-wide uppercase">
+                      {t}
+                    </span>
+                    <span
+                      className="mx-5 sm:mx-7 flex items-center gap-1"
+                      aria-hidden="true"
+                    >
+                      <span className="w-1 h-1 rounded-full bg-brand-teal" />
+                      <span className="w-1.5 h-1.5 rounded-full bg-brand-warm" />
+                      <span className="w-1 h-1 rounded-full bg-brand-teal" />
+                    </span>
+                  </span>
+                );
+              });
+            })()}
           </div>
         </div>
       </div>

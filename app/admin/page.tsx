@@ -131,7 +131,7 @@ export default function AdminPage() {
   const [blogPosts, setBlogPosts] = useState<any[]>([]);
   const [syncing, setSyncing] = useState(false);
   const [vkDomain, setVkDomain] = useState("");
-  const [pickerFor, setPickerFor] = useState<null | { kind: "program" | "hero" | "step" | "teacher"; index: number }>(null);
+  const [pickerFor, setPickerFor] = useState<null | { kind: "program" | "hero" | "heroList" | "step" | "teacher"; index: number }>(null);
   const [pickerFiles, setPickerFiles] = useState<{ src: string; size: number }[]>([]);
   const [pickerFilter, setPickerFilter] = useState("");
 
@@ -503,6 +503,13 @@ export default function AdminPage() {
       setPrograms((prev) => prev.map((x, j) => (j === index ? { ...x, image: src } : x)));
     } else if (kind === "hero") {
       setHero((prev) => ({ ...prev, image: src }));
+    } else if (kind === "heroList") {
+      setHero((prev) => {
+        const list: string[] = Array.isArray(prev.images) ? [...prev.images] : [];
+        if (index >= 0 && index < list.length) list[index] = src;
+        else list.push(src);
+        return { ...prev, images: list };
+      });
     } else if (kind === "step") {
       setLearning((p) => ({ ...p, steps: p.steps.map((s, j) => (j === index ? { ...s, image: src } : s)) }));
     } else if (kind === "teacher") {
@@ -512,14 +519,14 @@ export default function AdminPage() {
     flash("Фото выбрано ✓");
   };
 
-  const pickBtn = (kind: "program" | "hero" | "step" | "teacher", index: number) => (
+  const pickBtn = (kind: "program" | "hero" | "heroList" | "step" | "teacher", index: number, label = "Выбрать") => (
     <button
       type="button"
       onClick={() => { setPickerFor({ kind, index }); if (pickerFiles.length === 0) fetch("/api/admin/files").then(r => r.ok ? r.json() : null).then(j => setPickerFiles(j?.files ?? [])); }}
       className="h-10 px-3 rounded-lg border border-border hover:bg-accent inline-flex items-center gap-1.5 text-sm shrink-0"
       title="Выбрать из загруженных фото"
     >
-      <ImageIcon className="w-4 h-4" /> Выбрать
+      <ImageIcon className="w-4 h-4" /> {label}
     </button>
   );
 
@@ -598,6 +605,40 @@ export default function AdminPage() {
                 )}
               </Field>
             ))}
+
+            {/* ─── Ротация фото в Hero ─── */}
+            <div className="sm:col-span-2 mt-2 border-t border-border pt-4">
+              <div className="flex items-center justify-between gap-2 mb-1 flex-wrap">
+                <h4 className="font-display font-bold text-sm">Ротация фото в Hero</h4>
+                {pickBtn("heroList", -1, "Добавить фото")}
+              </div>
+              <p className="text-xs text-muted-foreground mb-3">
+                Если тут 2+ фото — они плавно чередуются в шапке сайта (раз в ~7 секунд).
+                Одно фото = статичная картинка. Одиночное поле «Фото» выше — запасной вариант.
+              </p>
+              {Array.isArray(hero.images) && hero.images.length > 0 ? (
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                  {hero.images.map((src: string, i: number) => (
+                    <div key={i} className="rounded-xl border border-border overflow-hidden bg-muted/40">
+                      <div className="relative aspect-[4/3]">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src={src} alt="" className="absolute inset-0 w-full h-full object-cover" />
+                        <span className="absolute top-1 left-1 text-[10px] font-bold bg-black/60 text-white rounded px-1.5 py-0.5">#{i + 1}</span>
+                      </div>
+                      <div className="p-1.5 flex items-center gap-1">
+                        <button type="button" title="Заменить фото" onClick={() => setPickerFor({ kind: "heroList", index: i })} className="flex-1 text-[11px] h-7 rounded hover:bg-accent truncate">Заменить</button>
+                        <button type="button" title="Выше" disabled={i === 0} onClick={() => setHero((p) => { const a = [...p.images]; [a[i - 1], a[i]] = [a[i], a[i - 1]]; return { ...p, images: a }; })} className="w-7 h-7 rounded hover:bg-accent disabled:opacity-30 inline-flex items-center justify-center"><ArrowUp className="w-3.5 h-3.5" /></button>
+                        <button type="button" title="Ниже" disabled={i === hero.images.length - 1} onClick={() => setHero((p) => { const a = [...p.images]; [a[i + 1], a[i]] = [a[i], a[i + 1]]; return { ...p, images: a }; })} className="w-7 h-7 rounded hover:bg-accent disabled:opacity-30 inline-flex items-center justify-center"><ArrowDown className="w-3.5 h-3.5" /></button>
+                        <button type="button" title="Удалить" onClick={() => setHero((p) => ({ ...p, images: p.images.filter((_: string, j: number) => j !== i) }))} className="w-7 h-7 rounded hover:bg-destructive/10 text-destructive inline-flex items-center justify-center"><Trash2 className="w-3.5 h-3.5" /></button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-xs text-muted-foreground italic">Ротации нет — показывается только одиночное фото.</p>
+              )}
+            </div>
+
             <div className="sm:col-span-2"><button onClick={saveSettings} disabled={saving} className={btnCls}>{saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />} Сохранить</button></div>
           </div>
         )}
@@ -1220,6 +1261,7 @@ export default function AdminPage() {
                   const currentSrc = (() => {
                     const { kind, index } = pickerFor;
                     if (kind === "hero") return hero.image;
+                    if (kind === "heroList") return Array.isArray(hero.images) ? (hero.images[index] ?? "") : "";
                     if (kind === "teacher" && teachers[index]) return teachers[index].photo;
                     if (kind === "program" && programs[index]) return programs[index].image;
                     return "";

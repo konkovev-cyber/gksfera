@@ -165,6 +165,24 @@
   animation: marquee 36s linear infinite !important;
 }
 
+/* Волна для бегущей строки: вертикальное колебание по синусоиде.
+   Каждому элементу даётся своя фаза (animation-delay) в Hero.tsx,
+   чтобы по строке бежала «волна», а не всё колыхалось синфазно. */
+@keyframes marquee-wave {
+  0%   { transform: translateY(0)     rotate(0deg); }
+  25%  { transform: translateY(-11px) rotate(-1.2deg); }
+  50%  { transform: translateY(0)     rotate(0deg); }
+  75%  { transform: translateY(11px)  rotate(1.2deg); }
+  100% { transform: translateY(0)     rotate(0deg); }
+}
+.marquee-wave {
+  animation: marquee-wave 7s ease-in-out infinite;
+  will-change: transform;
+}
+@media (prefers-reduced-motion: reduce) {
+  .marquee-wave { animation: none !important; }
+}
+
 @keyframes text-shimmer {
   to {
     background-position: 200% center;
