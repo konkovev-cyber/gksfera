@@ -66,17 +66,17 @@ export function Header() {
           {/* Логотип */}
           <Link
             href="/"
-            className="flex items-center gap-3 group"
+            className="flex items-center gap-2.5 sm:gap-3 group min-w-0"
             aria-label="Сфера — на главную"
           >
             <Logo scrolled={scrolled} />
-            {/* Текстовая подпись только на мобильном (на десктопе она уже в wordmark) */}
-            <div className="lg:hidden sm:flex flex-col leading-tight">
-              <span className="font-display font-extrabold text-xl tracking-tight text-foreground">
+            {/* Текстовая подпись — только ниже desktop (на lg показываем wordmark) */}
+            <div className="lg:hidden flex flex-col leading-tight min-w-0">
+              <span className="font-display font-extrabold text-lg sm:text-xl tracking-tight text-foreground whitespace-nowrap">
                 СФЕРА
               </span>
-              <span className="text-[10px] md:text-[11px] text-muted-foreground mt-0.5 font-medium">
-                Учебно-развивающая студия
+              <span className="text-[10px] sm:text-[11px] text-muted-foreground mt-0.5 font-medium whitespace-nowrap">
+                Развивающая студия
               </span>
             </div>
           </Link>
@@ -156,7 +156,7 @@ export function Header() {
                       СФЕРА
                     </span>
                     <span className="text-[10px] text-muted-foreground mt-0.5">
-                      Учебно-развивающая студия
+                      Развивающая студия
                     </span>
                   </div>
                 </Link>
