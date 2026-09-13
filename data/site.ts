@@ -417,50 +417,52 @@ export const learningExperience = {
     { icon: "Palette", title: "Творческие проекты", text: "Соединяем знания с творчеством — от рисования до театра." },
     { icon: "HeartHandshake", title: "Внимание к ребёнку", text: "Стараемся понять, что интересно и что получается лучше всего." },
   ],
-  image: "/images/studio-08.jpg",
+  image: "/images/PF6A8218_resized.jpg",
   imageAlt: "Занятие в учебном классе студии «Сфера»",
 };
 
 export const gallery: GalleryItem[] = [
   {
-    src: "/images/gallery-2.jpg",
-    alt: "Работа с педагогом один на один",
+    src: "/images/PF6A8076_resized.jpg",
+    alt: "Индивидуальное занятие в «Сфере»",
+    span: "tall",
+    pos: "50% 25%",
+  },
+  {
+    src: "/images/studio-04.jpg",
+    alt: "Рабочая атмосфера в классе",
+    span: "tall",
+    pos: "50% 25%",
+  },
+  {
+    src: "/images/PF6A7622_resized.jpg",
+    alt: "Групповое занятие в студии",
     span: "normal",
   },
   {
-    src: "/images/studio-01.jpg",
-    alt: "Вход в студию «Сфера»",
-    span: "tall",
-  },
-  {
-    src: "/images/studio-02.jpg",
-    alt: "Уголок для занятий",
+    src: "/images/PF6A7681_resized.jpg",
+    alt: "Дети работают в парах",
     span: "normal",
   },
   {
     src: "/images/studio-03.jpg",
-    alt: "Дети занимаются в учебной студии",
-    span: "normal",
-  },
-  {
-    src: "/images/studio-07.jpg",
-    alt: "Материалы для занятий",
-    span: "wide",
-    pos: "50% 20%",
-  },
-  {
-    src: "/images/studio-09.jpg",
-    alt: "Творческая мастерская",
-    span: "normal",
-  },
-  {
-    src: "/images/studio-10.jpg",
-    alt: "Рабочая обстановка в студии",
+    alt: "Маленький ученик за партой",
     span: "tall",
+    pos: "50% 25%",
   },
   {
-    src: "/images/studio-11.jpg",
-    alt: "Панорама зала",
+    src: "/images/PF6A7648_resized.jpg",
+    alt: "Занятие у интерактивной доски",
+    span: "wide",
+  },
+  {
+    src: "/images/studio-pano.jpg",
+    alt: "Панорама учебного зала «Сферы»",
+    span: "wide",
+  },
+  {
+    src: "/images/PF6A7999_resized.jpg",
+    alt: "Творческое занятие с материалами",
     span: "normal",
   },
 ];
