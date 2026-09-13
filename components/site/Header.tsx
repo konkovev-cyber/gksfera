@@ -230,8 +230,10 @@ export function Header() {
 function Logo({ scrolled }: { scrolled: boolean }) {
   return (
     <>
-      {/* Мобильный: squircle-иконка */}
-      <div className="lg:hidden relative w-11 h-11 flex-shrink-0 rounded-2xl overflow-hidden shadow-sm ring-1 ring-black/5">
+      {/* Мобильный: squircle-иконка. bg-white обязателен —
+          на тёмной теме / scrolled-состоянии шапки прозрачный PNG
+          с тёмными штрихами становится нечитаемым. */}
+      <div className="lg:hidden relative w-11 h-11 flex-shrink-0 rounded-2xl overflow-hidden bg-white shadow-sm ring-1 ring-black/5 dark:ring-white/10">
         <Image
           src="/images/logo-icon.png"
           alt="Логотип Сфера"
@@ -241,14 +243,14 @@ function Logo({ scrolled }: { scrolled: boolean }) {
           priority
         />
       </div>
-      {/* Десктоп: горизонтальный wordmark */}
-      <div className="hidden lg:block relative h-12 flex-shrink-0 flex items-center">
+      {/* Десктоп: wordmark-таблетка с белой подложкой. */}
+      <div className="hidden lg:flex relative items-center h-12 flex-shrink-0 bg-white rounded-2xl px-4 py-2 shadow-sm ring-1 ring-black/5 dark:ring-white/10">
         <Image
           src="/images/logo-wordmark.png"
           alt="Сфера — учебно-развивающая студия"
           width={400}
           height={154}
-          className="h-12 w-auto object-contain transition-transform duration-300 group-hover:scale-[1.02]"
+          className="h-8 w-auto object-contain transition-transform duration-300 group-hover:scale-[1.02]"
           priority
         />
       </div>
