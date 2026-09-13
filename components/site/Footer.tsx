@@ -162,12 +162,12 @@ export function Footer() {
 
 function FooterLogo() {
   return (
-    <div className="relative w-11 h-11 flex-shrink-0">
+    <div className="relative w-11 h-11 flex-shrink-0 rounded-2xl overflow-hidden shadow-sm ring-1 ring-black/5">
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
-        src="/images/logo.png"
+        src="/images/logo-icon.png"
         alt="Логотип Сфера"
-        className="w-full h-full object-contain"
+        className="w-full h-full object-cover"
       />
     </div>
   );

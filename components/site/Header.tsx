@@ -228,13 +228,13 @@ export function Header() {
 
 function Logo({ scrolled }: { scrolled: boolean }) {
   return (
-    <div className="relative w-11 h-11 flex-shrink-0">
+    <div className="relative w-11 h-11 flex-shrink-0 rounded-2xl overflow-hidden shadow-sm ring-1 ring-black/5">
       <Image
-        src="/images/logo.png"
+        src="/images/logo-icon.png"
         alt="Логотип Сфера"
         width={44}
         height={44}
-        className="w-full h-full object-contain transition-transform duration-300 group-hover:scale-105"
+        className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
         priority
       />
     </div>
