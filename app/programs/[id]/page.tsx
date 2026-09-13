@@ -112,6 +112,7 @@ export default async function ProgramPage({ params }: Props) {
                   alt={program.imageAlt}
                   fill
                   sizes="(max-width: 1024px) 100vw, 50vw"
+                  style={{ objectPosition: program.pos || undefined }}
                   className="object-cover"
                   priority
                 />
@@ -392,6 +393,7 @@ export default async function ProgramPage({ params }: Props) {
                           alt={p.imageAlt}
                           fill
                           sizes="(max-width: 640px) 100vw, 33vw"
+                          style={{ objectPosition: p.pos || undefined }}
                           className="object-cover group-hover:scale-105 transition-transform duration-500"
                         />
                       </div>

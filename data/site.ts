@@ -8,6 +8,10 @@ export type Program = {
   icon: string;
   featured?: boolean;
   category?: "educational" | "creative";
+  /** CSS object-position для корректного кадрирования портретных фото.
+   *  Примеры: "50% 20%" — сместить crop к верху (лицо вверху).
+   *  "30% 50%" — сместить crop влево. */
+  pos?: string;
 };
 
 /**
@@ -290,8 +294,9 @@ export const programs: Program[] = [
     ageRange: "5–7 лет · 1 или 2 года",
     description:
       "Для будущих первоклассников. Помогаем ребёнку уверенно подойти к школьному порогу: чтение, письмо, счёт, развитие внимания и усидчивости. Программа рассчитана на 1 или 2 года.",
-    image: "/images/letters.jpg",
-    imageAlt: "Подготовка к школе — обучение буквам в студии «Сфера»",
+    image: "/images/studio-05.jpg",
+    imageAlt: "Занятие по подготовке к школе в студии «Сфера»",
+    pos: "50% 20%",
     icon: "Backpack",
     featured: true,
     category: "educational",
@@ -326,6 +331,7 @@ export const programs: Program[] = [
       "Изучение языка в понятной и интересной форме. Игры, диалоги, живая практика — без скучной зубрёжки.",
     image: "/images/english.jpg",
     imageAlt: "Занятие по английскому языку в «Сфере»",
+    pos: "50% 20%",
     icon: "Languages",
     category: "educational",
   },
@@ -335,8 +341,8 @@ export const programs: Program[] = [
     ageRange: "5–10 лет",
     description:
       "Коррекция почерка. Работа над красивым, уверенным и аккуратным письмом. Развиваем мелкую моторику и привычку к аккуратности.",
-    image: "/images/studio-05.jpg",
-    imageAlt: "Чистописание и развитие мелкой моторики",
+    image: "/images/letters.jpg",
+    imageAlt: "Учимся писать красиво и аккуратно",
     icon: "PenLine",
     category: "educational",
   },
@@ -370,6 +376,7 @@ export const programs: Program[] = [
       "Работа с эмоциями и страхами через театральные техники. Развиваем эмоциональный интеллект, уверенность в себе и умение понимать других.",
     image: "/images/psycho-theater.jpg",
     imageAlt: "Психологический театр — работа с эмоциями в «Сфере»",
+    pos: "50% 20%",
     icon: "Sparkles",
     category: "creative",
   },

@@ -188,7 +188,7 @@ export default function AdminPage() {
     setSaving(true);
     const res = await fetch("/api/admin/programs", {
       method: "PUT", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ items: programs.map((p, i) => ({ id: p.id, title: p.title, ageRange: p.age_range, description: p.description, image: p.image, imageAlt: p.image_alt, category: p.category ?? "educational", visible: p.visible !== false, sortOrder: i + 1 })) }),
+      body: JSON.stringify({ items: programs.map((p, i) => ({ id: p.id, title: p.title, ageRange: p.age_range, description: p.description, image: p.image, imageAlt: p.image_alt, category: p.category ?? "educational", pos: p.pos ?? "", visible: p.visible !== false, sortOrder: i + 1 })) }),
     });
     setSaving(false);
     flash(res.ok ? "Сохранено ✓" : "Ошибка");
@@ -481,6 +481,26 @@ export default function AdminPage() {
                     <input className={inputCls + " flex-1"} value={p.image ?? ""} onChange={(e) => setPrograms((prev) => prev.map((x, j) => j === i ? { ...x, image: e.target.value } : x))} />
                     {pickBtn("program", i)}
                   </div>
+                </Field></div>
+                <div className="sm:col-span-2"><Field label="Точка фокуса при кадрировании (object-position)">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <select className={inputCls + " w-auto"} value={p.pos ?? "50% 50%"} onChange={(e) => setPrograms((prev) => prev.map((x, j) => j === i ? { ...x, pos: e.target.value === "50% 50%" ? "" : e.target.value } : x))}>
+                      <option value="50% 50%">центр (по умолчанию)</option>
+                      <option value="50% 15%">верх — если вверху лицо</option>
+                      <option value="50% 25%">верх-чуть-ниже</option>
+                      <option value="50% 75%">низ — если объект внизу</option>
+                      <option value="25% 50%">левая треть</option>
+                      <option value="75% 50%">правая треть</option>
+                    </select>
+                    <input className={inputCls + " flex-1 min-w-[130px]"} placeholder="50% 20%" value={p.pos ?? ""} onChange={(e) => setPrograms((prev) => prev.map((x, j) => j === i ? { ...x, pos: e.target.value } : x))} />
+                    {p.image && (
+                      <div className="relative w-16 h-10 rounded-lg overflow-hidden border border-border shrink-0" title="Превью с учётом фокуса">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src={p.image} alt="" className="absolute inset-0 w-full h-full object-cover" style={{ objectPosition: p.pos || "50% 50%" }} />
+                      </div>
+                    )}
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-1">Если фото вертикальное и обрезается голова/лицо — поставьте <code className="px-1 bg-accent rounded">50% 15%</code>.</p>
                 </Field></div>
                 <div className="flex items-end gap-4">
                   <label className="inline-flex items-center gap-2 text-sm h-10"><input type="checkbox" checked={p.visible !== false} onChange={(e) => setPrograms((prev) => prev.map((x, j) => j === i ? { ...x, visible: e.target.checked } : x))} className="w-4 h-4" />показывать</label>

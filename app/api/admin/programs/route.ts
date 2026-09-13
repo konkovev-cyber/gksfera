@@ -18,6 +18,7 @@ type ProgItem = {
   image?: string;
   imageAlt?: string;
   category?: "educational" | "creative";
+  pos?: string;
   visible?: boolean;
   sortOrder?: number;
 };
@@ -33,6 +34,10 @@ const normalize = (p: Record<string, unknown>) => {
     image: p.image ?? "",
     image_alt: p.image_alt ?? "",
     category: cat === "creative" ? "creative" : "educational",
+    // Точка фокуса — колонка pos или в features.pos (JSONB)
+    pos: p.pos ?? features.pos ?? "",
+    // Иконка для карточки тоже хранится в features
+    icon: features.icon ?? "",
     visible: p.is_visible !== false && p.visible !== false,
     sort_order: p.sort_order ?? 0,
   };
@@ -81,6 +86,14 @@ export async function PUT(req: NextRequest) {
 
   for (let i = 0; i < body.items.length; i++) {
     const it = body.items[i];
+    // features JSONB: читаем существующие (чтобы не затереть icon), обновляем pos
+    let features: Record<string, unknown> = {};
+    if (it.id) {
+      const cur = await db.from("programs").select("features").eq("id", it.id).single();
+      features = ((cur.data?.features ?? {}) as Record<string, unknown>);
+    }
+    features.category = it.category ?? "educational";
+    if (it.pos) features.pos = it.pos; else delete features.pos;
     const baseRow: Record<string, unknown> = {
       title: it.title,
       age: it.ageRange ?? "",
@@ -88,6 +101,7 @@ export async function PUT(req: NextRequest) {
       image: it.image ?? "",
       image_alt: it.imageAlt ?? "",
       badge: it.category ?? "educational",  // хранится в существующей колонке badge
+      features,
       is_visible: it.visible ?? true,
       sort_order: it.sortOrder ?? i + 1,
       updated_at: new Date().toISOString(),

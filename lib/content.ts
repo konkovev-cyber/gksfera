@@ -163,6 +163,7 @@ export async function getContent(): Promise<{
             icon: String(p.icon ?? features.icon ?? fallback?.icon ?? "Sparkles"),
             featured: Boolean(p.featured),
             category: cat,
+            pos: p.pos != null ? String(p.pos) : (features.pos != null ? String(features.pos) : fallback?.pos),
           } satisfies Program;
         });
     }
