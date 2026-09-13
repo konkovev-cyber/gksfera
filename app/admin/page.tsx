@@ -159,7 +159,7 @@ export default function AdminPage() {
     setSaving(true);
     const res = await fetch("/api/admin/programs", {
       method: "PUT", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ items: programs.map((p, i) => ({ id: p.id, title: p.title, ageRange: p.age_range, description: p.description, image: p.image, imageAlt: p.image_alt, visible: p.visible !== false, sortOrder: i + 1 })) }),
+      body: JSON.stringify({ items: programs.map((p, i) => ({ id: p.id, title: p.title, ageRange: p.age_range, description: p.description, image: p.image, imageAlt: p.image_alt, category: p.category ?? "educational", visible: p.visible !== false, sortOrder: i + 1 })) }),
     });
     setSaving(false);
     flash(res.ok ? "Сохранено ✓" : "Ошибка");
@@ -438,6 +438,14 @@ export default function AdminPage() {
               <div key={p.id ?? i} className="bg-card rounded-2xl border border-border/60 p-4 grid sm:grid-cols-2 gap-3">
                 <Field label="Название"><input className={inputCls} value={p.title ?? ""} onChange={(e) => setPrograms((prev) => prev.map((x, j) => j === i ? { ...x, title: e.target.value } : x))} /></Field>
                 <Field label="Возраст"><input className={inputCls} value={p.age_range ?? ""} onChange={(e) => setPrograms((prev) => prev.map((x, j) => j === i ? { ...x, age_range: e.target.value } : x))} /></Field>
+                <div className="sm:col-span-2">
+                  <Field label="Категория (раздел)">
+                    <select className={inputCls} value={p.category ?? "educational"} onChange={(e) => setPrograms((prev) => prev.map((x, j) => j === i ? { ...x, category: e.target.value } : x))}>
+                      <option value="educational">Учебное направление</option>
+                      <option value="creative">Творческий факультатив</option>
+                    </select>
+                  </Field>
+                </div>
                 <div className="sm:col-span-2"><Field label="Описание"><textarea rows={2} className={inputCls + " h-auto py-2"} value={p.description ?? ""} onChange={(e) => setPrograms((prev) => prev.map((x, j) => j === i ? { ...x, description: e.target.value } : x))} /></Field></div>
                 <div className="sm:col-span-2"><Field label="Фото URL">
                   <div className="flex gap-2">

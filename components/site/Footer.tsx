@@ -162,23 +162,13 @@ export function Footer() {
 
 function FooterLogo() {
   return (
-    <div className="relative w-10 h-10 flex-shrink-0">
-      <svg viewBox="0 0 44 44" fill="none" className="w-full h-full" aria-hidden="true">
-        <circle cx="22" cy="22" r="20" stroke="hsl(var(--brand-warm))" strokeWidth="2" opacity="0.5" />
-        <ellipse
-          cx="22"
-          cy="22"
-          rx="20"
-          ry="8"
-          stroke="hsl(var(--brand-teal))"
-          strokeWidth="1.5"
-          opacity="0.5"
-          transform="rotate(-30 22 22)"
-        />
-        <circle cx="22" cy="22" r="13" fill="hsl(var(--brand-warm))" />
-        <path d="M27 18.5a6 6 0 1 0 0 7" stroke="white" strokeWidth="2.5" strokeLinecap="round" fill="none" />
-        <circle cx="38" cy="14" r="2.5" fill="hsl(var(--brand-teal))" />
-      </svg>
+    <div className="relative w-11 h-11 flex-shrink-0">
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src="/images/logo.png"
+        alt="Логотип Сфера"
+        className="w-full h-full object-contain"
+      />
     </div>
   );
 }

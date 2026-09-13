@@ -3,7 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { motion, useReducedMotion } from "framer-motion";
-import { Backpack, ArrowRight } from "lucide-react";
+import { Backpack, ArrowRight, BookOpen, Sparkles } from "lucide-react";
 import { useContent } from "./ContentContext";
 import { type Program } from "@/data/site";
 import { iconMap } from "./program-icons";
@@ -13,30 +13,102 @@ import { Reveal, Stagger, StaggerItem } from "./Reveal";
 
 export function Programs() {
   const content = useContent();
+  const allPrograms = content.programs ?? [];
+
+  // Если ни у одной программы нет category (старая база), показываем всё одним блоком
+  const hasCategories = allPrograms.some((p) => (p as Program).category);
+
+  if (!hasCategories) {
+    return (
+      <ProgramsSection
+        programs={allPrograms}
+        subtitle="Направления"
+        title="Чем можно заниматься в «Сфере»"
+        description="Выберите направление, которое подходит вашему ребёнку по возрасту и интересам. На каждое можно записаться отдельно или проконсультироваться, если сомневаетесь."
+      />
+    );
+  }
+
+  const educational = allPrograms.filter((p) => (p as Program).category === "educational");
+  const creative = allPrograms.filter((p) => (p as Program).category === "creative");
+  const uncategorized = allPrograms.filter((p) => !(p as Program).category);
+
   return (
-    <section id="programs" className="section-padding bg-brand-cream/50 relative overflow-hidden">
+    <div id="programs">
+      {educational.length > 0 && (
+        <ProgramsSection
+          programs={educational}
+          subtitle="Направления"
+          title="Учебные направления"
+          description="Подготовка к школе, помощь школьникам с программой, английский язык и коррекция письма. Работаем с ребёнком от 5 до 15 лет — по возрастным группам и индивидуально."
+          accent="educational"
+        />
+      )}
+
+      {creative.length > 0 && (
+        <ProgramsSection
+          programs={creative}
+          subtitle="Факультативы"
+          title="Какие творческие факультативы у нас есть"
+          description="Сцена, слово и творчество — то, что не измеряется оценками, но сильно влияет на уверенность ребёнка и его умение говорить о себе. Записаться можно на несколько сразу."
+          accent="creative"
+        />
+      )}
+
+      {uncategorized.length > 0 && (
+        <ProgramsSection
+          programs={uncategorized}
+          subtitle="Другое"
+          title="Другие направления"
+          description="Дополнительные занятия, которые вы можете подобрать по запросу."
+          accent="educational"
+        />
+      )}
+    </div>
+  );
+}
+
+function ProgramsSection({
+  programs,
+  subtitle,
+  title,
+  description,
+  accent = "educational",
+}: {
+  programs: Program[];
+  subtitle: string;
+  title: string;
+  description: string;
+  accent?: "educational" | "creative";
+}) {
+  const isEducational = accent === "educational";
+  const IconBadge = isEducational ? BookOpen : Sparkles;
+  const badgeColor = isEducational ? "text-brand-warm" : "text-brand-teal";
+  const dotColor = isEducational ? "bg-brand-warm" : "bg-brand-teal";
+
+  return (
+    <section className="section-padding relative overflow-hidden bg-brand-cream/50">
       <div
         className="absolute bottom-0 left-0 w-80 h-80 rounded-full bg-brand-teal/5 blur-3xl pointer-events-none"
         aria-hidden="true"
       />
       <div className="container-max relative z-10">
         <Reveal>
-          <p className="text-sm font-semibold uppercase tracking-widest text-brand-warm mb-3">
-            Направления
+          <p className={`text-sm font-semibold uppercase tracking-widest ${badgeColor} mb-3`}>
+            {subtitle}
           </p>
           <h2 className="font-display font-extrabold text-3xl sm:text-4xl md:text-5xl text-foreground text-balance max-w-3xl leading-[1.15]">
-            Чем можно заниматься в «Сфере»
+            {title}
           </h2>
           <p className="mt-6 text-lg text-muted-foreground max-w-2xl leading-relaxed">
-            Выберите направление, которое подходит вашему ребёнку по возрасту и интересам.
-            На каждое можно записаться отдельно или проконсультироваться, если сомневаетесь.
+            {description}
           </p>
         </Reveal>
 
         <Stagger className="mt-12 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 lg:gap-6">
-          {content.programs.map((program) => (
+          {programs.map((program) => (
             <StaggerItem key={program.id}>
-              <ProgramCard program={program} />
+              <ProgramCard program={program} dotColor={dotColor} />
             </StaggerItem>
           ))}
         </Stagger>
@@ -45,7 +117,7 @@ export function Programs() {
   );
 }
 
-function ProgramCard({ program }: { program: Program }) {
+function ProgramCard({ program, dotColor = "bg-brand-warm" }: { program: Program; dotColor?: string }) {
   const reduced = useReducedMotion();
   const Icon = iconMap[program.icon] ?? Backpack;
 

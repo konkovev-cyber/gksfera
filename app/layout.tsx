@@ -61,10 +61,11 @@ export async function generateMetadata(): Promise<Metadata> {
     icons: {
       icon: [
         { url: '/favicon.ico', sizes: '32x32', type: 'image/png' },
-        { url: '/icon.svg', type: 'image/svg+xml' },
+        { url: '/icon-16.png', sizes: '16x16', type: 'image/png' },
+        { url: '/icon-48.png', sizes: '48x48', type: 'image/png' },
+        { url: '/icon-512.png', sizes: '512x512', type: 'image/png' },
       ],
       apple: '/apple-touch-icon.png',
-      shortcut: '/favicon.ico',
     },
     manifest: '/manifest.webmanifest',
   };

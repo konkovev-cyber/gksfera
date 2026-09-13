@@ -7,6 +7,7 @@ export type Program = {
   imageAlt: string;
   icon: string;
   featured?: boolean;
+  category?: "educational" | "creative";
 };
 
 export type Review = {
@@ -101,7 +102,7 @@ export const heroContent = {
     "Занятия для дошкольников и школьников: подготовка к школе, помощь в учёбе, английский язык, творчество, театр и другие развивающие направления.",
   primaryCta: "Записаться в «Сферу»",
   secondaryCta: "Посмотреть направления",
-  image: "/images/PF6A7622_resized.jpg",
+  image: "/images/studio-04.jpg",
   imageAlt: "Дети занимаются в учебной студии «Сфера»",
 };
 
@@ -142,10 +143,11 @@ export const programs: Program[] = [
     ageRange: "5–7 лет · 1 или 2 года",
     description:
       "Для будущих первоклассников. Помогаем ребёнку уверенно подойти к школьному порогу: чтение, письмо, счёт, развитие внимания и усидчивости. Программа рассчитана на 1 или 2 года.",
-    image: "/images/PF6A7648_resized.jpg",
-    imageAlt: "Подготовка к школе в студии «Сфера»",
+    image: "/images/letters.jpg",
+    imageAlt: "Подготовка к школе — обучение буквам в студии «Сфера»",
     icon: "Backpack",
     featured: true,
+    category: "educational",
   },
   {
     id: "elementary",
@@ -153,9 +155,10 @@ export const programs: Program[] = [
     ageRange: "7–10 лет",
     description:
       "Поддержка по ключевым предметам для учеников начальной школы. Помогаем разобраться в материале, восполнить пробелы и наладить отношения с учёбой.",
-    image: "/images/PF6A7681_resized.jpg",
+    image: "/images/elementary.jpg",
     imageAlt: "Занятия в начальной школе в «Сфере»",
     icon: "Pencil",
+    category: "educational",
   },
   {
     id: "middle",
@@ -163,9 +166,10 @@ export const programs: Program[] = [
     ageRange: "11–15 лет",
     description:
       "Занятия для учеников средней школы: укрепление знаний, устранение пробелов и рост успеваемости по ключевым предметам.",
-    image: "/images/PF6A7844_resized.jpg",
+    image: "/images/middle-school.jpg",
     imageAlt: "Занятия для средней школы в «Сфере»",
     icon: "GraduationCap",
+    category: "educational",
   },
   {
     id: "english",
@@ -173,9 +177,10 @@ export const programs: Program[] = [
     ageRange: "1–9 классы",
     description:
       "Изучение языка в понятной и интересной форме. Игры, диалоги, живая практика — без скучной зубрёжки.",
-    image: "/images/PF6A8076_resized.jpg",
-    imageAlt: "Изучение английского языка в «Сфере»",
+    image: "/images/english.jpg",
+    imageAlt: "Занятие по английскому языку в «Сфере»",
     icon: "Languages",
+    category: "educational",
   },
   {
     id: "handwriting",
@@ -183,9 +188,21 @@ export const programs: Program[] = [
     ageRange: "5–10 лет",
     description:
       "Коррекция почерка. Работа над красивым, уверенным и аккуратным письмом. Развиваем мелкую моторику и привычку к аккуратности.",
-    image: "/images/PF6A7999_resized.jpg",
+    image: "/images/studio-09.jpg",
     imageAlt: "Чистописание и развитие мелкой моторики",
     icon: "PenLine",
+    category: "educational",
+  },
+  {
+    id: "neuro-correction",
+    title: "Нейропсихологическая коррекция",
+    ageRange: "по запросу",
+    description:
+      "Консультация и рекомендации по нейропсихологической коррекции обучения. Помогаем ребёнку справиться с трудностями в учёбе. Уточняйте детали по телефону.",
+    image: "/images/studio-11.jpg",
+    imageAlt: "Индивидуальное занятие с педагогом",
+    icon: "BrainCircuit",
+    category: "educational",
   },
   {
     id: "theater",
@@ -193,29 +210,43 @@ export const programs: Program[] = [
     ageRange: "6–15 лет",
     description:
       "Освоение сценического мастерства, создание спектаклей. Сцена, творчество, речь, взаимодействие и уверенность.",
-    image: "/images/PF6A8152_resized.jpg",
-    imageAlt: "Театральные занятия в студии «Сфера»",
+    image: "/images/theater.jpg",
+    imageAlt: "Театральное занятие в студии «Сфера»",
     icon: "Drama",
+    category: "creative",
   },
   {
-    id: "writers-club",
-    title: "Писательский клуб",
-    ageRange: "8–15 лет",
+    id: "psycho-theater",
+    title: "Психологический театр",
+    ageRange: "6–15 лет",
     description:
-      "Журналистика и риторика. Развиваем умение формулировать мысли, рассказывать истории и выступать перед аудиторией.",
-    image: "/images/PF6A8218_resized.jpg",
-    imageAlt: "Писательский клуб в «Сфере»",
-    icon: "PenTool",
+      "Работа с эмоциями и страхами через театральные техники. Развиваем эмоциональный интеллект, уверенность в себе и умение понимать других.",
+    image: "/images/psycho-theater.jpg",
+    imageAlt: "Психологический театр — работа с эмоциями в «Сфере»",
+    icon: "Sparkles",
+    category: "creative",
   },
   {
-    id: "neuro-correction",
-    title: "Нейропсихологическая коррекция",
-    ageRange: "по запросу",
+    id: "rhetoric",
+    title: "Риторика",
+    ageRange: "7–15 лет",
     description:
-      "Консультация и рекомендации по нейропсихологической коррекции обучения. Уточняйте детали по телефону.",
-    image: "/images/PF6A8162_resized.jpg",
-    imageAlt: "Нейропсихологическая коррекция в «Сфере»",
-    icon: "BrainCircuit",
+      "Учимся говорить уверенно, аргументированно и красиво. Публичные выступления, ведение дискуссий, ораторское мастерство.",
+    image: "/images/rhetoric.jpg",
+    imageAlt: "Занятие по риторике в «Сфере»",
+    icon: "MessageSquare",
+    category: "creative",
+  },
+  {
+    id: "decor",
+    title: "Декор",
+    ageRange: "6–15 лет",
+    description:
+      "Творческая мастерская: создаём своими руками украшения, декор и подарки. Развиваем вкус, аккуратность и пространственное мышление.",
+    image: "/images/decor.jpg",
+    imageAlt: "Занятие по декору — творческая мастерская в «Сфере»",
+    icon: "Palette",
+    category: "creative",
   },
 ];
 
@@ -232,49 +263,49 @@ export const learningExperience = {
     { icon: "Palette", title: "Творческие проекты", text: "Соединяем знания с творчеством — от рисования до театра." },
     { icon: "HeartHandshake", title: "Внимание к ребёнку", text: "Стараемся понять, что интересно и что получается лучше всего." },
   ],
-  image: "/images/PF6A7622_resized.jpg",
+  image: "/images/studio-pano.jpg",
   imageAlt: "Атмосфера занятий в студии «Сфера»",
 };
 
 export const gallery: GalleryItem[] = [
   {
-    src: "/images/PF6A7622_resized.jpg",
+    src: "/images/studio-03.jpg",
     alt: "Дети занимаются в учебной студии «Сфера»",
     span: "tall",
   },
   {
-    src: "/images/PF6A7648_resized.jpg",
+    src: "/images/studio-04.jpg",
     alt: "Занятия с педагогом в «Сфере»",
     span: "wide",
   },
   {
-    src: "/images/PF6A7681_resized.jpg",
+    src: "/images/studio-05.jpg",
     alt: "Дети внимательно слушают на уроке",
     span: "normal",
   },
   {
-    src: "/images/PF6A7844_resized.jpg",
+    src: "/images/studio-06.jpg",
     alt: "Групповые занятия в студии",
     span: "normal",
   },
   {
-    src: "/images/PF6A7999_resized.jpg",
+    src: "/images/studio-07.jpg",
     alt: "Творческие занятия в «Сфере»",
     span: "wide",
     pos: "50% 20%",
   },
   {
-    src: "/images/PF6A8076_resized.jpg",
+    src: "/images/studio-08.jpg",
     alt: "Дети работают за партами",
     span: "normal",
   },
   {
-    src: "/images/PF6A8152_resized.jpg",
+    src: "/images/studio-09.jpg",
     alt: "Театральные постановки в студии",
     span: "normal",
   },
   {
-    src: "/images/PF6A8162_resized.jpg",
+    src: "/images/studio-pano.jpg",
     alt: "Уютная атмосфера учебного класса",
     span: "normal",
   },
@@ -331,7 +362,7 @@ export const events: EventItem[] = [
     date: "2025-12-15",
     title: "Название события",
     description: "Короткое описание события — спектакль, праздник, мастер-класс или набор группы.",
-    image: "/images/PF6A8152_resized.jpg",
+    image: "/images/studio-10.jpg",
     imageAlt: "Театральная постановка",
   },
   {
@@ -339,7 +370,7 @@ export const events: EventItem[] = [
     date: "2025-12-20",
     title: "Название события",
     description: "Короткое описание события.",
-    image: "/images/PF6A7999_resized.jpg",
+    image: "/images/studio-11.jpg",
     imageAlt: "Творческое занятие",
     pos: "50% 20%",
   },
@@ -348,7 +379,7 @@ export const events: EventItem[] = [
     date: "2026-01-10",
     title: "Название события",
     description: "Короткое описание события.",
-    image: "/images/PF6A7681_resized.jpg",
+    image: "/images/studio-02.jpg",
     imageAlt: "Занятие в студии",
   },
 ];
@@ -391,9 +422,11 @@ export const enrollmentInterests = [
   "Средняя ступень (5–9 классы)",
   "Английский язык",
   "Чистописание",
-  "Театр",
-  "Писательский клуб",
   "Нейропсихологическая коррекция",
+  "Театр",
+  "Психологический театр",
+  "Риторика",
+  "Декор",
   "Пока не знаю — нужна консультация",
 ];
 
@@ -404,9 +437,12 @@ export const programInterestMap: Record<string, string> = {
   "srednyaya-stupen-5-9-klassy": "Средняя ступень (5–9 классы)",
   "angliyskiy-yazyk": "Английский язык",
   "chistopisanie": "Чистописание",
-  "teatr": "Театр",
-  "pisatelskiy-klub": "Писательский клуб",
   "neyropsihologicheskaya-korrekciya": "Нейропсихологическая коррекция",
+  "teatr": "Театр",
+  "psiho-teatr": "Психологический театр",
+  "psihologicheskiy-teatr": "Психологический театр",
+  "ritorika": "Риторика",
+  "dekor": "Декор",
 };
 
 export const news: NewsItem[] = [];

@@ -129,6 +129,13 @@ export async function getContent(): Promise<{
         .filter((p) => p.is_visible !== false && p.visible !== false)
         .map((p) => {
           const fallback = defaults.programs.find((s) => s.title === p.title);
+          const features = (p.features ?? {}) as Record<string, unknown>;
+          // Категория: column → features.category → badge ("educational"/"creative") → fallback default
+          const rawCat = (p.category ?? features.category ?? p.badge) as string | undefined;
+          const cat: Program["category"] =
+            rawCat === "creative" ? "creative" :
+            rawCat === "educational" ? "educational" :
+            fallback?.category;
           return {
             id: String(p.id),
             title: String(p.title ?? ""),
@@ -138,8 +145,9 @@ export async function getContent(): Promise<{
             ),
             image: String(p.image ?? fallback?.image ?? ""),
             imageAlt: String(p.image_alt ?? fallback?.imageAlt ?? fallback?.title ?? ""),
-            icon: String(p.icon ?? fallback?.icon ?? "Sparkles"),
+            icon: String(p.icon ?? features.icon ?? fallback?.icon ?? "Sparkles"),
             featured: Boolean(p.featured),
+            category: cat,
           } satisfies Program;
         });
     }

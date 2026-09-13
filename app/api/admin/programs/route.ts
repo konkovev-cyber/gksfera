@@ -10,13 +10,6 @@ const service = () =>
     { auth: { persistSession: false } }
   );
 
-/**
- * Таблица programs существует со старой схемой:
- * id uuid, title, short_desc, full_desc, age, badge, accent_color, features jsonb,
- * schedule_hint, sort_order, is_visible (+ добавленные image, image_alt).
- * Для UI админки нормализуем к полям: age_range, description, image, image_alt, visible.
- */
-
 type ProgItem = {
   id?: number | string;
   title: string;
@@ -24,20 +17,26 @@ type ProgItem = {
   description?: string;
   image?: string;
   imageAlt?: string;
+  category?: "educational" | "creative";
   visible?: boolean;
   sortOrder?: number;
 };
 
-const normalize = (p: Record<string, unknown>) => ({
-  id: p.id,
-  title: p.title ?? "",
-  age_range: p.age ?? p.age_range ?? "",
-  description: p.short_desc ?? p.description ?? "",
-  image: p.image ?? "",
-  image_alt: p.image_alt ?? "",
-  visible: p.is_visible !== false && p.visible !== false,
-  sort_order: p.sort_order ?? 0,
-});
+const normalize = (p: Record<string, unknown>) => {
+  const features = (p.features ?? {}) as Record<string, unknown>;
+  const cat = (p.category as string) ?? (features.category as string) ?? p.badge;
+  return {
+    id: p.id,
+    title: p.title ?? "",
+    age_range: p.age ?? p.age_range ?? "",
+    description: p.short_desc ?? p.description ?? "",
+    image: p.image ?? "",
+    image_alt: p.image_alt ?? "",
+    category: cat === "creative" ? "creative" : "educational",
+    visible: p.is_visible !== false && p.visible !== false,
+    sort_order: p.sort_order ?? 0,
+  };
+};
 
 export async function GET() {
   const denied = await checkAdmin();
@@ -59,6 +58,8 @@ export async function GET() {
       age: p.ageRange,
       image: p.image,
       image_alt: p.imageAlt,
+      badge: p.category ?? "educational",
+      features: { icon: p.icon, category: p.category ?? "educational" },
       is_visible: true,
       sort_order: i + 1,
     }));
@@ -80,20 +81,21 @@ export async function PUT(req: NextRequest) {
 
   for (let i = 0; i < body.items.length; i++) {
     const it = body.items[i];
-    const row = {
+    const baseRow: Record<string, unknown> = {
       title: it.title,
       age: it.ageRange ?? "",
       short_desc: it.description ?? "",
       image: it.image ?? "",
       image_alt: it.imageAlt ?? "",
+      badge: it.category ?? "educational",  // хранится в существующей колонке badge
       is_visible: it.visible ?? true,
       sort_order: it.sortOrder ?? i + 1,
       updated_at: new Date().toISOString(),
     };
-    const { error } = it.id
-      ? await db.from("programs").update(row).eq("id", it.id)
-      : await db.from("programs").insert({ ...row, full_desc: it.description ?? "" });
-    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+    const res = it.id
+      ? await db.from("programs").update(baseRow).eq("id", it.id)
+      : await db.from("programs").insert({ ...baseRow, full_desc: it.description ?? "" });
+    if (res.error) return NextResponse.json({ error: res.error.message }, { status: 500 });
   }
 
   revalidatePath("/");
