@@ -110,6 +110,15 @@ export default function AdminPage() {
   const [uploadQueue, setUploadQueue] = useState<{ name: string; status: "pending" | "compressing" | "uploading" | "done" | "error"; message?: string; saved?: number }[]>([]);
   const fileRef = useRef<HTMLInputElement>(null);
 
+  // Плавающая кнопка «наверх»: появляется после прокрутки длинной формы
+  const [showTop, setShowTop] = useState(false);
+  useEffect(() => {
+    const onScroll = () => setShowTop(window.scrollY > 480);
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
   const [siteConfig, setSiteConfig] = useState<Record<string, any>>({});
   const [hero, setHero] = useState<Record<string, any>>({});
   const [visibility, setVisibility] = useState<Record<string, boolean>>({});
@@ -1320,6 +1329,19 @@ export default function AdminPage() {
           </div>
         )}
       </div>
+
+      {/* Плавающая кнопка «наверх» */}
+      {showTop && !pickerFor && (
+        <button
+          type="button"
+          onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+          aria-label="Наверх"
+          title="Наверх"
+          className="fixed bottom-5 right-5 z-40 inline-flex items-center justify-center w-12 h-12 rounded-full bg-primary text-primary-foreground shadow-lg hover:bg-primary/90 active:scale-95 transition-all"
+        >
+          <ArrowUp className="w-5 h-5" />
+        </button>
+      )}
     </div>
   );
 }
