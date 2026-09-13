@@ -21,7 +21,7 @@ export function Footer() {
   };
 
   return (
-    <footer className="bg-foreground text-background pt-16 pb-8 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
+    <footer className="bg-foreground text-background pt-16 pb-8 px-4 sm:px-6 lg:px-8 relative overflow-hidden max-w-full">
       {/* Декоративная сфера */}
       <div
         className="absolute -top-20 -right-20 w-80 h-80 rounded-full bg-white/3 blur-3xl pointer-events-none"
@@ -37,7 +37,7 @@ export function Footer() {
         <circle cx="50" cy="50" r="15" fill="none" stroke="white" strokeWidth="0.5" />
       </svg>
 
-      <div className="container-max relative z-10">
+      <div className="container-max relative z-10 overflow-hidden">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-12">
           {/* Логотип + слоган */}
           <div className="sm:col-span-2 lg:col-span-1">
@@ -65,13 +65,13 @@ export function Footer() {
             <h3 className="font-display font-semibold text-sm text-background/90 uppercase tracking-wider mb-4">
               Разделы
             </h3>
-            <ul className="space-y-2.5">
+            <ul className="space-y-1">
               {content.footerLinks.navigation.map((item) => (
                 <li key={item.href}>
                   <Link
                     href={item.href}
                     onClick={(e) => handleNavClick(e, item.href)}
-                    className="text-sm text-background/60 hover:text-brand-warm transition-colors"
+                    className="inline-flex items-center min-h-[44px] text-sm text-background/60 hover:text-brand-warm transition-colors"
                   >
                     {item.label}
                   </Link>
@@ -85,17 +85,17 @@ export function Footer() {
             <h3 className="font-display font-semibold text-sm text-background/90 uppercase tracking-wider mb-4">
               Контакты
             </h3>
-            <ul className="space-y-3">
+            <ul className="space-y-2">
               <li className="flex items-start gap-2.5">
-                <MapPin className="w-4 h-4 text-brand-warm flex-shrink-0 mt-0.5" />
-                <span className="text-sm text-background/60 leading-relaxed">
+                <MapPin className="w-4 h-4 text-brand-warm flex-shrink-0 mt-3" />
+                <span className="text-sm text-background/60 leading-relaxed min-h-[44px] flex items-center">
                   {content.siteConfig.city}, {content.siteConfig.address}
                 </span>
               </li>
               <li>
                 <a
                   href={content.siteConfig.phoneHref}
-                  className="flex items-center gap-2.5 text-sm text-background/60 hover:text-brand-warm transition-colors"
+                  className="inline-flex items-center gap-2.5 min-h-[44px] text-sm text-background/60 hover:text-brand-warm transition-colors"
                 >
                   <Phone className="w-4 h-4 text-brand-warm flex-shrink-0" />
                   {content.siteConfig.phone}
@@ -106,7 +106,7 @@ export function Footer() {
                   href={content.siteConfig.vkUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center gap-2.5 text-sm text-background/60 hover:text-brand-warm transition-colors"
+                  className="inline-flex items-center gap-2.5 min-h-[44px] text-sm text-background/60 hover:text-brand-warm transition-colors"
                 >
                   <MessageCircle className="w-4 h-4 text-brand-warm flex-shrink-0" />
                   {content.siteConfig.vkDisplay}
@@ -118,7 +118,7 @@ export function Footer() {
                     href={content.siteConfig.maxUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex items-center gap-2.5 text-sm text-background/60 hover:text-brand-warm transition-colors"
+                    className="inline-flex items-center gap-2.5 min-h-[44px] text-sm text-background/60 hover:text-brand-warm transition-colors"
                   >
                     <MessageCircle className="w-4 h-4 text-brand-teal flex-shrink-0" />
                     MAX Messenger
@@ -133,12 +133,12 @@ export function Footer() {
             <h3 className="font-display font-semibold text-sm text-background/90 uppercase tracking-wider mb-4">
               Документы
             </h3>
-            <ul className="space-y-2.5">
+            <ul className="space-y-1">
               {content.footerLinks.legal.map((item) => (
                 <li key={item.href}>
                   <Link
                     href={item.href}
-                    className="text-sm text-background/60 hover:text-brand-warm transition-colors"
+                    className="inline-flex items-center min-h-[44px] text-sm text-background/60 hover:text-brand-warm transition-colors break-words"
                   >
                     {item.label}
                   </Link>
@@ -150,7 +150,8 @@ export function Footer() {
 
         {/* Нижняя полоса */}
         <div className="mt-12 pt-6 border-t border-background/10">
-          <p className="text-xs text-background/50 text-center">
+          <p className="text-xs text-background/50 text-center break-words">
+            © {new Date().getFullYear()} {content.siteConfig.fullName}. Все права защищены.
             © {new Date().getFullYear()} {content.siteConfig.fullName}. Все права защищены.
           </p>
         </div>

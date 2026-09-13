@@ -293,14 +293,14 @@ export function EnrollmentForm() {
                 />
               </div>
 
-              <label htmlFor="consent" className="flex items-start gap-2.5 cursor-pointer">
+              <label htmlFor="consent" className="flex items-start gap-2.5 cursor-pointer py-2.5 -my-2.5">
                 <input
                   type="checkbox"
                   id="consent"
                   name="consent"
                   checked={form.consent}
                   onChange={handleChange}
-                  className="mt-0.5 w-4 h-4 rounded border-input text-primary focus:ring-ring cursor-pointer flex-shrink-0"
+                  className="mt-1 w-4 h-4 rounded border-input text-primary focus:ring-ring cursor-pointer flex-shrink-0"
                 />
                 <span className="text-xs text-muted-foreground leading-relaxed">
                   Согласен(на) на обработку персональных данных согласно{" "}

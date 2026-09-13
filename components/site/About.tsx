@@ -15,10 +15,10 @@ const iconMap: Record<string, React.ElementType> = {
 export function About() {
   const content = useContent();
   return (
-    <section id="about" className="section-padding relative overflow-hidden">
+    <section id="about" className="section-padding relative overflow-hidden max-w-full">
       {/* Декоративная сфера */}
       <div
-        className="absolute top-1/4 -right-32 w-96 h-96 rounded-full bg-brand-warm/5 blur-3xl pointer-events-none"
+        className="absolute top-1/4 -right-32 w-96 h-96 rounded-full bg-brand-warm/5 blur-3xl pointer-events-none hidden sm:block"
         aria-hidden="true"
       />
 

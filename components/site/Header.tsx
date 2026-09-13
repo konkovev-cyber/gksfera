@@ -117,7 +117,7 @@ export function Header() {
 
             {/* Мобильное меню — бургер */}
             <button
-              className="lg:hidden inline-flex items-center justify-center w-10 h-10 rounded-lg hover:bg-accent transition-colors"
+              className="lg:hidden inline-flex items-center justify-center w-11 h-11 rounded-lg hover:bg-accent transition-colors"
               onClick={() => setMobileOpen(true)}
               aria-label="Открыть меню"
             >
@@ -160,7 +160,7 @@ export function Header() {
                   </div>
                 </Link>
                 <button
-                  className="inline-flex items-center justify-center w-10 h-10 rounded-lg hover:bg-accent transition-colors"
+                  className="inline-flex items-center justify-center w-11 h-11 rounded-lg hover:bg-accent transition-colors"
                   onClick={() => setMobileOpen(false)}
                   aria-label="Закрыть меню"
                 >
@@ -228,7 +228,7 @@ export function Header() {
 
 function Logo({ scrolled }: { scrolled: boolean }) {
   return (
-    <div className="relative w-10 h-10 md:w-11 md:h-11 flex-shrink-0">
+    <div className="relative w-11 h-11 flex-shrink-0">
       <Image
         src="/images/logo.png"
         alt="Логотип Сфера"

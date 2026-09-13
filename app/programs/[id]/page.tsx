@@ -81,9 +81,9 @@ export default async function ProgramPage({ params }: Props) {
 
           {/* Хлебные крошки */}
           <nav aria-label="Хлебные крошки" className="flex items-center gap-1.5 text-xs sm:text-sm text-muted-foreground mb-6 flex-wrap">
-            <Link href="/" className="hover:text-brand-warm transition-colors">Главная</Link>
+            <Link href="/" className="min-h-[44px] -my-2 px-1 flex items-center hover:text-brand-warm transition-colors">Главная</Link>
             <ChevronRight className="w-3.5 h-3.5" />
-            <Link href="/#programs" className="hover:text-brand-warm transition-colors">Направления</Link>
+            <Link href="/#programs" className="min-h-[44px] -my-2 px-1 flex items-center hover:text-brand-warm transition-colors">Направления</Link>
             <ChevronRight className="w-3.5 h-3.5" />
             <span className="text-foreground font-medium">{program.title}</span>
           </nav>
@@ -167,7 +167,7 @@ export default async function ProgramPage({ params }: Props) {
             <section className="mt-16 pt-12 border-t border-border/60">
               <div className="flex items-center justify-between mb-6">
                 <h2 className="font-display font-bold text-2xl text-foreground">Другие направления</h2>
-                <Link href="/#programs" className="inline-flex items-center gap-1.5 text-sm text-brand-warm hover:underline underline-offset-4">
+                <Link href="/#programs" className="inline-flex items-center gap-1.5 min-h-[44px] -my-2 px-1 text-sm text-brand-warm hover:underline underline-offset-4">
                   Все направления <ArrowRight className="w-4 h-4" />
                 </Link>
               </div>
@@ -202,7 +202,7 @@ export default async function ProgramPage({ params }: Props) {
           )}
 
           <div className="mt-12">
-            <Link href="/" className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-brand-warm transition-colors">
+            <Link href="/" className="inline-flex items-center gap-1.5 min-h-[44px] -my-2 text-sm text-muted-foreground hover:text-brand-warm transition-colors">
               <ArrowLeft className="w-4 h-4" /> На главную
             </Link>
           </div>

@@ -88,13 +88,13 @@ function ProgramCard({ program }: { program: Program }) {
         <div className="mt-5 flex items-center gap-3">
           <button
             onClick={scrollToEnrollment}
-            className="inline-flex items-center justify-center h-9 px-4 rounded-full bg-primary text-primary-foreground text-sm font-semibold hover:bg-primary/90 transition-colors"
+            className="inline-flex items-center justify-center min-h-[44px] px-5 rounded-full bg-primary text-primary-foreground text-sm font-semibold hover:bg-primary/90 transition-colors"
           >
             Записаться
           </button>
           <Link
             href={`/programs/${slugify(program.title)}`}
-            className="inline-flex items-center gap-1 text-sm font-medium text-foreground/60 hover:text-brand-warm transition-colors"
+            className="inline-flex items-center gap-1.5 min-h-[44px] px-2 text-sm font-medium text-foreground/60 hover:text-brand-warm transition-colors"
           >
             Подробнее
             <ArrowRight className="w-4 h-4" />

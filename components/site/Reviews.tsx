@@ -81,7 +81,7 @@ function ReviewCard({
       {isLong && (
         <button
           onClick={() => setExpanded(!expanded)}
-          className="mt-3 inline-flex items-center gap-1 text-sm font-medium text-brand-warm hover:text-primary transition-colors"
+          className="mt-3 inline-flex items-center gap-1 min-h-[44px] -my-2 px-1 text-sm font-medium text-brand-warm hover:text-primary transition-colors"
         >
           {expanded ? "Свернуть" : "Читать полностью"}
           <ChevronDown className={cn("w-4 h-4 transition-transform", expanded && "rotate-180")} />
@@ -101,13 +101,13 @@ function ReviewCard({
               href={sourceUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-brand-warm transition-colors"
+              className="inline-flex items-center gap-1 min-h-[44px] -my-2 px-1 text-xs text-muted-foreground hover:text-brand-warm transition-colors"
             >
               {source}
               <ExternalLink className="w-3 h-3" />
             </a>
           ) : (
-            <span className="text-xs text-muted-foreground">{source}</span>
+            <span className="text-xs text-muted-foreground min-h-[44px] -my-2 px-1 flex items-center">{source}</span>
           )}
         </div>
       </div>

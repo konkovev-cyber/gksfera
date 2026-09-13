@@ -56,7 +56,7 @@ export function Contact() {
                     <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-brand-warm/10 flex items-center justify-center">
                       <MapPin className="w-5 h-5 text-brand-warm" />
                     </div>
-                    <div>
+                    <div className="min-h-[44px] flex flex-col justify-center">
                       <p className="text-sm text-muted-foreground">Адрес</p>
                       <p className="text-base font-medium text-foreground">
                         {content.siteConfig.city}, {content.siteConfig.address}
@@ -69,11 +69,11 @@ export function Contact() {
                     <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-brand-warm/10 flex items-center justify-center">
                       <Phone className="w-5 h-5 text-brand-warm" />
                     </div>
-                    <div>
+                    <div className="min-h-[44px] flex flex-col justify-center">
                       <p className="text-sm text-muted-foreground">Телефон</p>
                       <a
                         href={content.siteConfig.phoneHref}
-                        className="text-base font-medium text-foreground hover:text-brand-warm transition-colors"
+                        className="text-base font-medium text-foreground hover:text-brand-warm transition-colors inline-flex items-center min-h-[28px]"
                       >
                         {content.siteConfig.phone}
                       </a>
@@ -84,13 +84,13 @@ export function Contact() {
                     <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-brand-warm/10 flex items-center justify-center">
                       <MessageCircle className="w-5 h-5 text-brand-warm" />
                     </div>
-                    <div>
+                    <div className="min-h-[44px] flex flex-col justify-center">
                       <p className="text-sm text-muted-foreground">Социальная сеть</p>
                       <a
                         href={content.siteConfig.vkUrl}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-base font-medium text-foreground hover:text-brand-warm transition-colors"
+                        className="text-base font-medium text-foreground hover:text-brand-warm transition-colors inline-flex items-center min-h-[28px]"
                       >
                         {content.siteConfig.vkDisplay}
                       </a>
@@ -101,7 +101,7 @@ export function Contact() {
                     <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-brand-warm/10 flex items-center justify-center">
                       <Clock className="w-5 h-5 text-brand-warm" />
                     </div>
-                    <div>
+                    <div className="min-h-[44px] flex flex-col justify-center">
                       <p className="text-sm text-muted-foreground">Режим работы</p>
                       <p className="text-base font-medium text-foreground">
                         {content.siteConfig.workingHoursShort}

@@ -70,7 +70,7 @@ export function ParentNavigator() {
                 const el = document.querySelector("#enrollment");
                 if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
               }}
-              className="font-semibold text-brand-warm hover:text-primary transition-colors underline-offset-4 hover:underline"
+              className="inline-flex items-center min-h-[44px] -my-2 font-semibold text-brand-warm hover:text-primary transition-colors underline-offset-4 hover:underline"
             >
               Запишитесь на консультацию
             </button>

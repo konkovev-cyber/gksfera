@@ -99,7 +99,7 @@ export default async function ReviewsPage() {
                         href={r.sourceUrl}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1 text-xs text-brand-warm hover:underline"
+                        className="inline-flex items-center gap-1 min-h-[44px] -my-2 px-1 text-xs text-brand-warm hover:underline"
                       >
                         ссылка <ExternalLink className="w-3 h-3" />
                       </a>
@@ -112,7 +112,7 @@ export default async function ReviewsPage() {
         )}
 
         <div className="container-max mt-12">
-          <Link href="/" className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-brand-warm transition-colors">
+          <Link href="/" className="inline-flex items-center gap-1.5 min-h-[44px] -my-2 text-sm text-muted-foreground hover:text-brand-warm transition-colors">
             ← На главную
           </Link>
         </div>
