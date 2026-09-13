@@ -367,6 +367,7 @@ export const navItems = [
   { label: "Направления", href: "#programs" },
   { label: "Отзывы", href: "/reviews", show: () => siteConfig.showReviews },
   { label: "Новости", href: "/news" },
+  { label: "Блог", href: "/blog" },
   { label: "Контакты", href: "#contacts" },
 ];
 

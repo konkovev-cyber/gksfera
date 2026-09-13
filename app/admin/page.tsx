@@ -6,12 +6,12 @@ import {
   Loader2, Save, Upload, Trash2, LogOut, ArrowUp, ArrowDown,
   Settings, Image as ImageIcon, LayoutDashboard, Inbox, School,
   Eye, Star, BookOpen, Search, Download, Plus, Newspaper, RefreshCw, ExternalLink, X,
-  GraduationCap, HelpCircle,
+  GraduationCap, HelpCircle, PenTool,
 } from "lucide-react";
 import { gallery as defaultGallery } from "@/data/site";
 
 type Tab = "settings" | "hero" | "visibility" | "programs" | "gallery" |
-  "teachers" | "reviews" | "learning" | "faq" | "news" | "seo" | "io" | "inbox";
+  "teachers" | "reviews" | "learning" | "faq" | "blog" | "news" | "seo" | "io" | "inbox";
 
 const TABS: { id: Tab; label: string; icon: any }[] = [
   { id: "settings", label: "Настройки", icon: Settings },
@@ -23,6 +23,7 @@ const TABS: { id: Tab; label: string; icon: any }[] = [
   { id: "reviews", label: "Отзывы", icon: Star },
   { id: "learning", label: "Занятия", icon: BookOpen },
   { id: "faq", label: "Вопросы", icon: HelpCircle },
+  { id: "blog", label: "Блог", icon: PenTool },
   { id: "news", label: "Новости VK", icon: Newspaper },
   { id: "seo", label: "SEO", icon: Search },
   { id: "io", label: "Импорт", icon: Download },
@@ -98,6 +99,9 @@ export default function AdminPage() {
   const [teachers, setTeachers] = useState<any[]>([]);
   const [faqs, setFaqs] = useState<any[]>([]);
   const [news, setNews] = useState<any[]>([]);
+  const [vkReviews, setVkReviews] = useState<any[]>([]);
+  const [syncingReviews, setSyncingReviews] = useState(false);
+  const [blogPosts, setBlogPosts] = useState<any[]>([]);
   const [syncing, setSyncing] = useState(false);
   const [vkDomain, setVkDomain] = useState("");
   const [pickerFor, setPickerFor] = useState<null | { kind: "program" | "hero" | "step" | "teacher"; index: number }>(null);
@@ -105,12 +109,13 @@ export default function AdminPage() {
   const flash = (t: string) => { setMsg(t); setTimeout(() => setMsg(""), 2500); };
 
   const loadAll = useCallback(async () => {
-    const [s, p, e, r, n] = await Promise.all([
+    const [s, p, e, r, n, b] = await Promise.all([
       fetch("/api/admin/settings").then((r) => (r.ok ? r.json() : null)),
       fetch("/api/admin/programs").then((r) => (r.ok ? r.json() : null)),
       fetch("/api/admin/enrollments").then((r) => (r.ok ? r.json() : null)),
       fetch("/api/admin/reviews").then((r) => (r.ok ? r.json() : null)),
       fetch("/api/admin/news").then((r) => (r.ok ? r.json() : null)),
+      fetch("/api/admin/blog").then((r) => (r.ok ? r.json() : null)).catch(() => null),
     ]);
     if (!s) { setAuthed(false); return; }
     setAuthed(true);
@@ -121,6 +126,7 @@ export default function AdminPage() {
     setEnrollments(e?.enrollments ?? []);
     setReviews(r?.reviews ?? []);
     setNews(n?.news ?? []);
+    setBlogPosts(b?.posts ?? []);
     setLearning(s.learningExperience ?? { title: "", description: "", steps: [] });
     setTeachers(s.teachers ?? []);
     setFaqs(s.faqs ?? []);
@@ -253,6 +259,58 @@ export default function AdminPage() {
     if (!confirm("Удалить новость?")) return;
     await fetch(`/api/admin/news?id=${id}`, { method: "DELETE" });
     setNews((prev) => prev.filter((n) => n.id !== id));
+  };
+
+  const syncVkReviews = async () => {
+    setSyncingReviews(true);
+    try {
+      const res = await fetch("/api/admin/reviews/sync", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ count: 20 }),
+      });
+      const j = await res.json().catch(() => ({}));
+      if (res.ok) {
+        setVkReviews(j.posts ?? []);
+        flash(`Найдено ${j.posts?.length ?? 0} постов — выберите отзывы`);
+      } else flash(j.error ?? "Ошибка загрузки");
+    } catch { flash("Ошибка сети"); }
+    setSyncingReviews(false);
+  };
+
+  const importVkReview = (post: any) => {
+    const text = post.fullText || post.text;
+    const lines = text.split("\n").filter((l: string) => l.trim());
+    const authorGuess = lines[0]?.length < 40 ? lines[0] : "Родитель";
+    setReviews((prev) => [...prev, {
+      author: authorGuess,
+      source: "VK",
+      source_url: post.sourceUrl,
+      text: text.slice(0, 500),
+      child_info: "",
+      visible: true,
+    }]);
+    setVkReviews((prev) => prev.filter((p) => p.id !== post.id));
+    flash("Отзыв добавлен ✓");
+  };
+
+  const saveBlog = async () => {
+    setSaving(true);
+    const res = await fetch("/api/admin/blog", {
+      method: "PUT", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ items: blogPosts }),
+    });
+    setSaving(false);
+    if (res.ok) {
+      flash("Сохранено ✓");
+      const b = await fetch("/api/admin/blog").then((r) => r.json()).catch(() => null);
+      setBlogPosts(b?.posts ?? []);
+    } else flash("Ошибка");
+  };
+
+  const deleteBlogPost = async (id: string) => {
+    if (!confirm("Удалить статью?")) return;
+    await fetch(`/api/admin/blog?id=${id}`, { method: "DELETE" });
+    setBlogPosts((prev) => prev.filter((p) => p.id !== id));
   };
 
   const applyPhoto = (src: string) => {
@@ -462,6 +520,40 @@ export default function AdminPage() {
         {/* ─── Reviews ─── */}
         {tab === "reviews" && (
           <div className="space-y-4">
+            {/* VK-импорт */}
+            <div className="bg-card rounded-2xl border border-border/60 p-4 sm:p-5">
+              <h3 className="font-display font-bold text-base mb-2">Импорт из VK</h3>
+              <p className="text-sm text-muted-foreground mb-3">Загрузить посты из вашей группы VK. Выберите те, которые являются отзывами родителей — они добавятся в список ниже.</p>
+              <button onClick={syncVkReviews} disabled={syncingReviews} className={btnCls}>
+                {syncingReviews ? <Loader2 className="w-4 h-4 animate-spin" /> : <RefreshCw className="w-4 h-4" />}
+                {syncingReviews ? "Загрузка…" : "Загрузить посты из VK"}
+              </button>
+            </div>
+
+            {vkReviews.length > 0 && (
+              <div className="space-y-3">
+                <p className="text-sm font-medium text-foreground">Найденные посты (нажмите «Добавить» на отзывах):</p>
+                {vkReviews.map((post) => (
+                  <div key={post.id} className="bg-card rounded-2xl border border-border/60 p-4 flex gap-3 items-start">
+                    {post.cover && (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={post.cover} alt="" className="w-16 h-12 object-cover rounded-lg border border-border shrink-0" />
+                    )}
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs text-muted-foreground mb-1">{post.date}</p>
+                      <p className="text-sm text-foreground line-clamp-3">{post.text}</p>
+                    </div>
+                    <button onClick={() => importVkReview(post)} className="shrink-0 h-8 px-3 rounded-full bg-brand-warm/10 text-brand-warm text-xs font-semibold hover:bg-brand-warm/20 transition-colors">
+                      Добавить
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            <hr className="border-border/60" />
+
+            {/* Существующие отзывы */}
             {reviews.map((r, i) => (
               <div key={i} className="bg-card rounded-2xl border border-border/60 p-4 space-y-3">
                 <div className="grid sm:grid-cols-2 gap-3">
@@ -479,7 +571,7 @@ export default function AdminPage() {
                 </div>
               </div>
             ))}
-            <div className="flex gap-3">
+            <div className="flex flex-col sm:flex-row gap-3">
               <button onClick={() => setReviews((prev) => [...prev, { author: "", source: "", source_url: "", text: "", child_info: "", visible: true }])} className={btnCls + " bg-card border border-border text-foreground hover:bg-accent"}><Plus className="w-4 h-4" /> Добавить отзыв</button>
               <button onClick={saveReviews} disabled={saving} className={btnCls}>{saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />} Сохранить</button>
             </div>
@@ -535,6 +627,42 @@ export default function AdminPage() {
             <div className="flex flex-col sm:flex-row gap-3">
               <button onClick={() => setFaqs((prev) => [...prev, { question: "", answer: "" }])} className={btnCls + " bg-card border border-border text-foreground hover:bg-accent"}><Plus className="w-4 h-4" /> Добавить вопрос</button>
               <button onClick={saveSettings} disabled={saving} className={btnCls}>{saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />} Сохранить</button>
+            </div>
+          </div>
+        )}
+
+        {/* ─── Blog ─── */}
+        {tab === "blog" && (
+          <div className="space-y-4">
+            <p className="text-sm text-muted-foreground">SEO-статьи для блога. Пишите полезный контент для родителей — он привлечёт трафик из поиска.</p>
+            {blogPosts.map((post, i) => (
+              <div key={post.id ?? i} className="bg-card rounded-2xl border border-border/60 p-4 space-y-3">
+                <div className="grid sm:grid-cols-2 gap-3">
+                  <Field label="Заголовок"><input className={inputCls} value={post.title ?? ""} onChange={(e) => setBlogPosts((prev) => prev.map((x, j) => j === i ? { ...x, title: e.target.value, slug: x.slug || e.target.value.toLowerCase().replace(/[^a-z0-9а-яё]+/gi, "-").replace(/^-|-$/g, "").slice(0, 80) } : x))} /></Field>
+                  <Field label="Slug (URL)"><input className={inputCls} value={post.slug ?? ""} onChange={(e) => setBlogPosts((prev) => prev.map((x, j) => j === i ? { ...x, slug: e.target.value } : x))} placeholder="avtomaticheski-iz-nazvaniya" /></Field>
+                </div>
+                <Field label="Краткое описание (excerpt)"><textarea rows={2} className={inputCls + " h-auto py-2"} value={post.excerpt ?? ""} onChange={(e) => setBlogPosts((prev) => prev.map((x, j) => j === i ? { ...x, excerpt: e.target.value } : x))} /></Field>
+                <Field label="Обложка (URL)">
+                  <div className="flex gap-2">
+                    <input className={inputCls + " flex-1"} value={post.cover ?? ""} onChange={(e) => setBlogPosts((prev) => prev.map((x, j) => j === i ? { ...x, cover: e.target.value } : x))} />
+                    {pickBtn("blog" as any, i)}
+                  </div>
+                </Field>
+                <Field label="Текст статьи (Markdown: # заголовок, **жирный**, - список, [ссылка](url))">
+                  <textarea rows={10} className={inputCls + " h-auto py-2 font-mono text-xs leading-relaxed"} value={post.content ?? ""} onChange={(e) => setBlogPosts((prev) => prev.map((x, j) => j === i ? { ...x, content: e.target.value } : x))} placeholder="# Заголовок статьи&#10;&#10;Первый абзац с **важным** текстом.&#10;&#10;## Подзаголовок&#10;&#10;- Пункт списка&#10;- Ещё пункт" />
+                </Field>
+                <div className="flex flex-wrap items-center gap-3">
+                  <label className="inline-flex items-center gap-2 text-sm h-10"><input type="checkbox" checked={post.visible !== false} onChange={(e) => setBlogPosts((prev) => prev.map((x, j) => j === i ? { ...x, visible: e.target.checked } : x))} className="w-4 h-4" />опубликована</label>
+                  <button onClick={() => deleteBlogPost(post.id)} className="p-2 rounded-lg hover:bg-destructive/10 text-destructive"><Trash2 className="w-4 h-4" /></button>
+                  {post.slug && (
+                    <a href={`/blog/${post.slug}`} target="_blank" className="text-xs text-brand-warm hover:underline">Посмотреть →</a>
+                  )}
+                </div>
+              </div>
+            ))}
+            <div className="flex flex-col sm:flex-row gap-3">
+              <button onClick={() => setBlogPosts((prev) => [...prev, { slug: "", title: "", excerpt: "", content: "", cover: "", visible: true }])} className={btnCls + " bg-card border border-border text-foreground hover:bg-accent"}><Plus className="w-4 h-4" /> Новая статья</button>
+              <button onClick={saveBlog} disabled={saving} className={btnCls}>{saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />} Сохранить</button>
             </div>
           </div>
         )}
