@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import Image from "next/image";
-import { X, ChevronLeft, ChevronRight, ZoomIn, ZoomOut, Play } from "lucide-react";
+import { X, ChevronLeft, ChevronRight, ZoomIn, ZoomOut, Play, Images } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useContent } from "./ContentContext";
 
@@ -197,6 +197,22 @@ export function Gallery() {
             листайте — всего {content.gallery.length}
             <ChevronRight className="w-3.5 h-3.5" />
           </p>
+        )}
+
+        {/* Все фото — открывает полноэкранный просмотр всего набора */}
+        {content.gallery.length > 4 && (
+          <Reveal>
+            <div className="text-center mt-6">
+              <button
+                onClick={() => setLightboxIndex(0)}
+                className="inline-flex items-center gap-2 h-11 px-6 rounded-full border-2 border-border bg-card text-sm font-semibold hover:border-brand-warm hover:text-brand-warm transition-colors"
+              >
+                <Images className="w-4 h-4" />
+                Смотреть все фото
+                <span className="text-muted-foreground font-normal">({content.gallery.length})</span>
+              </button>
+            </div>
+          </Reveal>
         )}
       </div>
 
