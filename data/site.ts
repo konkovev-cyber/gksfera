@@ -416,44 +416,44 @@ export const learningExperience = {
 
 export const gallery: GalleryItem[] = [
   {
-    src: "/images/studio-03.jpg",
-    alt: "Дети занимаются в учебной студии «Сфера»",
-    span: "tall",
-  },
-  {
-    src: "/images/studio-04.jpg",
-    alt: "Занятия с педагогом в «Сфере»",
-    span: "wide",
-  },
-  {
-    src: "/images/studio-05.jpg",
-    alt: "Дети внимательно слушают на уроке",
+    src: "/images/gallery-2.jpg",
+    alt: "Работа с педагогом один на один",
     span: "normal",
   },
   {
-    src: "/images/studio-06.jpg",
-    alt: "Групповые занятия в студии",
+    src: "/images/studio-01.jpg",
+    alt: "Вход в студию «Сфера»",
+    span: "tall",
+  },
+  {
+    src: "/images/studio-02.jpg",
+    alt: "Уголок для занятий",
+    span: "normal",
+  },
+  {
+    src: "/images/studio-03.jpg",
+    alt: "Дети занимаются в учебной студии",
     span: "normal",
   },
   {
     src: "/images/studio-07.jpg",
-    alt: "Творческие занятия в «Сфере»",
+    alt: "Материалы для занятий",
     span: "wide",
     pos: "50% 20%",
   },
   {
-    src: "/images/studio-08.jpg",
-    alt: "Дети работают за партами",
-    span: "normal",
-  },
-  {
     src: "/images/studio-09.jpg",
-    alt: "Театральные постановки в студии",
+    alt: "Творческая мастерская",
     span: "normal",
   },
   {
-    src: "/images/studio-pano.jpg",
-    alt: "Уютная атмосфера учебного класса",
+    src: "/images/studio-10.jpg",
+    alt: "Рабочая обстановка в студии",
+    span: "tall",
+  },
+  {
+    src: "/images/studio-11.jpg",
+    alt: "Панорама зала",
     span: "normal",
   },
 ];

@@ -501,24 +501,63 @@ export default function AdminPage() {
                 <Upload className="w-4 h-4" /> Загрузить фото
                 <input type="file" accept="image/*" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) uploadPhoto(f, ""); e.target.value = ""; }} />
               </label>
-              <span className="text-xs text-muted-foreground">Пока нет фото — показывается галерея по умолчанию</span>
+              {photos.length > 0 ? (
+                <span className="text-xs text-muted-foreground">
+                  В базе <b className="text-foreground">{photos.length}</b> фото · они и показываются в галерее на сайте.
+                  Можно добавить ещё или загрузить из <code className="text-[10px] px-1 bg-accent rounded">/images/</code> через поле URL
+                  в блоке Hero/Program.
+                </span>
+              ) : (
+                <span className="text-xs text-muted-foreground">
+                  Пока нет своих фото — на сайте показывается <b>галерея по умолчанию</b> из файла
+                  <code className="text-[10px] px-1 mx-1 bg-accent rounded">data/site.ts</code>
+                  (фото <code className="text-[10px] px-1 bg-accent rounded">studio-XX.jpg</code> и
+                  <code className="text-[10px] px-1 mx-1 bg-accent rounded">gallery-X.jpg</code> из
+                  <code className="text-[10px] px-1 mx-1 bg-accent rounded">/public/images/</code>).
+                  Загрузите свои — они заменят дефолт.
+                </span>
+              )}
             </div>
-            {photos.map((ph, i) => (
-              <div key={ph.id} className="bg-card rounded-2xl border border-border/60 p-3 sm:p-4 flex flex-col sm:flex-row gap-3 items-start sm:items-center">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={ph.src} alt="" className="w-full sm:w-20 h-32 sm:h-14 object-cover rounded-lg border border-border shrink-0" />
-                <div className="flex-1 min-w-0 grid grid-cols-1 sm:grid-cols-3 gap-2 w-full">
-                  <input className={inputCls} placeholder="alt" value={ph.alt ?? ""} onChange={(e) => setPhotos((prev) => prev.map((x, j) => j === i ? { ...x, alt: e.target.value } : x))} />
-                  <select className={inputCls} value={ph.span ?? "normal"} onChange={(e) => setPhotos((prev) => prev.map((x, j) => j === i ? { ...x, span: e.target.value } : x))}><option value="normal">обычное</option><option value="wide">широкое</option><option value="tall">высокое</option></select>
-                  <input className={inputCls} placeholder="50% 20%" value={ph.pos ?? ""} onChange={(e) => setPhotos((prev) => prev.map((x, j) => j === i ? { ...x, pos: e.target.value } : x))} />
+            {photos.length > 0 ? (
+              photos.map((ph, i) => (
+                <div key={ph.id} className="bg-card rounded-2xl border border-border/60 p-3 sm:p-4 flex flex-col sm:flex-row gap-3 items-start sm:items-center">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <div className="relative w-full sm:w-24 shrink-0">
+                    <img src={ph.src} alt="" className="w-full sm:h-16 h-32 object-cover rounded-lg border border-border" />
+                    {ph.src?.startsWith("/images/") && (
+                      <span className="absolute top-1 left-1 text-[9px] font-semibold uppercase tracking-wide px-1.5 py-0.5 rounded bg-black/70 text-white" title="Файл из /public/images/, не из Supabase Storage">
+                        локальное
+                      </span>
+                    )}
+                  </div>
+                  <div className="flex-1 min-w-0 grid grid-cols-1 sm:grid-cols-3 gap-2 w-full">
+                    <input className={inputCls} placeholder="alt" value={ph.alt ?? ""} onChange={(e) => setPhotos((prev) => prev.map((x, j) => j === i ? { ...x, alt: e.target.value } : x))} />
+                    <select className={inputCls} value={ph.span ?? "normal"} onChange={(e) => setPhotos((prev) => prev.map((x, j) => j === i ? { ...x, span: e.target.value } : x))}><option value="normal">обычное</option><option value="wide">широкое</option><option value="tall">высокое</option></select>
+                    <input className={inputCls} placeholder="50% 20%" value={ph.pos ?? ""} onChange={(e) => setPhotos((prev) => prev.map((x, j) => j === i ? { ...x, pos: e.target.value } : x))} />
+                  </div>
+                  <div className="flex items-center gap-1 shrink-0 self-end sm:self-center">
+                    <button onClick={() => move(photos, i, -1, setPhotos)} className="p-2 rounded-lg hover:bg-accent"><ArrowUp className="w-4 h-4" /></button>
+                    <button onClick={() => move(photos, i, 1, setPhotos)} className="p-2 rounded-lg hover:bg-accent"><ArrowDown className="w-4 h-4" /></button>
+                    <button onClick={() => deletePhoto(ph.id)} className="p-2 rounded-lg hover:bg-destructive/10 text-destructive"><Trash2 className="w-4 h-4" /></button>
+                  </div>
                 </div>
-                <div className="flex items-center gap-1 shrink-0 self-end sm:self-center">
-                  <button onClick={() => move(photos, i, -1, setPhotos)} className="p-2 rounded-lg hover:bg-accent"><ArrowUp className="w-4 h-4" /></button>
-                  <button onClick={() => move(photos, i, 1, setPhotos)} className="p-2 rounded-lg hover:bg-accent"><ArrowDown className="w-4 h-4" /></button>
-                  <button onClick={() => deletePhoto(ph.id)} className="p-2 rounded-lg hover:bg-destructive/10 text-destructive"><Trash2 className="w-4 h-4" /></button>
+              ))
+            ) : (
+              <div className="bg-card rounded-2xl border border-dashed border-border/70 p-6">
+                <p className="text-sm font-semibold mb-3">Текущая галерея на сайте (дефолт из data/site.ts):</p>
+                <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
+                  {defaultGallery.map((g, gi) => (
+                    <div key={gi} className="relative group">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={g.src} alt={g.alt} className="w-full aspect-square object-cover rounded-lg border border-border" />
+                      <span className="absolute bottom-1 left-1 text-[9px] font-semibold uppercase tracking-wide px-1.5 py-0.5 rounded bg-black/70 text-white">
+                        {g.src.split('/').pop()}
+                      </span>
+                    </div>
+                  ))}
                 </div>
               </div>
-            ))}
+            )}
             {photos.length > 0 && <button onClick={() => savePhotoOrder(photos)} disabled={saving} className={btnCls}>{saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />} Сохранить</button>}
           </div>
         )}
