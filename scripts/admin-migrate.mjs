@@ -54,6 +54,19 @@ create table if not exists reviews (
   created_at timestamptz default now()
 );
 
+create table if not exists news (
+  id bigint generated always as identity primary key,
+  vk_post_id text unique,
+  title text not null default '',
+  content text default '',
+  excerpt text default '',
+  image_url text,
+  source_url text,
+  published_at timestamptz default now(),
+  visible boolean default true,
+  created_at timestamptz default now()
+);
+
 insert into storage.buckets (id, name, public)
 values ('media', 'media', true)
 on conflict (id) do nothing;
@@ -63,7 +76,7 @@ const client = new pg.Client({ connectionString: url });
 try {
   await client.connect();
   await client.query(SQL);
-  console.log("Миграция выполнена: site_settings, gallery_photos, programs, storage bucket 'media', enrollments.status");
+  console.log("Миграция выполнена: site_settings, gallery_photos, programs, reviews, news, storage bucket 'media', enrollments.status");
 } catch (e) {
   console.error("Ошибка миграции:", e.message);
   process.exitCode = 1;

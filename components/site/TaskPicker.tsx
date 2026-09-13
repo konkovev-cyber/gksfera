@@ -1,8 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowRight, HelpCircle } from "lucide-react";
+import { ArrowRight, HelpCircle, Sparkles } from "lucide-react";
 import { useContent } from "./ContentContext";
+import { iconMap } from "./program-icons";
 import { Reveal, Stagger, StaggerItem } from "./Reveal";
 
 const colorMap: Record<string, { bg: string; icon: string; border: string; hoverBg: string }> = {
@@ -37,14 +38,15 @@ export function TaskPicker() {
         <Stagger className="mt-10 grid sm:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-5">
           {pains.map((pain) => {
             const color = colorMap[pain.color] ?? colorMap.amber;
+            const Icon = iconMap[pain.icon] ?? Sparkles;
             return (
               <StaggerItem key={pain.href}>
                 <Link
                   href={pain.href}
                   className={`group block bg-card rounded-2xl border ${color.border} p-5 sm:p-6 h-full hover:shadow-lg hover:-translate-y-1 transition-all duration-300`}
                 >
-                  <div className={`w-12 h-12 rounded-xl ${color.icon} flex items-center justify-center text-2xl mb-4 transition-colors ${color.hoverBg}`}>
-                    <span aria-hidden="true">{pain.icon}</span>
+                  <div className={`w-12 h-12 rounded-xl ${color.icon} flex items-center justify-center mb-4 transition-colors ${color.hoverBg}`}>
+                    <Icon className="w-6 h-6 text-foreground" />
                   </div>
                   <h3 className="font-display font-bold text-lg text-foreground leading-snug mb-1">
                     {pain.title}

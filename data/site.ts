@@ -184,42 +184,42 @@ export const heroContent = {
  */
 export const parentPains = [
   {
-    icon: "🎒",
+    icon: "GraduationCap",
     title: "Скоро в школу",
     subtitle: "Нужна подготовка к 1 классу",
     href: "/programs/podgotovka-k-shkole",
     color: "amber",
   },
   {
-    icon: "📕",
+    icon: "BookOpen",
     title: "Есть сложности с учёбой",
     subtitle: "Помощь школьникам 1–9 классов",
     href: "/programs/nachalnaya-stupen-1-4-klassy",
     color: "blue",
   },
   {
-    icon: "🗣",
+    icon: "Languages",
     title: "Хочет подтянуть английский",
     subtitle: "Разговорный язык без зубрёжки",
     href: "/programs/angliyskiy-yazyk",
     color: "emerald",
   },
   {
-    icon: "✍️",
+    icon: "PenLine",
     title: "Не любит писать, плохой почерк",
     subtitle: "Чистописание и мелкая моторика",
     href: "/programs/chistopisanie",
     color: "purple",
   },
   {
-    icon: "🎭",
+    icon: "Drama",
     title: "Стесняется, боится выступать",
     subtitle: "Театр, риторика, уверенность",
     href: "/programs/teatr",
     color: "rose",
   },
   {
-    icon: "🎨",
+    icon: "Palette",
     title: "Хочется больше творчества",
     subtitle: "Декор, спектакли, проекты",
     href: "/programs/dekor",

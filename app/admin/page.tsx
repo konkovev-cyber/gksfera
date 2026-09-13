@@ -73,6 +73,12 @@ const HERO_LABELS: Record<string, string> = {
   imageAlt: "Фото — описание (alt)",
 };
 
+const PAIN_ICON_OPTIONS = [
+  "GraduationCap", "BookOpen", "Languages", "PenLine", "Drama", "Palette",
+  "Backpack", "BrainCircuit", "PenTool", "Pencil", "Sparkles", "MessageSquare",
+  "Star", "HelpCircle",
+];
+
 const inputCls = "w-full h-10 px-3 text-sm rounded-lg border border-input bg-background focus:outline-none focus:ring-2 focus:ring-ring/60";
 const btnCls = "inline-flex items-center justify-center gap-2 h-10 px-4 rounded-full bg-primary text-primary-foreground text-sm font-semibold hover:bg-primary/90 disabled:opacity-50 w-full sm:w-auto";
 
@@ -648,10 +654,19 @@ export default function AdminPage() {
             <Section title="«С какой задачей пришли?»" subtitle="Карточки-ссылки на странице, по 1 эмодзи + заголовок + подзаголовок + ссылка">
               {parentPains.map((pain, i) => (
                 <div key={i} className="bg-card rounded-2xl border border-border/60 p-4 grid sm:grid-cols-4 gap-3">
-                  <Field label="Иконка"><input className={inputCls} value={pain.icon ?? ""} onChange={(e) => setParentPains((p) => p.map((x, j) => j === i ? { ...x, icon: e.target.value } : x))} /></Field>
+                  <Field label="Иконка">
+                    <select className={inputCls} value={pain.icon ?? "Sparkles"} onChange={(e) => setParentPains((p) => p.map((x, j) => j === i ? { ...x, icon: e.target.value } : x))}>
+                      {PAIN_ICON_OPTIONS.map((o) => <option key={o} value={o}>{o}</option>)}
+                    </select>
+                  </Field>
                   <Field label="Заголовок"><input className={inputCls} value={pain.title ?? ""} onChange={(e) => setParentPains((p) => p.map((x, j) => j === i ? { ...x, title: e.target.value } : x))} /></Field>
                   <Field label="Подзаголовок"><input className={inputCls} value={pain.subtitle ?? ""} onChange={(e) => setParentPains((p) => p.map((x, j) => j === i ? { ...x, subtitle: e.target.value } : x))} /></Field>
                   <Field label="Ссылка"><input className={inputCls} value={pain.href ?? ""} onChange={(e) => setParentPains((p) => p.map((x, j) => j === i ? { ...x, href: e.target.value } : x))} /></Field>
+                  <Field label="Цвет">
+                    <select className={inputCls} value={pain.color ?? "amber"} onChange={(e) => setParentPains((p) => p.map((x, j) => j === i ? { ...x, color: e.target.value } : x))}>
+                      {["amber", "blue", "emerald", "purple", "rose", "orange"].map((c) => <option key={c} value={c}>{c}</option>)}
+                    </select>
+                  </Field>
                   <div className="sm:col-span-4 flex gap-2">
                     <button onClick={() => move(parentPains, i, -1, setParentPains)} className="p-2 rounded-lg hover:bg-accent"><ArrowUp className="w-4 h-4" /></button>
                     <button onClick={() => move(parentPains, i, 1, setParentPains)} className="p-2 rounded-lg hover:bg-accent"><ArrowDown className="w-4 h-4" /></button>
@@ -659,7 +674,7 @@ export default function AdminPage() {
                   </div>
                 </div>
               ))}
-              <button onClick={() => setParentPains((p) => [...p, { icon: "🎒", title: "", subtitle: "", href: "/", color: "amber" }])} className={btnCls + " bg-card border border-border text-foreground hover:bg-accent"}><Plus className="w-4 h-4" /> Добавить карточку</button>
+              <button onClick={() => setParentPains((p) => [...p, { icon: "Sparkles", title: "", subtitle: "", href: "/", color: "amber" }])} className={btnCls + " bg-card border border-border text-foreground hover:bg-accent"}><Plus className="w-4 h-4" /> Добавить карточку</button>
             </Section>
 
             {/* Цитата-миссия */}

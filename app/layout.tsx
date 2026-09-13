@@ -1,14 +1,8 @@
 import './globals.css';
 import type { Metadata, Viewport } from 'next';
-import { Inter, Manrope } from 'next/font/google';
+import { Manrope } from 'next/font/google';
 import { MotionProvider } from '@/components/site/MotionProvider';
 import { getContent } from '@/lib/content';
-
-const inter = Inter({
-  subsets: ['cyrillic', 'latin'],
-  variable: '--font-inter',
-  display: 'swap',
-});
 
 const manrope = Manrope({
   subsets: ['cyrillic', 'latin'],
@@ -115,7 +109,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="ru" className={`${inter.variable} ${manrope.variable}`} suppressHydrationWarning>
+    <html lang="ru" className={manrope.variable} suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
         <script
