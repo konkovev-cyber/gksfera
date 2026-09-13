@@ -13,7 +13,7 @@ import { Header } from "@/components/site/Header";
 import { Footer } from "@/components/site/Footer";
 import { MobileCTA } from "@/components/site/MobileCTA";
 import { iconMap } from "@/components/site/program-icons";
-import { type Program, programInterestMap, programOutcomes, resultsAfterLearning } from "@/data/site";
+import { type Program, programInterestMap, resultsAfterLearning } from "@/data/site";
 
 type Props = { params: { id: string } };
 
@@ -47,7 +47,7 @@ export default async function ProgramPage({ params }: Props) {
     ? `/?interest=${encodeURIComponent(interestValue)}#enrollment`
     : "/#enrollment";
 
-  const outcomes = programOutcomes[program.title] ?? resultsAfterLearning;
+  const outcomes = data.programOutcomes[program.title] ?? resultsAfterLearning;
   const categoryLabel = program.category === "creative" ? "Творческий факультатив" : "Учебное направление";
 
   // Отзывы, релевантные этому направлению

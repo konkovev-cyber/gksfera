@@ -2,8 +2,7 @@
 
 import Link from "next/link";
 import { ArrowRight, HelpCircle } from "lucide-react";
-import { parentPains, studioMotto } from "@/data/site";
-
+import { useContent } from "./ContentContext";
 import { Reveal, Stagger, StaggerItem } from "./Reveal";
 
 const colorMap: Record<string, { bg: string; icon: string; border: string; hoverBg: string }> = {
@@ -16,6 +15,10 @@ const colorMap: Record<string, { bg: string; icon: string; border: string; hover
 };
 
 export function TaskPicker() {
+  const content = useContent();
+  const pains = content.parentPains ?? [];
+  const motto = content.studioMotto ?? "";
+
   return (
     <section id="tasks" className="section-padding relative bg-background overflow-hidden">
       <div className="container-max relative z-10">
@@ -32,7 +35,7 @@ export function TaskPicker() {
         </Reveal>
 
         <Stagger className="mt-10 grid sm:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-5">
-          {parentPains.map((pain) => {
+          {pains.map((pain) => {
             const color = colorMap[pain.color] ?? colorMap.amber;
             return (
               <StaggerItem key={pain.href}>
@@ -81,7 +84,7 @@ export function TaskPicker() {
         <Reveal delay={0.1}>
           <blockquote className="mt-14 max-w-3xl mx-auto text-center">
             <p className="font-display font-bold text-xl sm:text-2xl md:text-3xl text-foreground leading-snug text-balance">
-              «{studioMotto}»
+              «{motto}»
             </p>
             <footer className="mt-4 text-sm text-muted-foreground">
               — команда студии «Сфера», Горячий Ключ

@@ -50,6 +50,11 @@ export async function getContent(): Promise<{
     navItems: [...defaults.navItems],
     enrollmentInterests: [...defaults.enrollmentInterests],
     faqs: [...defaults.faqs] as FAQItem[],
+    parentPains: [...defaults.parentPains],
+    resultsAfterLearning: [...defaults.resultsAfterLearning],
+    trustStats: [...defaults.trustStats],
+    programOutcomes: { ...defaults.programOutcomes },
+    studioMotto: defaults.studioMotto,
     news: [...defaults.news] as NewsItem[],
   };
 
@@ -108,6 +113,16 @@ export async function getContent(): Promise<{
         data.teachers = value as typeof defaults.teachers;
       } else if (key === "faqs" && Array.isArray(value)) {
         data.faqs = value as FAQItem[];
+      } else if (key === "parentPains" && Array.isArray(value)) {
+        data.parentPains = value as typeof defaults.parentPains;
+      } else if (key === "resultsAfterLearning" && Array.isArray(value)) {
+        data.resultsAfterLearning = value as string[];
+      } else if (key === "trustStats" && Array.isArray(value)) {
+        data.trustStats = value as typeof defaults.trustStats;
+      } else if (key === "programOutcomes" && value && typeof value === "object") {
+        data.programOutcomes = value as typeof defaults.programOutcomes;
+      } else if (key === "studioMotto" && typeof value === "string") {
+        data.studioMotto = value;
       } else if (key in data.siteConfig && value != null) {
         (data.siteConfig as unknown as Record<string, unknown>)[key] = value;
       }

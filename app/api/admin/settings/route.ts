@@ -23,6 +23,11 @@ export async function GET() {
     faqs: data.faqs,
     programs: data.programs,
     gallery: data.gallery,
+    parentPains: data.parentPains,
+    resultsAfterLearning: data.resultsAfterLearning,
+    trustStats: data.trustStats,
+    programOutcomes: data.programOutcomes,
+    studioMotto: data.studioMotto,
     visibility,
   });
 }
@@ -38,6 +43,11 @@ export async function PUT(req: NextRequest) {
     learningExperience?: Record<string, unknown>;
     teachers?: unknown[];
     faqs?: unknown[];
+    parentPains?: unknown[];
+    resultsAfterLearning?: unknown[];
+    trustStats?: unknown[];
+    programOutcomes?: Record<string, unknown>;
+    studioMotto?: string;
   } | null;
   if (!body) return NextResponse.json({ error: "bad body" }, { status: 400 });
 
@@ -91,6 +101,51 @@ export async function PUT(req: NextRequest) {
     const { error } = await db.from("site_settings").upsert({
       key: "faqs",
       value: body.faqs,
+      updated_at: new Date().toISOString(),
+    });
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+
+  if (body.parentPains && Array.isArray(body.parentPains)) {
+    const { error } = await db.from("site_settings").upsert({
+      key: "parentPains",
+      value: body.parentPains,
+      updated_at: new Date().toISOString(),
+    });
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+
+  if (body.resultsAfterLearning && Array.isArray(body.resultsAfterLearning)) {
+    const { error } = await db.from("site_settings").upsert({
+      key: "resultsAfterLearning",
+      value: body.resultsAfterLearning,
+      updated_at: new Date().toISOString(),
+    });
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+
+  if (body.trustStats && Array.isArray(body.trustStats)) {
+    const { error } = await db.from("site_settings").upsert({
+      key: "trustStats",
+      value: body.trustStats,
+      updated_at: new Date().toISOString(),
+    });
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+
+  if (body.programOutcomes && typeof body.programOutcomes === "object") {
+    const { error } = await db.from("site_settings").upsert({
+      key: "programOutcomes",
+      value: body.programOutcomes,
+      updated_at: new Date().toISOString(),
+    });
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+
+  if (body.studioMotto && typeof body.studioMotto === "string") {
+    const { error } = await db.from("site_settings").upsert({
+      key: "studioMotto",
+      value: body.studioMotto,
       updated_at: new Date().toISOString(),
     });
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });

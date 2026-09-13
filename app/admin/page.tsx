@@ -11,12 +11,13 @@ import {
 import { gallery as defaultGallery } from "@/data/site";
 
 type Tab = "settings" | "hero" | "visibility" | "programs" | "gallery" |
-  "teachers" | "reviews" | "learning" | "faq" | "blog" | "news" | "seo" | "io" | "inbox";
+  "teachers" | "reviews" | "learning" | "faq" | "blog" | "news" | "seo" | "io" | "inbox" | "blocks";
 
 const TABS: { id: Tab; label: string; icon: any }[] = [
   { id: "settings", label: "Настройки", icon: Settings },
   { id: "hero", label: "Экран", icon: LayoutDashboard },
-  { id: "visibility", label: "Блоки", icon: Eye },
+  { id: "visibility", label: "Видимость", icon: Eye },
+  { id: "blocks", label: "Контент", icon: LayoutDashboard },
   { id: "programs", label: "Направления", icon: School },
   { id: "gallery", label: "Галерея", icon: ImageIcon },
   { id: "teachers", label: "Педагоги", icon: GraduationCap },
@@ -79,6 +80,18 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
   return <label className="block"><span className="block text-xs font-medium text-foreground mb-1.5">{label}</span>{children}</label>;
 }
 
+function Section({ title, subtitle, children }: { title: string; subtitle?: string; children: React.ReactNode }) {
+  return (
+    <div className="bg-card rounded-2xl border border-border/60 p-5 space-y-4">
+      <div>
+        <h3 className="font-display font-bold text-base">{title}</h3>
+        {subtitle && <p className="text-xs text-muted-foreground mt-0.5">{subtitle}</p>}
+      </div>
+      {children}
+    </div>
+  );
+}
+
 export default function AdminPage() {
   const [authed, setAuthed] = useState<boolean | null>(null);
   const [password, setPassword] = useState("");
@@ -98,6 +111,11 @@ export default function AdminPage() {
   const [learning, setLearning] = useState<{ title: string; description: string; steps: any[] }>({ title: "", description: "", steps: [] });
   const [teachers, setTeachers] = useState<any[]>([]);
   const [faqs, setFaqs] = useState<any[]>([]);
+  const [parentPains, setParentPains] = useState<any[]>([]);
+  const [resultsAfterLearning, setResultsAfterLearning] = useState<string[]>([]);
+  const [trustStats, setTrustStats] = useState<any[]>([]);
+  const [programOutcomes, setProgramOutcomes] = useState<Record<string, string[]>>({});
+  const [studioMotto, setStudioMotto] = useState("");
   const [news, setNews] = useState<any[]>([]);
   const [vkReviews, setVkReviews] = useState<any[]>([]);
   const [syncingReviews, setSyncingReviews] = useState(false);
@@ -130,6 +148,11 @@ export default function AdminPage() {
     setLearning(s.learningExperience ?? { title: "", description: "", steps: [] });
     setTeachers(s.teachers ?? []);
     setFaqs(s.faqs ?? []);
+    setParentPains(s.parentPains ?? []);
+    setResultsAfterLearning(s.resultsAfterLearning ?? []);
+    setTrustStats(s.trustStats ?? []);
+    setProgramOutcomes(s.programOutcomes ?? {});
+    setStudioMotto(s.studioMotto ?? "");
     const g = await fetch("/api/admin/photos").then((r) => (r.ok ? r.json() : null));
     setPhotos(g?.photos ?? []);
   }, []);
@@ -149,7 +172,7 @@ export default function AdminPage() {
     setSaving(true);
     const res = await fetch("/api/admin/settings", {
       method: "PUT", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ settings: siteConfig, hero, visibility, learningExperience: learning, teachers, faqs }),
+      body: JSON.stringify({ settings: siteConfig, hero, visibility, learningExperience: learning, teachers, faqs, parentPains, resultsAfterLearning, trustStats, programOutcomes, studioMotto }),
     });
     setSaving(false);
     flash(res.ok ? "Сохранено ✓" : "Ошибка");
@@ -614,6 +637,82 @@ export default function AdminPage() {
               <button onClick={() => setLearning((p) => ({ ...p, steps: [...(p.steps ?? []), { title: "", description: "", image: "" }] }))} className={btnCls + " bg-card border border-border text-foreground hover:bg-accent"}><Plus className="w-4 h-4" /> Добавить шаг</button>
               <button onClick={saveSettings} disabled={saving} className={btnCls}>{saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />} Сохранить</button>
             </div>
+          </div>
+        )}
+
+        {/* ─── Контент-блоки ─── */}
+        {tab === "blocks" && (
+          <div className="space-y-6">
+
+            {/* Задачи родителя */}
+            <Section title="«С какой задачей пришли?»" subtitle="Карточки-ссылки на странице, по 1 эмодзи + заголовок + подзаголовок + ссылка">
+              {parentPains.map((pain, i) => (
+                <div key={i} className="bg-card rounded-2xl border border-border/60 p-4 grid sm:grid-cols-4 gap-3">
+                  <Field label="Иконка"><input className={inputCls} value={pain.icon ?? ""} onChange={(e) => setParentPains((p) => p.map((x, j) => j === i ? { ...x, icon: e.target.value } : x))} /></Field>
+                  <Field label="Заголовок"><input className={inputCls} value={pain.title ?? ""} onChange={(e) => setParentPains((p) => p.map((x, j) => j === i ? { ...x, title: e.target.value } : x))} /></Field>
+                  <Field label="Подзаголовок"><input className={inputCls} value={pain.subtitle ?? ""} onChange={(e) => setParentPains((p) => p.map((x, j) => j === i ? { ...x, subtitle: e.target.value } : x))} /></Field>
+                  <Field label="Ссылка"><input className={inputCls} value={pain.href ?? ""} onChange={(e) => setParentPains((p) => p.map((x, j) => j === i ? { ...x, href: e.target.value } : x))} /></Field>
+                  <div className="sm:col-span-4 flex gap-2">
+                    <button onClick={() => move(parentPains, i, -1, setParentPains)} className="p-2 rounded-lg hover:bg-accent"><ArrowUp className="w-4 h-4" /></button>
+                    <button onClick={() => move(parentPains, i, 1, setParentPains)} className="p-2 rounded-lg hover:bg-accent"><ArrowDown className="w-4 h-4" /></button>
+                    <button onClick={() => setParentPains((p) => p.filter((_, j) => j !== i))} className="p-2 rounded-lg hover:bg-destructive/10 text-destructive"><Trash2 className="w-4 h-4" /></button>
+                  </div>
+                </div>
+              ))}
+              <button onClick={() => setParentPains((p) => [...p, { icon: "🎒", title: "", subtitle: "", href: "/", color: "amber" }])} className={btnCls + " bg-card border border-border text-foreground hover:bg-accent"}><Plus className="w-4 h-4" /> Добавить карточку</button>
+            </Section>
+
+            {/* Цитата-миссия */}
+            <Section title="Миссия студии" subtitle="Позиционирующая цитата в блоке «Почему нас выбирают» и TaskPicker">
+              <Field label="Цитата"><textarea rows={3} className={inputCls + " h-auto py-2"} value={studioMotto} onChange={(e) => setStudioMotto(e.target.value)} placeholder="Мы не пытаемся…" /></Field>
+            </Section>
+
+            {/* Результаты */}
+            <Section title="«Что изменится у ребёнка»" subtitle="Конкретные результаты — показываем в блоке Results на главной">
+              {resultsAfterLearning.map((r, i) => (
+                <div key={i} className="flex gap-2">
+                  <input className={inputCls + " flex-1"} value={r} onChange={(e) => setResultsAfterLearning((p) => p.map((x, j) => j === i ? e.target.value : x))} />
+                  <button onClick={() => setResultsAfterLearning((p) => p.filter((_, j) => j !== i))} className="p-2 rounded-lg hover:bg-destructive/10 text-destructive shrink-0"><Trash2 className="w-4 h-4" /></button>
+                </div>
+              ))}
+              <button onClick={() => setResultsAfterLearning((p) => [...p, ""])} className={btnCls + " bg-card border border-border text-foreground hover:bg-accent"}><Plus className="w-4 h-4" /> Добавить результат</button>
+            </Section>
+
+            {/* Статистика доверия */}
+            <Section title="«Коротко, по делу» — статистика" subtitle="4 карточки: цифра + подпись + описание">
+              {trustStats.map((s, i) => (
+                <div key={i} className="bg-card rounded-2xl border border-border/60 p-4 grid grid-cols-3 gap-3">
+                  <Field label="Число"><input className={inputCls} value={s.value ?? ""} onChange={(e) => setTrustStats((p) => p.map((x, j) => j === i ? { ...x, value: e.target.value } : x))} /></Field>
+                  <Field label="Подпись"><input className={inputCls} value={s.label ?? ""} onChange={(e) => setTrustStats((p) => p.map((x, j) => j === i ? { ...x, label: e.target.value } : x))} /></Field>
+                  <Field label="Описание"><input className={inputCls} value={s.description ?? ""} onChange={(e) => setTrustStats((p) => p.map((x, j) => j === i ? { ...x, description: e.target.value } : x))} /></Field>
+                  <div className="col-span-3 flex gap-2">
+                    <button onClick={() => move(trustStats, i, -1, setTrustStats)} className="p-2 rounded-lg hover:bg-accent"><ArrowUp className="w-4 h-4" /></button>
+                    <button onClick={() => move(trustStats, i, 1, setTrustStats)} className="p-2 rounded-lg hover:bg-accent"><ArrowDown className="w-4 h-4" /></button>
+                    <button onClick={() => setTrustStats((p) => p.filter((_, j) => j !== i))} className="p-2 rounded-lg hover:bg-destructive/10 text-destructive"><Trash2 className="w-4 h-4" /></button>
+                  </div>
+                </div>
+              ))}
+              <button onClick={() => setTrustStats((p) => [...p, { value: "", label: "", description: "" }])} className={btnCls + " bg-card border border-border text-foreground hover:bg-accent"}><Plus className="w-4 h-4" /> Добавить карточку</button>
+            </Section>
+
+            {/* Результаты по направлениям */}
+            <Section title="Результаты по направлениям" subtitle="Для страниц /programs/[slug] — 4–6 пунктов «Что сможет ребёнок»">
+              <p className="text-xs text-muted-foreground mb-3">Если направление не указано, на его странице показываются общие результаты из блока выше.</p>
+              {Object.entries(programOutcomes).map(([title, items]) => (
+                <div key={title} className="bg-card rounded-2xl border border-border/60 p-4 space-y-2">
+                  <p className="font-semibold text-sm text-foreground">{title}</p>
+                  {items.map((item, j) => (
+                    <div key={j} className="flex gap-2">
+                      <input className={inputCls + " flex-1"} value={item} onChange={(e) => setProgramOutcomes((p) => ({ ...p, [title]: p[title].map((x, k) => k === j ? e.target.value : x) }))} />
+                      <button onClick={() => setProgramOutcomes((p) => ({ ...p, [title]: p[title].filter((_, k) => k !== j) }))} className="p-2 rounded-lg hover:bg-destructive/10 text-destructive shrink-0"><Trash2 className="w-4 h-4" /></button>
+                    </div>
+                  ))}
+                  <button onClick={() => setProgramOutcomes((p) => ({ ...p, [title]: [...(p[title] ?? []), ""] }))} className="text-xs text-brand-warm hover:underline mt-1">+ Добавить пункт</button>
+                </div>
+              ))}
+            </Section>
+
+            <button onClick={saveSettings} disabled={saving} className={btnCls}>{saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />} Сохранить всё</button>
           </div>
         )}
 

@@ -1,9 +1,12 @@
 "use client";
 
-import { trustStats, studioMotto } from "@/data/site";
+import { useContent } from "./ContentContext";
 import { Reveal, Stagger, StaggerItem } from "./Reveal";
 
 export function TrustStats() {
+  const content = useContent();
+  const stats = content.trustStats ?? [];
+  const motto = content.studioMotto ?? "";
   return (
     <section className="section-padding relative overflow-hidden bg-brand-cream/40">
       <div className="container-max relative z-10">
@@ -17,7 +20,7 @@ export function TrustStats() {
         </Reveal>
 
         <Stagger className="mt-10 grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
-          {trustStats.map((s) => (
+          {stats.map((s) => (
             <StaggerItem key={`${s.value}-${s.label}`}>
               <div className="bg-card rounded-2xl border border-border/60 p-5 sm:p-6 text-center h-full">
                 <p className="font-display font-extrabold text-3xl sm:text-4xl text-brand-warm leading-none">
@@ -36,7 +39,7 @@ export function TrustStats() {
 
         <Reveal delay={0.15}>
           <p className="mt-10 text-center max-w-2xl mx-auto text-base sm:text-lg text-muted-foreground italic leading-relaxed">
-            {studioMotto}
+            {motto}
           </p>
         </Reveal>
       </div>

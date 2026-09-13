@@ -1,11 +1,12 @@
 "use client";
 
 import { CheckCircle2 } from "lucide-react";
-import { resultsAfterLearning } from "@/data/site";
-
+import { useContent } from "./ContentContext";
 import { Reveal, Stagger, StaggerItem } from "./Reveal";
 
 export function Results() {
+  const content = useContent();
+  const results = content.resultsAfterLearning ?? [];
   return (
     <section className="section-padding relative bg-background overflow-hidden">
       <div
@@ -37,7 +38,7 @@ export function Results() {
 
           <div className="lg:col-span-3">
             <Stagger className="space-y-3">
-              {resultsAfterLearning.map((r) => (
+              {results.map((r) => (
                 <StaggerItem key={r}>
                   <div className="flex items-start gap-3 p-4 rounded-2xl bg-brand-cream/60 dark:bg-white/5 border border-border/40">
                     <CheckCircle2 className="w-5 h-5 text-brand-teal flex-shrink-0 mt-0.5" />
