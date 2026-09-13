@@ -82,6 +82,7 @@ const PAIN_ICON_OPTIONS = [
 
 const inputCls = "w-full h-10 px-3 text-sm rounded-lg border border-input bg-background focus:outline-none focus:ring-2 focus:ring-ring/60";
 const btnCls = "inline-flex items-center justify-center gap-2 h-10 px-4 rounded-full bg-primary text-primary-foreground text-sm font-semibold hover:bg-primary/90 disabled:opacity-50 w-full sm:w-auto";
+const btnSecondaryCls = "inline-flex items-center justify-center gap-2 h-10 px-4 rounded-full border-2 border-border text-sm font-semibold hover:border-primary hover:text-primary disabled:opacity-50 w-full sm:w-auto";
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return <label className="block"><span className="block text-xs font-medium text-foreground mb-1.5">{label}</span>{children}</label>;
@@ -347,7 +348,7 @@ export default function AdminPage() {
   };
 
   const doImport = async (file: File) => {
-    if (!confirm("Импорт ЗАМЕНИТ все данные сайта (контент, фото, направления, отзывы). Продолжить?")) return;
+    if (!confirm("Импорт ЗАМЕНИТ все данные сайта (контент, направления, галерею, отзывы, новости, SEO, заявки). Продолжить?")) return;
     setSaving(true);
     const text = await file.text();
     const body = JSON.parse(text);
@@ -355,6 +356,59 @@ export default function AdminPage() {
     setSaving(false);
     if (res.ok) { flash("Импорт выполнен ✓"); await loadAll(); }
     else flash("Ошибка импорта");
+  };
+
+  /** Скачиваем только новости в отдельный JSON. */
+  const exportNews = async () => {
+    setSaving(true);
+    const res = await fetch("/api/admin/news");
+    const j = await res.json().catch(() => ({}));
+    setSaving(false);
+    const list: any[] = j?.news ?? [];
+    if (list.length === 0) { flash("Новостей нет — нечего выгружать"); return; }
+    const payload = { exported_at: new Date().toISOString(), count: list.length, news: list };
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `sfera-news-${new Date().toISOString().slice(0, 10)}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+    flash(`Экспортировано ${list.length} новость/й ✓`);
+  };
+
+  /** Импорт JSON с новостями (из «Новости VK» или внешнего файла).
+   *  По умолчанию REPLACES текущие. Опция Append — добавляет. */
+  const importNews = async (file: File) => {
+    let parsed: { news?: any[] };
+    try {
+      parsed = JSON.parse(await file.text());
+    } catch {
+      flash("Не удалось прочитать JSON: файл повреждён");
+      return;
+    }
+    const items = Array.isArray(parsed.news) ? parsed.news : Array.isArray(parsed) ? parsed : null;
+    if (!items || items.length === 0) {
+      flash("В файле нет массива news");
+      return;
+    }
+    const append = confirm(
+      `Найдено ${items.length} записей новостей.\n\n` +
+      `«OK» = ДОБАВИТЬ к текущим (${news.length})\n` +
+      `«Отмена» = ЗАМЕНИТЬ все новости`,
+    );
+    setSaving(true);
+    const res = await fetch("/api/admin/news" + (append ? "?append=1" : ""), {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ news: items }),
+    });
+    const j = await res.json().catch(() => ({}));
+    setSaving(false);
+    if (!res.ok) { flash(j?.error ?? "Ошибка импорта"); return; }
+    const refreshed = await fetch("/api/admin/news").then((r) => r.json()).catch(() => ({ news: [] }));
+    setNews(refreshed?.news ?? []);
+    flash(`Импортировано ${j.count ?? items.length} новость/й ${append ? "(добавлены)" : "(заменены все)"} ✓`);
   };
 
   const syncVK = async () => {
@@ -499,12 +553,13 @@ export default function AdminPage() {
       </header>
 
       <div className="max-w-5xl mx-auto px-3 sm:px-4 py-4 sm:py-6">
-        {/* Навигация по вкладкам: горизонтальный скролл на мобильных */}
-        <nav className="flex overflow-x-auto flex-nowrap gap-1.5 sm:gap-2 mb-5 pb-2 sm:pb-0 -mx-3 px-3 sm:mx-0 sm:px-0 scrollbar-hide">
+        {/* Навигация по вкладкам: сетка, которая переносится на всех
+            размерах экрана — ни одна вкладка не прячется за скроллом. */}
+        <nav className="flex flex-wrap gap-1.5 sm:gap-2 mb-5">
           {TABS.map((t) => (
             <button key={t.id} onClick={() => setTab(t.id)}
-              className={"inline-flex items-center gap-1.5 h-9 px-3 sm:px-4 rounded-full text-xs sm:text-sm font-medium transition-colors whitespace-nowrap shrink-0 " + (tab === t.id ? "bg-primary text-primary-foreground" : "bg-card border border-border hover:bg-accent")}>
-              <t.icon className="w-4 h-4 shrink-0" /><span className="hidden min-[380px]:inline">{t.label}</span>
+              className={"inline-flex items-center gap-1.5 h-9 px-2.5 sm:px-3 rounded-full text-xs sm:text-sm font-medium transition-colors whitespace-nowrap shrink-0 " + (tab === t.id ? "bg-primary text-primary-foreground" : "bg-card border border-border hover:bg-accent")}>
+              <t.icon className="w-4 h-4 shrink-0" /><span>{t.label}</span>
             </button>
           ))}
         </nav>
@@ -1079,15 +1134,37 @@ export default function AdminPage() {
         {tab === "io" && (
           <div className="bg-card rounded-2xl border border-border/60 p-5 space-y-6 max-w-lg">
             <div>
-              <h3 className="font-display font-bold text-base mb-2">Экспорт</h3>
-              <p className="text-sm text-muted-foreground mb-3">Скачать полный бэкап сайта: настройки, направления, галерея, отзывы, видимость блоков.</p>
+              <h3 className="font-display font-bold text-base mb-2">Полный бэкап сайта</h3>
+              <p className="text-sm text-muted-foreground mb-3">
+                Экспорт всех данных в JSON: <b>настройки, Hero, видимость, направления, галерея, педагоги,
+                отзывы, занятия, вопросы, блог, <u className="decoration-primary">новости</u>, SEO, заявки</b>.
+              </p>
               <button onClick={doExport} className={btnCls}><Download className="w-4 h-4" /> Скачать JSON-бэкап</button>
             </div>
             <hr className="border-border" />
             <div>
-              <h3 className="font-display font-bold text-base mb-2">Импорт</h3>
-              <p className="text-sm text-muted-foreground mb-3">Загрузить ранее экспортированный JSON. <strong className="text-destructive">Все текущие данные будут заменены.</strong></p>
+              <h3 className="font-display font-bold text-base mb-2">Полный импорт</h3>
+              <p className="text-sm text-muted-foreground mb-3">
+                Восстановление из ранее скачанного бэкапа. <strong className="text-destructive">Все текущие
+                данные — включая новости — будут заменены.</strong>
+              </p>
               <label className={btnCls + " cursor-pointer"}><Upload className="w-4 h-4" /> Загрузить JSON<input type="file" accept=".json" className="hidden" ref={fileRef} onChange={(e) => { const f = e.target.files?.[0]; if (f) doImport(f); e.target.value = ""; }} /></label>
+            </div>
+            <hr className="border-border" />
+            <div>
+              <h3 className="font-display font-bold text-base mb-2 flex items-center gap-2"><Newspaper className="w-4 h-4" /> Только новости</h3>
+              <p className="text-sm text-muted-foreground mb-3">
+                Экспорт/импорт отдельного файла с новостями. При импорте заменяются <b>только</b> записи в таблице
+                <code className="text-[10px] px-1 mx-1 bg-accent rounded">news</code>, остальной контент не трогается.
+                Удобно чтобы перенести ленту между проектами или делать точечный бэкап перед синхроном VK.
+              </p>
+              <div className="flex flex-wrap gap-2">
+                <button onClick={exportNews} className={btnSecondaryCls}><Download className="w-4 h-4" /> Скачать новости.json</button>
+                <label className={btnSecondaryCls + " cursor-pointer"}>
+                  <Upload className="w-4 h-4" /> Импорт новостей
+                  <input type="file" accept=".json,application/json" className="hidden" onChange={async (e) => { const f = e.target.files?.[0]; if (f) await importNews(f); e.target.value = ""; }} />
+                </label>
+              </div>
             </div>
           </div>
         )}
