@@ -58,7 +58,14 @@ export async function generateMetadata(): Promise<Metadata> {
       follow: true,
       googleBot: { index: true, follow: true, 'max-image-preview': 'large', 'max-snippet': -1 },
     },
-    icons: { icon: '/favicon.ico', apple: '/icon.svg' },
+    icons: {
+      icon: [
+        { url: '/favicon.ico', sizes: '32x32', type: 'image/png' },
+        { url: '/icon.svg', type: 'image/svg+xml' },
+      ],
+      apple: '/apple-touch-icon.png',
+      shortcut: '/favicon.ico',
+    },
     manifest: '/manifest.webmanifest',
   };
 }
