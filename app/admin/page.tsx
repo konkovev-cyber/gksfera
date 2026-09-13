@@ -129,6 +129,8 @@ export default function AdminPage() {
   const [syncing, setSyncing] = useState(false);
   const [vkDomain, setVkDomain] = useState("");
   const [pickerFor, setPickerFor] = useState<null | { kind: "program" | "hero" | "step" | "teacher"; index: number }>(null);
+  const [pickerFiles, setPickerFiles] = useState<{ src: string; size: number }[]>([]);
+  const [pickerFilter, setPickerFilter] = useState("");
 
   const flash = (t: string) => { setMsg(t); setTimeout(() => setMsg(""), 2500); };
 
@@ -361,7 +363,7 @@ export default function AdminPage() {
   const pickBtn = (kind: "program" | "hero" | "step" | "teacher", index: number) => (
     <button
       type="button"
-      onClick={() => setPickerFor({ kind, index })}
+      onClick={() => { setPickerFor({ kind, index }); if (pickerFiles.length === 0) fetch("/api/admin/files").then(r => r.ok ? r.json() : null).then(j => setPickerFiles(j?.files ?? [])); }}
       className="h-10 px-3 rounded-lg border border-border hover:bg-accent inline-flex items-center gap-1.5 text-sm shrink-0"
       title="Выбрать из загруженных фото"
     >
@@ -968,46 +970,80 @@ export default function AdminPage() {
 
         {/* ─── Пикер фото ─── */}
         {pickerFor && (
-          <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4" onClick={() => setPickerFor(null)}>
-            <div className="bg-card rounded-2xl border border-border p-5 max-w-2xl w-full max-h-[80vh] overflow-auto" onClick={(e) => e.stopPropagation()}>
-              <div className="flex items-center justify-between mb-4">
+          <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4" onClick={() => { setPickerFor(null); setPickerFilter(""); }}>
+            <div className="bg-card rounded-2xl border border-border p-5 max-w-3xl w-full max-h-[85vh] overflow-hidden flex flex-col" onClick={(e) => e.stopPropagation()}>
+              <div className="flex items-center justify-between mb-3 shrink-0">
                 <h3 className="font-display font-bold text-base">Выберите фото</h3>
-                <button onClick={() => setPickerFor(null)} className="p-1.5 rounded-lg hover:bg-accent text-muted-foreground" title="Закрыть">
+                <button onClick={() => { setPickerFor(null); setPickerFilter(""); }} className="p-1.5 rounded-lg hover:bg-accent text-muted-foreground" title="Закрыть">
                   <X className="w-5 h-5" />
                 </button>
               </div>
-              {photos.length === 0 && defaultGallery.length === 0 ? (
-                <p className="text-sm text-muted-foreground py-6 text-center">
-                  Сначала загрузите фото во вкладке «Галерея» — потом их можно будет выбрать здесь.
-                </p>
-              ) : (
-                <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
-                  {photos.map((ph) => (
+              <input
+                className={inputCls + " mb-4 shrink-0"}
+                placeholder="Фильтр по имени файла… (например PF6A, studio, theater)"
+                value={pickerFilter}
+                onChange={(e) => setPickerFilter(e.target.value)}
+                autoFocus
+              />
+              <div className="overflow-auto -mx-1 px-1 flex-1">
+                {(() => {
+                  const currentSrc = (() => {
+                    const { kind, index } = pickerFor;
+                    if (kind === "hero") return hero.image;
+                    if (kind === "teacher" && teachers[index]) return teachers[index].photo;
+                    if (kind === "program" && programs[index]) return programs[index].image;
+                    return "";
+                  })();
+                  const filter = (s: string) => !pickerFilter || s.toLowerCase().includes(pickerFilter.toLowerCase());
+                  // Соберём все уникальные источники: DB gallery + static gallery + /public/images
+                  const dbPhotos = photos.filter(p => filter(p.src));
+                  const staticOnly = defaultGallery.filter(g => filter(g.src) && !photos.some(p => p.src === g.src));
+                  const allFiles = (pickerFiles || []).filter(f => filter(f.src) && !photos.some(p => p.src === f.src) && !defaultGallery.some(g => g.src === f.src));
+                  const empty = dbPhotos.length + staticOnly.length + allFiles.length === 0;
+                  const Tile = ({ src, badge }: { src: string; badge?: string }) => (
                     <button
-                      key={ph.id}
                       type="button"
-                      onClick={() => applyPhoto(ph.src)}
-                      className={"group rounded-xl overflow-hidden border-2 transition-colors " + (ph.src === (pickerFor.kind === "hero" ? hero.image : pickerFor.kind === "teacher" && teachers[pickerFor.index] ? teachers[pickerFor.index].photo : "") ? "border-brand-warm" : "border-transparent hover:border-brand-warm")}
-                      title={ph.src}
+                      onClick={() => applyPhoto(src)}
+                      className={"group relative rounded-xl overflow-hidden border-2 transition-colors " + (src === currentSrc ? "border-brand-warm ring-2 ring-brand-warm/30" : "border-transparent hover:border-brand-warm")}
+                      title={src}
                     >
                       {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src={ph.src} alt="" className="w-full aspect-square object-cover" />
+                      <img src={src} alt="" loading="lazy" className="w-full aspect-square object-cover" />
+                      {src === currentSrc && (
+                        <span className="absolute top-1 left-1 text-[9px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded bg-brand-warm text-white">текущее</span>
+                      )}
+                      {badge && (
+                        <span className="absolute bottom-1 left-1 text-[9px] font-semibold px-1.5 py-0.5 rounded bg-black/70 text-white">{badge}</span>
+                      )}
                     </button>
-                  ))}
-                  {defaultGallery.map((g, gi) => (
-                    <button
-                      key={"static-" + gi}
-                      type="button"
-                      onClick={() => applyPhoto(g.src)}
-                      className="group rounded-xl overflow-hidden border-2 border-transparent hover:border-brand-warm transition-colors"
-                      title={g.src}
-                    >
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src={g.src} alt="" className="w-full aspect-square object-cover" />
-                    </button>
-                  ))}
-                </div>
-              )}
+                  );
+                  if (empty) return (
+                    <p className="text-sm text-muted-foreground py-6 text-center">
+                      {pickerFilter ? "Ничего не найдено по «" + pickerFilter + "»" : "Нет доступных файлов"}
+                    </p>
+                  );
+                  return (
+                    <>
+                      {dbPhotos.length > 0 && (<>
+                        <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 mt-1">Галерея ({dbPhotos.length})</p>
+                        <div className="grid grid-cols-3 sm:grid-cols-5 gap-2 mb-4">{dbPhotos.map((ph) => <Tile key={"db-"+ph.id} src={ph.src} badge="галерея" />)}</div>
+                      </>)}
+                      {staticOnly.length > 0 && (<>
+                        <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">По умолчанию ({staticOnly.length})</p>
+                        <div className="grid grid-cols-3 sm:grid-cols-5 gap-2 mb-4">{staticOnly.map((g, gi) => <Tile key={"st-"+gi} src={g.src} />)}</div>
+                      </>)}
+                      {allFiles.length > 0 && (<>
+                        <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Все файлы в <code>/public/images/</code> ({allFiles.length})</p>
+                        <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">{allFiles.map(f => <Tile key={f.src} src={f.src} />)}</div>
+                      </>)}
+                    </>
+                  );
+                })()}
+              </div>
+              <p className="text-xs text-muted-foreground mt-3 shrink-0">
+                💡 Если фото вертикальное и обрезается голова — после выбора откройте «Направления» →
+                поле «Точка фокуса» → <code>50% 20%</code>.
+              </p>
             </div>
           </div>
         )}
