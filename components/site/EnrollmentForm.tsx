@@ -148,10 +148,11 @@ export function EnrollmentForm() {
                 Запись
               </p>
               <h2 className="font-display font-extrabold text-3xl sm:text-4xl text-foreground text-balance leading-[1.15]">
-                Записаться в «Сферу»
+                Записаться или задать вопрос
               </h2>
               <p className="mt-4 text-base text-muted-foreground leading-relaxed max-w-md">
-                Заполните форму — ответим на вопросы и подберём направление.
+                Оставьте имя и контакт — перезвоним или напишем в течение рабочего дня,
+                ответим на вопросы и подберём направление. Никакого спама.
               </p>
 
               <div className="mt-6 flex flex-col sm:flex-row lg:flex-col gap-3 max-w-md">

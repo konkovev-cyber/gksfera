@@ -1,5 +1,5 @@
 import './globals.css';
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import { Inter, Manrope } from 'next/font/google';
 import { MotionProvider } from '@/components/site/MotionProvider';
 import { getContent } from '@/lib/content';
@@ -27,7 +27,6 @@ export async function generateMetadata(): Promise<Metadata> {
   const description = String(cfg.seoDescription || 'Учебно-развивающая студия «Сфера» в Горячем Ключе. Подготовка к школе, помощь школьникам, английский язык, чистописание, развивающие занятия, театр. Для детей от 5 до 15 лет.');
   const keywords = String(cfg.seoKeywords || 'развивающие занятия Горячий Ключ,подготовка к школе Горячий Ключ,занятия для детей Горячий Ключ,Сфера Горячий Ключ');
   const ogImage = String(cfg.seoOgImage || '/og-image.png');
-  const themeColor = String(cfg.seoThemeColor || 'hsl(32 85% 52%)');
 
   return {
     metadataBase: new URL('https://sfera-goryachiy-klyuch.ru'),
@@ -37,7 +36,6 @@ export async function generateMetadata(): Promise<Metadata> {
     authors: [{ name: 'Учебно-развивающая студия «Сфера»' }],
     creator: 'Учебно-развивающая студия «Сфера»',
     alternates: { canonical: '/' },
-    themeColor,
     openGraph: {
       type: 'website',
       locale: 'ru_RU',
@@ -68,6 +66,16 @@ export async function generateMetadata(): Promise<Metadata> {
       apple: '/apple-touch-icon.png',
     },
     manifest: '/manifest.webmanifest',
+  };
+}
+
+export async function generateViewport(): Promise<Viewport> {
+  const { data } = await getContent();
+  const cfg = data.siteConfig as Record<string, unknown>;
+  return {
+    themeColor: String(cfg.seoThemeColor || 'hsl(32 85% 52%)'),
+    width: 'device-width',
+    initialScale: 1,
   };
 }
 

@@ -1,7 +1,10 @@
 import { Header } from "@/components/site/Header";
 import { Hero } from "@/components/site/Hero";
+import { TaskPicker } from "@/components/site/TaskPicker";
 import { About } from "@/components/site/About";
 import { Programs } from "@/components/site/Programs";
+import { Results } from "@/components/site/Results";
+import { TrustStats } from "@/components/site/TrustStats";
 import { LearningExperience } from "@/components/site/LearningExperience";
 import { Gallery } from "@/components/site/Gallery";
 import { Teachers } from "@/components/site/Teachers";
@@ -31,8 +34,11 @@ export default async function Home() {
       <Header />
       <main>
         <Hero />
+        <TaskPicker />
         {visibility.about && <About />}
         {visibility.programs && <Programs />}
+        <Results />
+        <TrustStats />
         {visibility.learning && <LearningExperience />}
         {visibility.gallery && <Gallery />}
         {visibility.teachers && <Teachers />}

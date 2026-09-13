@@ -177,7 +177,7 @@ export function Hero() {
               className="mt-8 flex flex-col sm:flex-row gap-3"
             >
               <button
-                onClick={() => scrollTo("#enrollment")}
+                onClick={() => scrollTo("#tasks")}
                 className="group inline-flex items-center justify-center gap-2 h-12 sm:h-13 px-7 rounded-full bg-primary text-primary-foreground font-semibold text-base hover:bg-primary/90 transition-all shadow-lg hover:shadow-xl hover:scale-[1.02] active:scale-[0.98]"
               >
                 {content.heroContent.primaryCta}
@@ -190,6 +190,16 @@ export function Hero() {
                 {content.heroContent.secondaryCta}
               </button>
             </motion.div>
+
+            {/* Trust-строка под кнопками */}
+            <motion.p
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 1.0, duration: 0.5 }}
+              className="mt-5 text-xs sm:text-sm text-muted-foreground"
+            >
+              5–15 лет · небольшие группы · более 15 лет работы · Горячий Ключ
+            </motion.p>
           </motion.div>
 
           {/* Изображение с 3D-наклоном */}
