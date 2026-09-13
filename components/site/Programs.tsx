@@ -30,8 +30,7 @@ export function Programs() {
   }
 
   const educational = allPrograms.filter((p) => (p as Program).category === "educational");
-  const creative = allPrograms.filter((p) => (p as Program).category === "creative");
-  const uncategorized = allPrograms.filter((p) => !(p as Program).category);
+  const creative = allPrograms.filter((p) => (p as Program).category !== "educational");
 
   return (
     <div id="programs">
@@ -52,16 +51,6 @@ export function Programs() {
           title="Какие творческие факультативы у нас есть"
           description="Сцена, слово и творчество — то, что не измеряется оценками, но сильно влияет на уверенность ребёнка и его умение говорить о себе. Записаться можно на несколько сразу."
           accent="creative"
-        />
-      )}
-
-      {uncategorized.length > 0 && (
-        <ProgramsSection
-          programs={uncategorized}
-          subtitle="Другое"
-          title="Другие направления"
-          description="Дополнительные занятия, которые вы можете подобрать по запросу."
-          accent="educational"
         />
       )}
     </div>

@@ -162,7 +162,7 @@ export function Footer() {
 
 function FooterLogo() {
   return (
-    <div className="relative w-11 h-11 flex-shrink-0 rounded-2xl overflow-hidden shadow-sm ring-1 ring-black/5">
+    <div className="relative w-11 h-11 flex-shrink-0 rounded-2xl overflow-hidden bg-white shadow-sm ring-1 ring-white/10">
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
         src="/images/logo-icon.png"

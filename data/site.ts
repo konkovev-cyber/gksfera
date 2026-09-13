@@ -174,7 +174,7 @@ export const heroContent = {
     "Подготовка к школе, помощь с учёбой, английский и творчество для детей 5–15 лет. Подберём направление под возраст и конкретную задачу ребёнка.",
   primaryCta: "Подобрать занятия",
   secondaryCta: "Смотреть направления",
-  image: "/images/studio-04.jpg",
+  image: "/images/gallery-1.jpg",
   imageAlt: "Дети занимаются в учебной студии «Сфера»",
 };
 
@@ -335,7 +335,7 @@ export const programs: Program[] = [
     ageRange: "5–10 лет",
     description:
       "Коррекция почерка. Работа над красивым, уверенным и аккуратным письмом. Развиваем мелкую моторику и привычку к аккуратности.",
-    image: "/images/studio-09.jpg",
+    image: "/images/studio-05.jpg",
     imageAlt: "Чистописание и развитие мелкой моторики",
     icon: "PenLine",
     category: "educational",
@@ -346,7 +346,7 @@ export const programs: Program[] = [
     ageRange: "по запросу",
     description:
       "Консультация и рекомендации по нейропсихологической коррекции обучения. Помогаем ребёнку справиться с трудностями в учёбе. Уточняйте детали по телефону.",
-    image: "/images/studio-11.jpg",
+    image: "/images/studio-06.jpg",
     imageAlt: "Индивидуальное занятие с педагогом",
     icon: "BrainCircuit",
     category: "educational",
@@ -410,8 +410,8 @@ export const learningExperience = {
     { icon: "Palette", title: "Творческие проекты", text: "Соединяем знания с творчеством — от рисования до театра." },
     { icon: "HeartHandshake", title: "Внимание к ребёнку", text: "Стараемся понять, что интересно и что получается лучше всего." },
   ],
-  image: "/images/studio-pano.jpg",
-  imageAlt: "Атмосфера занятий в студии «Сфера»",
+  image: "/images/studio-08.jpg",
+  imageAlt: "Занятие в учебном классе студии «Сфера»",
 };
 
 export const gallery: GalleryItem[] = [
