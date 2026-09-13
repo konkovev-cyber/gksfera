@@ -70,7 +70,8 @@ export function Header() {
             aria-label="Сфера — на главную"
           >
             <Logo scrolled={scrolled} />
-            <div className="hidden sm:flex flex-col leading-tight">
+            {/* Текстовая подпись только на мобильном (на десктопе она уже в wordmark) */}
+            <div className="lg:hidden sm:flex flex-col leading-tight">
               <span className="font-display font-extrabold text-xl tracking-tight text-foreground">
                 СФЕРА
               </span>
@@ -228,15 +229,29 @@ export function Header() {
 
 function Logo({ scrolled }: { scrolled: boolean }) {
   return (
-    <div className="relative w-11 h-11 flex-shrink-0 rounded-2xl overflow-hidden shadow-sm ring-1 ring-black/5">
-      <Image
-        src="/images/logo-icon.png"
-        alt="Логотип Сфера"
-        width={44}
-        height={44}
-        className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-        priority
-      />
-    </div>
+    <>
+      {/* Мобильный: squircle-иконка */}
+      <div className="lg:hidden relative w-11 h-11 flex-shrink-0 rounded-2xl overflow-hidden shadow-sm ring-1 ring-black/5">
+        <Image
+          src="/images/logo-icon.png"
+          alt="Логотип Сфера"
+          width={44}
+          height={44}
+          className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+          priority
+        />
+      </div>
+      {/* Десктоп: горизонтальный wordmark */}
+      <div className="hidden lg:block relative h-12 flex-shrink-0 flex items-center">
+        <Image
+          src="/images/logo-wordmark.png"
+          alt="Сфера — учебно-развивающая студия"
+          width={400}
+          height={154}
+          className="h-12 w-auto object-contain transition-transform duration-300 group-hover:scale-[1.02]"
+          priority
+        />
+      </div>
+    </>
   );
 }
