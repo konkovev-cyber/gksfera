@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Image from "next/image";
-import { ArrowRight, Sparkles } from "lucide-react";
+import { ArrowRight, Sparkles, Pause, Play } from "lucide-react";
 import {
   motion,
   AnimatePresence,
@@ -66,6 +66,11 @@ export function Hero() {
   // Заголовок по словам
   const words = content.heroContent.title.split(" ");
   const marqueeItems = content.programs.map((p) => p.title);
+  // Бегущую строку можно остановить кнопкой — это требование WCAG 2.2.2
+  // (движущийся контент должен останавливаться по запросу) и просто удобство:
+  // при системном «уменьшить движение» строка едет медленно, а при желании
+  // останавливается совсем.
+  const [marqueePaused, setMarqueePaused] = useState(false);
 
   // Набор фото для ротации в Hero (fallback на одиночное image)
   const heroImages = (
@@ -335,7 +340,7 @@ export function Hero() {
         <div className="absolute inset-0 bg-gradient-to-b from-brand-warm/5 via-card to-brand-warm/5" aria-hidden="true" />
 
         <div className="relative py-7 overflow-hidden shadow-[inset_0_2px_8px_-4px_rgba(0,0,0,0.06),inset_0_-2px_8px_-4px_rgba(0,0,0,0.06)]">
-          <div className="flex w-max animate-marquee" aria-hidden="true">
+          <div className={cn("flex w-max animate-marquee", marqueePaused && "marquee-paused")} aria-hidden="true">
             {(() => {
               const N = marqueeItems.length || 1;
               const WAVE_PERIOD = 7; // сек — совпадает с @keyframes marquee-wave
@@ -366,6 +371,28 @@ export function Hero() {
               });
             })()}
           </div>
+
+          {/* Мягкий градиент справа, чтобы текст не уходил под кнопку паузы */}
+          <div
+            className="absolute inset-y-0 right-0 w-16 sm:w-20 bg-gradient-to-l from-card via-card/90 to-transparent pointer-events-none z-10"
+            aria-hidden="true"
+          />
+
+          {/* Пауза/пуск бегущей строки */}
+          <button
+            type="button"
+            onClick={() => setMarqueePaused((v) => !v)}
+            aria-pressed={marqueePaused}
+            aria-label={marqueePaused ? "Запустить бегущую строку" : "Остановить бегущую строку"}
+            title={marqueePaused ? "Запустить бегущую строку" : "Остановить бегущую строку"}
+            className="absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 z-20 w-9 h-9 rounded-full border border-border/70 bg-card/85 backdrop-blur-sm text-muted-foreground hover:text-brand-warm hover:border-brand-warm/70 transition-colors flex items-center justify-center"
+          >
+            {marqueePaused ? (
+              <Play className="w-3.5 h-3.5 fill-current ml-0.5" />
+            ) : (
+              <Pause className="w-4 h-4" />
+            )}
+          </button>
         </div>
       </div>
     </section>

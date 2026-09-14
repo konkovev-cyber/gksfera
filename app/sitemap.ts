@@ -58,6 +58,15 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         priority: 0.8,
       });
     }
+    // Страница галереи — по тому же принципу.
+    if (visibility.gallery !== false) {
+      entries.push({
+        url: `${baseUrl}/gallery`,
+        lastModified,
+        changeFrequency: 'weekly',
+        priority: 0.8,
+      });
+    }
     for (const p of data.programs) {
       entries.push({
         url: `${baseUrl}/programs/${slugify(p.title)}`,

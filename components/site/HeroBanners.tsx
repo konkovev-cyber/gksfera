@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { motion, useReducedMotion } from "framer-motion";
+import { motion } from "framer-motion";
 import { ArrowUpRight, Sparkles as SparklesFallback } from "lucide-react";
 import { useContent } from "./ContentContext";
 import { iconMap } from "./program-icons";
@@ -24,20 +24,19 @@ function isExternal(href: string) {
  */
 export function HeroBanners() {
   const content = useContent();
-  const reduce = useReducedMotion();
   const banners = (content.heroBanners ?? []).filter((b) => b && b.title && b.href);
   if (banners.length === 0) return null;
 
   return (
     <div className="mt-6 flex flex-wrap gap-2.5 sm:gap-3">
       {banners.map((b, i) => (
-        <BannerChip key={b.id ?? i} b={b} index={i} reduce={!!reduce} />
+        <BannerChip key={b.id ?? i} b={b} index={i} />
       ))}
     </div>
   );
 }
 
-function BannerChip({ b, index, reduce }: { b: HeroBanner; index: number; reduce: boolean }) {
+function BannerChip({ b, index }: { b: HeroBanner; index: number }) {
   const Icon = iconMap[b.icon] ?? SparklesFallback;
   const inner = (
     <>
@@ -65,13 +64,15 @@ function BannerChip({ b, index, reduce }: { b: HeroBanner; index: number; reduce
     "bg-card/70 backdrop-blur-md border border-border/60 shadow-sm " +
     "transition-all duration-200 hover:shadow-md hover:border-primary/40 hover:-translate-y-0.5";
 
-  const anim = reduce
-    ? undefined
-    : {
-        initial: { opacity: 0, y: 10 },
-        animate: { opacity: 1, y: 0 },
-        transition: { delay: 0.85 + index * 0.08, duration: 0.45 },
-      };
+  // Анимация всегда одна и та же на сервере и на клиенте: за «уменьшить
+  // движение» отвечает глобальный MotionConfig (reducedMotion="user").
+  // Ветвиться по useReducedMotion здесь нельзя — набор props различался бы
+  // между SSR и клиентом, что давало hydration mismatch у reduce-пользователей.
+  const anim = {
+    initial: { opacity: 0, y: 10 },
+    animate: { opacity: 1, y: 0 },
+    transition: { delay: 0.85 + index * 0.08, duration: 0.45 },
+  };
 
   const href = b.href;
   if (isExternal(href)) {
@@ -91,7 +92,12 @@ function BannerChip({ b, index, reduce }: { b: HeroBanner; index: number; reduce
           const el = document.querySelector(href);
           if (el) {
             e.preventDefault();
-            el.scrollIntoView({ behavior: reduce ? "auto" : "smooth", block: "start" });
+            // Привычка пользователя «меньше движения» учитываем в момент клика:
+            // на результат рендера это не влияет, значит SSR и клиент совпадают.
+            const calm =
+              typeof window !== "undefined" &&
+              window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+            el.scrollIntoView({ behavior: calm ? "auto" : "smooth", block: "start" });
           }
         }}
       >

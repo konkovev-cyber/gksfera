@@ -1,12 +1,13 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
+import Link from "next/link";
 import Image from "next/image";
-import { X, ChevronLeft, ChevronRight, ZoomIn, ZoomOut, Play, Images } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { ChevronLeft, ChevronRight, ZoomIn, Play, Images, ArrowRight } from "lucide-react";
 import { useContent } from "./ContentContext";
 
 import { Reveal } from "./Reveal";
+import { GalleryLightbox } from "./GalleryLightbox";
 import { cn } from "@/lib/utils";
 import { isVideoSrc } from "@/lib/compress";
 import type { GalleryItem } from "@/data/site";
@@ -67,70 +68,13 @@ function Tile({
   );
 }
 
+/**
+ * Секция «Галерея» на главной: карусель последних фото + ссылка на
+ * полноценную страницу /gallery.
+ */
 export function Gallery() {
   const content = useContent();
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
-  const [zoomed, setZoomed] = useState(false);
-  const touchRef = useRef<{ startX: number; startY: number } | null>(null);
-
-  const closeLightbox = useCallback(() => {
-    setLightboxIndex(null);
-    setZoomed(false);
-  }, []);
-  const goPrev = useCallback(() => {
-    setZoomed(false);
-    setLightboxIndex((prev) =>
-      prev === null ? null : (prev - 1 + content.gallery.length) % content.gallery.length
-    );
-  }, [content.gallery.length]);
-  const goNext = useCallback(() => {
-    setZoomed(false);
-    setLightboxIndex((prev) =>
-      prev === null ? null : (prev + 1) % content.gallery.length
-    );
-  }, [content.gallery.length]);
-
-  useEffect(() => {
-    if (lightboxIndex === null) return;
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") closeLightbox();
-      if (e.key === "ArrowLeft") goPrev();
-      if (e.key === "ArrowRight") goNext();
-      // Пробел/Enter переключают зум, но только когда фокус НЕ на интерактивном
-      // элементе — иначе они глушат активацию собственных кнопок overlay.
-      const t = e.target as HTMLElement | null;
-      if (t && t.closest("button, a, [href], input, select, textarea, [tabindex]:not([tabindex='-1'])")) return;
-      if (e.key === " " || e.key === "Enter") { e.preventDefault(); setZoomed((z) => !z); }
-    };
-    document.body.style.overflow = "hidden";
-    window.addEventListener("keydown", onKey);
-    return () => {
-      document.body.style.overflow = "";
-      window.removeEventListener("keydown", onKey);
-    };
-  }, [lightboxIndex, closeLightbox, goPrev, goNext]);
-
-  // Если набор изменился (админ удалил фото при открытом окне) — закрываем,
-  // иначе индекс уходит за границы, а блокировка прокрутки повиснет.
-  useEffect(() => {
-    if (lightboxIndex !== null && !content.gallery[lightboxIndex]) {
-      setLightboxIndex(null);
-      setZoomed(false);
-    }
-  }, [lightboxIndex, content.gallery]);
-
-  const handleTouchStart = (e: React.TouchEvent) => {
-    touchRef.current = { startX: e.touches[0].clientX, startY: e.touches[0].clientY };
-  };
-  const handleTouchEnd = (e: React.TouchEvent) => {
-    if (!touchRef.current || zoomed) return;
-    const dx = e.changedTouches[0].clientX - touchRef.current.startX;
-    const dy = e.changedTouches[0].clientY - touchRef.current.startY;
-    if (Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy) * 1.5) {
-      if (dx < 0) goNext(); else goPrev();
-    }
-    touchRef.current = null;
-  };
 
   // Горизонтальная карусель: видно 4 плитки, остальные — прокруткой.
   const scrollerRef = useRef<HTMLDivElement>(null);
@@ -242,125 +186,32 @@ export function Gallery() {
           </p>
         )}
 
-        {/* Все фото — открывает полноэкранный просмотр всего набора */}
-        {content.gallery.length > 4 && (
-          <Reveal>
-            <div className="text-center mt-6">
-              <button
-                onClick={() => setLightboxIndex(0)}
-                className="inline-flex items-center gap-2 h-11 px-6 rounded-full border-2 border-border bg-card text-sm font-semibold hover:border-brand-warm hover:text-brand-warm transition-colors"
-              >
-                <Images className="w-4 h-4" />
-                Смотреть все фото
-                <span className="text-muted-foreground font-normal">({content.gallery.length})</span>
-              </button>
-            </div>
-          </Reveal>
-        )}
+        {/* Вся галерея — на отдельной странице */}
+        <Reveal>
+          <div className="text-center mt-6">
+            <Link
+              href="/gallery"
+              className="inline-flex items-center gap-2 h-11 px-6 rounded-full border-2 border-border bg-card text-sm font-semibold hover:border-brand-warm hover:text-brand-warm transition-colors group"
+            >
+              <Images className="w-4 h-4" />
+              Вся галерея
+              <span className="text-muted-foreground font-normal">({content.gallery.length})</span>
+              <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-0.5" />
+            </Link>
+            <p className="mt-3 text-xs text-muted-foreground">
+              На странице галереи — все фото и видео, с фильтром по типам.
+            </p>
+          </div>
+        </Reveal>
       </div>
 
       {/* Lightbox */}
-      <AnimatePresence>
-        {lightboxIndex !== null && content.gallery[lightboxIndex] && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[70] bg-foreground/90 backdrop-blur-md flex items-center justify-center p-4"
-            onClick={closeLightbox}
-            onTouchStart={handleTouchStart}
-            onTouchEnd={handleTouchEnd}
-          >
-            {/* Кнопка закрытия */}
-            <button
-              className="absolute top-4 right-4 w-12 h-12 rounded-full bg-card/20 text-white flex items-center justify-center hover:bg-card/30 transition-colors z-20"
-              onClick={closeLightbox}
-              aria-label="Закрыть"
-            >
-              <X className="w-6 h-6" />
-            </button>
-
-            {/* Кнопка зума (только для изображений) */}
-            {!isVideoSrc(content.gallery[lightboxIndex].src) && (
-              <button
-                className="absolute top-4 right-20 w-12 h-12 rounded-full bg-card/20 text-white flex items-center justify-center hover:bg-card/30 transition-colors z-20"
-                onClick={(e) => { e.stopPropagation(); setZoomed((z) => !z); }}
-                aria-label={zoomed ? "Уменьшить" : "Увеличить"}
-              >
-                {zoomed ? <ZoomOut className="w-6 h-6" /> : <ZoomIn className="w-6 h-6" />}
-              </button>
-            )}
-
-            {/* Стрелки навигации */}
-            {!zoomed && (
-              <>
-                <button
-                  className="absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full bg-card/20 text-white flex items-center justify-center hover:bg-card/30 transition-colors z-10"
-                  onClick={(e) => { e.stopPropagation(); goPrev(); }}
-                  aria-label="Предыдущее фото"
-                >
-                  <ChevronLeft className="w-6 h-6" />
-                </button>
-                <button
-                  className="absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full bg-card/20 text-white flex items-center justify-center hover:bg-card/30 transition-colors z-10"
-                  onClick={(e) => { e.stopPropagation(); goNext(); }}
-                  aria-label="Следующее фото"
-                >
-                  <ChevronRight className="w-6 h-6" />
-                </button>
-              </>
-            )}
-
-            {/* Фото / видео */}
-            <motion.div
-              key={lightboxIndex}
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.2 }}
-              className={cn(
-                "relative w-full transition-transform duration-300",
-                isVideoSrc(content.gallery[lightboxIndex].src)
-                  ? "max-w-4xl h-[70vh] flex items-center justify-center"
-                  : cn("cursor-pointer", zoomed ? "h-[90vh] overflow-auto" : "max-w-4xl h-[70vh]"),
-              )}
-              onClick={
-                isVideoSrc(content.gallery[lightboxIndex].src)
-                  ? (e) => e.stopPropagation()
-                  : (e) => { e.stopPropagation(); setZoomed((z) => !z); }
-              }
-            >
-              {isVideoSrc(content.gallery[lightboxIndex].src) ? (
-                <video
-                  src={content.gallery[lightboxIndex].src}
-                  controls
-                  playsInline
-                  preload="metadata"
-                  className="w-full h-full max-h-[70vh] object-contain rounded-xl bg-black"
-                />
-              ) : (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={content.gallery[lightboxIndex].src}
-                  alt={content.gallery[lightboxIndex].alt}
-                  className={cn(
-                    "w-full h-full transition-transform duration-300",
-                    zoomed ? "object-contain scale-150 origin-center" : "object-contain"
-                  )}
-                  draggable={false}
-                />
-              )}
-            </motion.div>
-
-            {/* Счётчик */}
-            <div className="absolute bottom-6 left-1/2 -translate-x-1/2 text-white/70 text-sm flex items-center gap-3">
-              <span>{lightboxIndex + 1} / {content.gallery.length}</span>
-              <span className="text-white/40 text-xs hidden sm:inline">
-                {zoomed ? "кликните для уменьшения" : "кликните для увеличения · стрелки для навигации"}
-              </span>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      <GalleryLightbox
+        items={content.gallery}
+        index={lightboxIndex}
+        onClose={() => setLightboxIndex(null)}
+        onIndex={(i) => setLightboxIndex(i)}
+      />
     </section>
   );
 }

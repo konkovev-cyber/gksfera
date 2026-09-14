@@ -179,10 +179,21 @@
   animation: marquee-wave 7s ease-in-out infinite;
   will-change: transform;
 }
+
+/* Ручная пауза бегущей строки (кнопка в Hero) — работает для всех,
+   независимо от системных настроек движения. Останавливаем и саму ленту,
+   и колебания «волны» у её элементов. */
+.marquee-paused,
+.marquee-paused * {
+  animation-play-state: paused !important;
+}
+
 @media (prefers-reduced-motion: reduce) {
+  /* Колебания «волной» — главная причина дискомфорта, их убираем. */
   .marquee-wave { animation: none !important; }
-  /* Сама лента тоже должна стоять, а не бесконечно ехать (WCAG 2.2.2) */
-  .animate-marquee { animation: none !important; }
+  /* Саму ленту не останавливаем: при уменьшенном движении она идёт медленно.
+   Полностью остановить можно кнопкой паузы рядом со строкой (WCAG 2.2.2). */
+  .animate-marquee { animation-duration: 90s !important; }
 }
 
 @keyframes text-shimmer {
