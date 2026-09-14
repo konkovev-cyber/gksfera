@@ -6,7 +6,7 @@ import {
   Loader2, Save, Upload, Trash2, LogOut, ArrowUp, ArrowDown,
   Settings, Image as ImageIcon, LayoutDashboard, Inbox, School,
   Eye, Star, BookOpen, Search, Download, Plus, Newspaper, RefreshCw, ExternalLink, X,
-  GraduationCap, HelpCircle, PenTool, Play, CalendarDays, Clock, Copy, Sparkles,
+  GraduationCap, HelpCircle, PenTool, Play, CalendarDays, Copy, Sparkles,
 } from "lucide-react";
 import { gallery as defaultGallery } from "@/data/site";
 import { compressImageFile, isVideoSrc, humanSize, IMAGE_MAX, VIDEO_MAX } from "@/lib/compress";
@@ -113,6 +113,14 @@ const PAIN_ICON_OPTIONS = [
 ];
 
 const inputCls = "w-full h-10 px-3 text-sm rounded-lg border border-input bg-background focus:outline-none focus:ring-2 focus:ring-ring/60";
+/**
+ * Узкое поле под время («8:30»). ВАЖНО: не строить таким полем через
+ * inputCls + " w-20" — inputCls уже содержит w-full, а обе утилиты задают
+ * одно и то же свойство width, так что побеждает та, что оказалась позже в
+ * сгенерированном CSS. Из-за этого поля времени раздувались до ширины ряда,
+ * а поле предмета сжималось до ~26px. Здесь w-full просто нет.
+ */
+const timeCls = "w-14 shrink-0 min-w-0 h-9 px-1 text-center text-sm tabular-nums rounded-lg border border-input bg-background focus:outline-none focus:ring-2 focus:ring-ring/60";
 const btnCls = "inline-flex items-center justify-center gap-2 h-10 px-4 rounded-full bg-primary text-primary-foreground text-sm font-semibold hover:bg-primary/90 disabled:opacity-50 w-full sm:w-auto";
 const btnSecondaryCls = "inline-flex items-center justify-center gap-2 h-10 px-4 rounded-full border-2 border-border text-sm font-semibold hover:border-primary hover:text-primary disabled:opacity-50 w-full sm:w-auto";
 
@@ -1266,6 +1274,8 @@ export default function AdminPage() {
               <p className="text-sm text-muted-foreground">
                 Расписание показывается на странице <code className="text-[11px] px-1 bg-accent rounded">/raspisanie</code> (пункт меню «Расписание») и <b>не</b> появляется на главной.
                 Группа → дни недели → уроки. У каждого урока — время начала, при желании время окончания («до …») и предмет.
+                Время окончания <b>последнего</b> урока дня выводится на странице жирной строкой «Окончание уроков» —
+                ориентир для родителей, во сколько забирать ребёнка; в карточке дня есть предпросмотр этой строки.
                 Можно загрузить картинку-расписание — она выводится под таблицей группы, её удобно скачать и распечатать.
               </p>
             </div>
@@ -1274,7 +1284,7 @@ export default function AdminPage() {
               <div key={g.id ?? gi} className="bg-card rounded-2xl border border-border/60 p-4 sm:p-5 space-y-4">
                 <div className="grid sm:grid-cols-2 gap-3">
                   <Field label="Название группы"><input className={inputCls} value={g.title ?? ""} onChange={(e) => patchGroup(gi, { title: e.target.value })} placeholder="Например: Младшая группа" /></Field>
-                  <Field label="Подпись под названием (необязательно)"><input className={inputCls} value={g.note ?? ""} onChange={(e) => patchGroup(gi, { note: e.target.value })} placeholder="Например: подготовка к школе" /></Field>
+                  <Field label="Подпись под названием (необязательно)"><input className={inputCls} value={g.note ?? ""} onChange={(e) => patchGroup(gi, { note: e.target.value })} placeholder="Например: 2 класс" /></Field>
                 </div>
 
                 <Field label="Картинка для печати (необязательно)">
@@ -1294,33 +1304,60 @@ export default function AdminPage() {
                   </div>
                 </Field>
 
-                <div className="space-y-3">
+                <div className="space-y-2">
                   <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Дни недели</div>
-                  {(g.days ?? []).map((d: any, di: number) => (
-                    <div key={di} className="rounded-xl border border-border/60 bg-background/50 p-3 space-y-2">
-                      <div className="flex items-center gap-2">
-                        <input className={inputCls + " flex-1"} value={d.day ?? ""} onChange={(e) => patchDay(gi, di, { day: e.target.value })} placeholder="Понедельник" />
-                        <button type="button" onClick={() => moveDay(gi, di, -1)} className="p-2 rounded-lg hover:bg-accent" title="Выше"><ArrowUp className="w-4 h-4" /></button>
-                        <button type="button" onClick={() => moveDay(gi, di, 1)} className="p-2 rounded-lg hover:bg-accent" title="Ниже"><ArrowDown className="w-4 h-4" /></button>
-                        <button type="button" onClick={() => removeDay(gi, di)} className="p-2 rounded-lg hover:bg-destructive/10 text-destructive" title="Удалить день"><Trash2 className="w-4 h-4" /></button>
-                      </div>
-                      <div className="space-y-1.5">
-                        {(d.lessons ?? []).map((l: any, li: number) => (
-                          <div key={li} className="flex items-center gap-2">
-                            <Clock className="w-4 h-4 text-muted-foreground shrink-0" />
-                            <input className={inputCls + " w-20 shrink-0"} value={l.time ?? ""} onChange={(e) => patchLesson(gi, di, li, { time: e.target.value })} placeholder="8:30" inputMode="numeric" />
-                            <span className="text-muted-foreground text-xs shrink-0 cursor-help" title="Если указать время у последнего урока дня, на странице оно выйдет отдельной строкой «Окончание уроков» жирным — для родителей, во сколько забирать ребёнка.">до</span>
-                            <input className={inputCls + " w-20 shrink-0"} value={l.end ?? ""} onChange={(e) => patchLesson(gi, di, li, { end: e.target.value })} placeholder="—" inputMode="numeric" />
-                            <input className={inputCls + " flex-1"} value={l.subject ?? ""} onChange={(e) => patchLesson(gi, di, li, { subject: e.target.value })} placeholder="Математика" />
-                            <button type="button" onClick={() => moveLesson(gi, di, li, -1)} className="p-1.5 rounded-lg hover:bg-accent text-muted-foreground" title="Выше"><ArrowUp className="w-3.5 h-3.5" /></button>
-                            <button type="button" onClick={() => moveLesson(gi, di, li, 1)} className="p-1.5 rounded-lg hover:bg-accent text-muted-foreground" title="Ниже"><ArrowDown className="w-3.5 h-3.5" /></button>
-                            <button type="button" onClick={() => removeLesson(gi, di, li)} className="p-1.5 rounded-lg hover:bg-destructive/10 text-destructive" title="Удалить урок"><X className="w-4 h-4" /></button>
+                  {/* Два дня в ряд на широком экране — карточка перестала
+                      растягиваться на всю ширину, ряды читаются целиком. */}
+                  <div className="grid gap-2.5 lg:grid-cols-2 items-start">
+                    {(g.days ?? []).map((d: any, di: number) => {
+                      const lessons = d.lessons ?? [];
+                      const pickup = [...lessons].reverse().find((l: any) => l.end)?.end;
+                      return (
+                        <div key={di} className="rounded-xl border border-border/60 bg-background/50 p-2.5 space-y-1.5">
+                          <div className="flex items-center gap-1.5">
+                            <input
+                              aria-label="Название дня"
+                              className={inputCls + " h-9 min-w-0 flex-1 px-2.5 text-sm font-semibold"}
+                              value={d.day ?? ""}
+                              onChange={(e) => patchDay(gi, di, { day: e.target.value })}
+                              placeholder="Понедельник"
+                            />
+                            <button type="button" onClick={() => moveDay(gi, di, -1)} className="p-2 sm:p-1.5 rounded-lg hover:bg-accent" title="Выше"><ArrowUp className="w-4 h-4" /></button>
+                            <button type="button" onClick={() => moveDay(gi, di, 1)} className="p-2 sm:p-1.5 rounded-lg hover:bg-accent" title="Ниже"><ArrowDown className="w-4 h-4" /></button>
+                            <button type="button" onClick={() => removeDay(gi, di)} className="p-2 sm:p-1.5 rounded-lg hover:bg-destructive/10 text-destructive" title="Удалить день"><Trash2 className="w-4 h-4" /></button>
                           </div>
-                        ))}
-                        <button type="button" onClick={() => addLesson(gi, di)} className="inline-flex items-center gap-1 text-xs font-semibold text-brand-warm hover:underline mt-1"><Plus className="w-3.5 h-3.5" /> Добавить урок</button>
-                      </div>
-                    </div>
-                  ))}
+                          <div className="space-y-1">
+                            {lessons.map((l: any, li: number) => (
+                              /* flex-wrap: на узких экранах предмет переносится
+                                 на вторую строку, а не сжимается в нечитаемое поле. */
+                              <div key={li} className="flex flex-wrap items-center gap-1.5">
+                                <input aria-label="Время начала" className={timeCls} value={l.time ?? ""} onChange={(e) => patchLesson(gi, di, li, { time: e.target.value })} placeholder="8:30" inputMode="numeric" />
+                                <span className="text-[10px] text-muted-foreground shrink-0 cursor-help" title="Если указать время у последнего урока дня, на странице оно выйдет отдельной строкой «Окончание уроков» жирным — для родителей, во сколько забирать ребёнка.">до</span>
+                                <input aria-label="Время окончания" className={timeCls} value={l.end ?? ""} onChange={(e) => patchLesson(gi, di, li, { end: e.target.value })} placeholder="—" inputMode="numeric" />
+                                <input aria-label="Предмет" className={inputCls + " h-9 min-w-0 flex-1 basis-28 sm:basis-0 px-2.5"} value={l.subject ?? ""} onChange={(e) => patchLesson(gi, di, li, { subject: e.target.value })} placeholder="Математика" />
+                                <div className="flex items-center gap-0.5 shrink-0 ml-auto lg:ml-0">
+                                  <button type="button" onClick={() => moveLesson(gi, di, li, -1)} className="p-2 sm:p-1.5 rounded-lg hover:bg-accent text-muted-foreground" title="Выше"><ArrowUp className="w-3.5 h-3.5" /></button>
+                                  <button type="button" onClick={() => moveLesson(gi, di, li, 1)} className="p-2 sm:p-1.5 rounded-lg hover:bg-accent text-muted-foreground" title="Ниже"><ArrowDown className="w-3.5 h-3.5" /></button>
+                                  <button type="button" onClick={() => removeLesson(gi, di, li)} className="p-2 sm:p-1.5 rounded-lg hover:bg-destructive/10 text-destructive" title="Удалить урок"><X className="w-4 h-4" /></button>
+                                </div>
+                              </div>
+                            ))}
+                            <button type="button" onClick={() => addLesson(gi, di)} className="inline-flex items-center gap-1 text-xs font-semibold text-brand-warm hover:underline mt-0.5"><Plus className="w-3.5 h-3.5" /> Добавить урок</button>
+                          </div>
+                          {lessons.length > 0 && (
+                            <p className="pt-1.5 border-t border-border/50 flex items-baseline justify-between gap-2 text-[11px] text-muted-foreground">
+                              <span>окончание уроков на сайте</span>
+                              {pickup ? (
+                                <b className="text-foreground text-xs tabular-nums">{pickup}</b>
+                              ) : (
+                                <span className="text-muted-foreground/60">не указано</span>
+                              )}
+                            </p>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
                   <button type="button" onClick={() => addDay(gi)} className={btnSecondaryCls + " !h-9 text-xs"}><Plus className="w-4 h-4" /> Добавить день</button>
                 </div>
 
