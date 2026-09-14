@@ -640,7 +640,6 @@ export const navItems: NavItem[] = [
   { label: "Галерея", href: "/gallery", vis: "gallery" },
   { label: "Отзывы", href: "/reviews", vis: "reviews" },
   { label: "Новости", href: "/news", vis: "news" },
-  { label: "Блог", href: "/blog" },
   { label: "Контакты", href: "#contacts", vis: "contacts" },
 ];
 

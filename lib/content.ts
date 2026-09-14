@@ -279,7 +279,9 @@ export async function getAllNews(): Promise<NewsItem[]> {
       .select(NEWS_COLUMNS)
       .eq("visible", true)
       .order("published_at", { ascending: false })
-      .limit(50);
+      // 50 — потенциально «обрезанный» архив: дальше новости просто не
+      // показывались бы. 100 штук с ленивыми картинками страница тянет легко.
+      .limit(100);
     return (data ?? []).map(mapNewsRow);
   } catch {
     return [];

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { revalidatePath } from "next/cache";
 import { checkAdmin } from "@/lib/admin-auth";
+import { revalidateNews, syncPayload } from "@/lib/news-cache";
 import { syncVkNews } from "@/lib/vk-sync";
 
 export async function POST(req: NextRequest) {
@@ -17,6 +17,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: result.error }, { status: result.error?.includes("VK API") ? 400 : 500 });
   }
 
-  revalidatePath("/");
-  return NextResponse.json({ ok: true, imported: result.imported, total: result.total });
+  // Обновляем и ленту, и архив, и карту сайта: синхронизация меняет десятки записей.
+  revalidateNews();
+  return NextResponse.json(syncPayload(result));
 }

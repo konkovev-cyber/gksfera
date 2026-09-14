@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-import { revalidatePath } from "next/cache";
 import { checkAdmin } from "@/lib/admin-auth";
 import { slugifyRu } from "@/lib/news";
+import { revalidateNews } from "@/lib/news-cache";
+import { setPinnedNewsKey } from "@/lib/news-lock";
 import { createClient } from "@supabase/supabase-js";
 
 const service = () =>
@@ -11,6 +12,14 @@ const service = () =>
     { auth: { persistSession: false } }
   );
 
+/**
+ * Сколько новостей тянет админский список. 100 было маловато: при 150 записей
+ * последние 50 в админке просто не появлялись — их нельзя было ни отредактировать,
+ * ни удалить. Взяли 500 с запасом (это ~70 лет при 7 постах в месяц), на витрине
+ * лимиты другие: 12 на главной и 100 в архиве /news — там лишнее только мешает.
+ */
+const ADMIN_LIST_LIMIT = 500;
+
 export async function GET() {
   const denied = await checkAdmin();
   if (denied) return denied;
@@ -19,9 +28,9 @@ export async function GET() {
     .from("news")
     .select("*")
     .order("published_at", { ascending: false })
-    .limit(100);
+    .limit(ADMIN_LIST_LIMIT);
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-  return NextResponse.json({ news: data ?? [] });
+  return NextResponse.json({ news: data ?? [], limit: ADMIN_LIST_LIMIT });
 }
 
 /**
@@ -115,7 +124,11 @@ export async function PUT(req: NextRequest) {
       { status: 400 },
     );
   }
-  if (/^\d+$/.test(key)) {
+  // Числовой ключ — это id поста VK. Сам такой адрес не выдумывают (иначе
+  // синхронизация потом перетрёт строку), но править уже импортированную
+  // новость VK по её числовому адресу можно — иначе редактор для них не работал бы.
+  const numericKey = /^\d+$/.test(key);
+  if (numericKey && !id) {
     return NextResponse.json(
       { error: "Числовой адрес зарезервирован за новостями VK — добавьте к названию слово (например, «" + key + "-2»)" },
       { status: 400 },
@@ -147,32 +160,43 @@ export async function PUT(req: NextRequest) {
     return NextResponse.json({ error: `Адрес «${key}» уже занят другой новостью` }, { status: 409 });
   }
 
+  if (numericKey && id) {
+    const { data: mine } = await db.from("news").select("vk_post_id").eq("id", id).maybeSingle();
+    if (!mine) return NextResponse.json({ error: "Новость с таким id не найдена" }, { status: 404 });
+    if (String(mine.vk_post_id) !== key) {
+      return NextResponse.json(
+        { error: "Числовой адрес можно оставить только у новости, импортированной из VK" },
+        { status: 400 },
+      );
+    }
+  }
+
+  // Закрепление — служебный список, живёт в site_settings (см. lib/news-lock.ts).
+  let pinnedResult: { pinned: boolean; pinnedKeys: string[] } | null = null;
+  if (typeof body.pinned === "boolean") {
+    try {
+      const keys = await setPinnedNewsKey(key, body.pinned);
+      pinnedResult = { pinned: body.pinned, pinnedKeys: keys };
+    } catch (e: unknown) {
+      return NextResponse.json({ error: `не удалось сохранить закрепление: ${(e as Error).message}` }, { status: 500 });
+    }
+  }
+
   if (id) {
     const { data: updated, error } = await db.from("news").update(row).eq("id", id).select();
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
     if (!updated?.length) return NextResponse.json({ error: "Новость с таким id не найдена" }, { status: 404 });
     revalidateNews(key);
-    return NextResponse.json({ ok: true, news: updated[0], created: false });
+    return NextResponse.json({ ok: true, news: updated[0], created: false, ...(pinnedResult ?? {}) });
   }
 
   const { data: inserted, error } = await db.from("news").insert(row).select().single();
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
   revalidateNews(key);
-  return NextResponse.json({ ok: true, news: inserted, created: true });
+  return NextResponse.json({ ok: true, news: inserted, created: true, ...(pinnedResult ?? {}) });
 }
 
-/** afterWrite: обновить и список, и конкретную страницу.
- *  Раньше revalidatePath доходил только до "/" и "/news", из-за чего текст
- *  уже сохранённой новости на её странице висел устаревшим до истечения ISR. */
-function revalidateNews(key?: string) {
-  revalidatePath("/");
-  revalidatePath("/news");
-  revalidatePath("/news/[id]"); // паттерн динамического маршрута
-  if (key) revalidatePath(`/news/${key}`);
-  // sitemap.ts живёт со своим revalidate = 3600: без этого пункта новая новость
-  // попадала в карту сайта только через час, а удалённая висела в ней ещё дольше.
-  revalidatePath("/sitemap.xml");
-}
+/** Сброс кэша вынесен в lib/news-cache.ts — им пользуются ещё маршруты синхронизации. */
 
 export async function PATCH(req: NextRequest) {
   const denied = await checkAdmin();

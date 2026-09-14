@@ -1,4 +1,8 @@
 import { createClient } from "@supabase/supabase-js";
+// Внутри lib держим относительные пути (как в markdown.ts → ./utils):
+// так файл можно использовать и из скриптов вне сборщика.
+import { getPinnedNewsKeys } from "./news-lock";
+import { mirrorVkImage } from "./mirror-media";
 
 const service = () =>
   createClient(
@@ -65,7 +69,16 @@ function extractCover(post: Record<string, unknown>): string | null {
 
 export type SyncResult = {
   ok: boolean;
+  /** новых строк в базе */
   imported?: number;
+  /** обновлённых по посту VK */
+  updated?: number;
+  /** пропущено из-за закрепления студией */
+  skipped?: number;
+  /** картинок скачано к себе впервые */
+  mirrored?: number;
+  /** картинок уже лежат у нас — повторная загрузка не понадобилась */
+  reused?: number;
   total?: number;
   error?: string;
 };
@@ -143,7 +156,12 @@ export async function syncVkNews(
     });
 
   const db = service();
+  const pinned = await getPinnedNewsKeys().catch(() => [] as string[]);
   let imported = 0;
+  let updated = 0;
+  let skipped = 0;
+  let mirrored = 0;
+  let reused = 0;
 
   for (const p of parsed) {
     const { data: existing } = await db
@@ -152,13 +170,30 @@ export async function syncVkNews(
       .eq("vk_post_id", p.vk_post_id)
       .maybeSingle();
 
+    // Закреплённые студией записи не трогаем вовсе: админ мог поправить текст,
+    // заменить обложку или дату — синхронизация это вернула бы к виду из поста.
+    if (existing?.id && pinned.includes(String(p.vk_post_id))) {
+      skipped++;
+      continue;
+    }
+
+    // Фото забираем к себе: ссылки sun9-*.userapi.com живут на стороне VK
+    // и могут быть отозваны — тогда у новостей не останется иллюстраций.
+    const mine = await mirrorVkImage(p.image_url);
+    if (mine) {
+      if (mine.url !== p.image_url) p.image_url = mine.url;
+      if (mine.downloaded) mirrored++;
+      else reused++;
+    }
+
     if (existing?.id) {
       await db.from("news").update(p).eq("id", existing.id);
+      updated++;
     } else {
       await db.from("news").insert({ ...p, visible: true });
       imported++;
     }
   }
 
-  return { ok: true, imported, total: parsed.length };
+  return { ok: true, imported, updated, skipped, mirrored, reused, total: parsed.length };
 }

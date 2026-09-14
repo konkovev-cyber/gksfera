@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import crypto from "crypto";
-import { revalidatePath } from "next/cache";
+import { revalidateNews, syncPayload } from "@/lib/news-cache";
 import { syncVkNews } from "@/lib/vk-sync";
 
 function timingEq(a: string, b: string): boolean {
@@ -33,7 +33,6 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: result.error }, { status: 500 });
   }
 
-  revalidatePath("/");
-  revalidatePath("/news");
-  return NextResponse.json({ ok: true, imported: result.imported, total: result.total });
+  revalidateNews();
+  return NextResponse.json(syncPayload(result));
 }

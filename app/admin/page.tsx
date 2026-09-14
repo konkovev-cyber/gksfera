@@ -16,7 +16,7 @@ import { NewsBody, NewsSourceBadge } from "@/components/site/NewsArticle";
 import { cn } from "@/lib/utils";
 
 type Tab = "settings" | "hero" | "visibility" | "programs" | "gallery" |
-  "teachers" | "reviews" | "learning" | "faq" | "blog" | "news" | "seo" | "io" | "inbox" | "blocks" | "schedule" | "banners";
+  "teachers" | "reviews" | "learning" | "faq" | "news" | "seo" | "io" | "inbox" | "blocks" | "schedule" | "banners";
 
 const TABS: { id: Tab; label: string; icon: any; hint: string }[] = [
   { id: "settings", label: "Настройки", icon: Settings, hint: "Реквизиты студии: название, телефон, адрес, соцсети, часы работы. Используются в шапке, подвале и на контактах." },
@@ -31,7 +31,6 @@ const TABS: { id: Tab; label: string; icon: any; hint: string }[] = [
   { id: "reviews", label: "Отзывы", icon: Star, hint: "Отзывы родителей — свои или импорт из группы ВКонтакте. Показываются в блоке отзывов и на /reviews." },
   { id: "learning", label: "Занятия", icon: BookOpen, hint: "Секция «Как проходят занятия» на главной: заголовок и пошаговый путь (шаги с описанием и фото). Это не расписание, а как устроены занятия." },
   { id: "faq", label: "Вопросы", icon: HelpCircle, hint: "Частые вопросы и ответы (раскрывающийся список на главной и страница вопросов)." },
-  { id: "blog", label: "Блог", icon: PenTool, hint: "Статьи блога: заголовок, анонс, текст, обложка и дата. Выводятся в разделе блога и на /blog." },
   { id: "news", label: "Новости", icon: Newspaper, hint: "Новости студии: пишутся прямо здесь (текст, фото, форматирование) и подтягиваются из группы ВКонтакте. Лента на главной и архив /news." },
   { id: "seo", label: "SEO", icon: Search, hint: "Метаданные для поиска и соцсетей: title, description, Open Graph — чтобы сайт красиво открывался по ссылке и ранжировался." },
   { id: "io", label: "Импорт", icon: Download, hint: "Резервная копия и перенос всего контента в JSON (или отдельно только новостей). Для бэкапа или миграции на другой проект." },
@@ -133,6 +132,8 @@ type NewsDraft = {
   visible: boolean;
   /** строка импортирована из VK — текст перезапишет синхронизация */
   fromVk: boolean;
+  /** попросить синхронизацию VK эту запись не трогать */
+  pinned: boolean;
 };
 
 const pad2 = (n: number) => String(n).padStart(2, "0");
@@ -214,13 +215,14 @@ export default function AdminPage() {
   const [programOutcomes, setProgramOutcomes] = useState<Record<string, string[]>>({});
   const [studioMotto, setStudioMotto] = useState("");
   const [news, setNews] = useState<any[]>([]);
+  /** ключи vk_post_id, закреплённые студией (синхронизация VK их не перезапишет) */
+  const [newsPinned, setNewsPinned] = useState<string[]>([]);
   const [vkReviews, setVkReviews] = useState<any[]>([]);
   const [syncingReviews, setSyncingReviews] = useState(false);
-  const [blogPosts, setBlogPosts] = useState<any[]>([]);
   const [syncing, setSyncing] = useState(false);
   const [vkDomain, setVkDomain] = useState("");
   const [pickerFor, setPickerFor] = useState<null | {
-    kind: "program" | "hero" | "heroList" | "step" | "teacher" | "schedule" | "blog" | "news" | "newsBody";
+    kind: "program" | "hero" | "heroList" | "step" | "teacher" | "schedule" | "news" | "newsBody";
     index: number;
   }>(null);
   const [pickerFiles, setPickerFiles] = useState<{ src: string; size: number }[]>([]);
@@ -229,13 +231,14 @@ export default function AdminPage() {
   const flash = (t: string) => { setMsg(t); setTimeout(() => setMsg(""), 2500); };
 
   const loadAll = useCallback(async () => {
-    const [s, p, e, r, n, b] = await Promise.all([
+    const [s, p, e, r, n, lock] = await Promise.all([
       fetch("/api/admin/settings").then((r) => (r.ok ? r.json() : null)),
       fetch("/api/admin/programs").then((r) => (r.ok ? r.json() : null)),
       fetch("/api/admin/enrollments").then((r) => (r.ok ? r.json() : null)),
       fetch("/api/admin/reviews").then((r) => (r.ok ? r.json() : null)),
       fetch("/api/admin/news").then((r) => (r.ok ? r.json() : null)),
-      fetch("/api/admin/blog").then((r) => (r.ok ? r.json() : null)).catch(() => null),
+      // какие VK-новости закреплены — их синхронизация VK не перезапишет
+      fetch("/api/admin/news/lock").then((r) => (r.ok ? r.json() : null)).catch(() => null),
     ]);
     if (!s) { setAuthed(false); return; }
     setAuthed(true);
@@ -246,7 +249,7 @@ export default function AdminPage() {
     setEnrollments(e?.enrollments ?? []);
     setReviews(r?.reviews ?? []);
     setNews(n?.news ?? []);
-    setBlogPosts(b?.posts ?? []);
+    setNewsPinned(Array.isArray(lock?.keys) ? lock.keys.map(String) : []);
     setLearning(s.learningExperience ?? { title: "", description: "", steps: [] });
     setTeachers(s.teachers ?? []);
     setFaqs(s.faqs ?? []);
@@ -554,8 +557,12 @@ export default function AdminPage() {
       });
       const j = await res.json().catch(() => ({}));
       if (res.ok) {
-        flash(`Синхронизировано: ${j.imported ?? 0} новых из ${j.total ?? 0}`);
-        const n = await fetch("/api/admin/news").then((r) => r.json());
+        const parts = [`новых ${j.imported ?? 0}`, `обновлено ${j.updated ?? 0}`];
+        if (j.skipped) parts.push(`закреплённых пропущено ${j.skipped}`);
+        if (j.mirrored) parts.push(`новых фото к себе: ${j.mirrored}`);
+        if (j.reused) parts.push(`фото уже у нас: ${j.reused}`);
+        flash(`VK: постов ${j.total ?? 0} — ${parts.join(", ")}`);
+        const n = await fetch("/api/admin/news").then((r) => r.json()).catch(() => ({}));
         setNews(n?.news ?? []);
       } else flash(j.error ?? "Ошибка синхронизации");
     } catch {
@@ -565,7 +572,9 @@ export default function AdminPage() {
   };
 
   const toggleNewsVisible = async (id: string, visible: boolean) => {
-    setNews((prev) => prev.map((n) => n.id === id ? { ...n, visible } : n));
+    // id в базе — число, а в обработчик строки мы передаём String(n.id):
+    // без String() сравнение не совпадало и галочка в списке не переворачивалась.
+    setNews((prev) => prev.map((n) => String(n.id) === String(id) ? { ...n, visible } : n));
     await fetch("/api/admin/news", {
       method: "PATCH", headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ id, visible }),
@@ -602,7 +611,7 @@ export default function AdminPage() {
   const openNewsNew = () => {
     setNewsDraft({
       id: null, vk_post_id: "", title: "", excerpt: "", content: "",
-      image_url: "", source_url: "", published_at: toLocalInput(null), visible: true, fromVk: false,
+      image_url: "", source_url: "", published_at: toLocalInput(null), visible: true, fromVk: false, pinned: false,
     });
     setNewsDirty(false); setNewsError(""); setNewsPane("edit");
   };
@@ -619,6 +628,7 @@ export default function AdminPage() {
       published_at: toLocalInput(n.published_at),
       visible: n.visible !== false,
       fromVk: isVkNews(n),
+      pinned: newsPinned.includes(String(n.vk_post_id ?? "")),
     });
     setNewsDirty(false); setNewsError(""); setNewsPane("edit");
   };
@@ -663,6 +673,7 @@ export default function AdminPage() {
           source_url: newsDraft.source_url.trim(),
           published_at: fromLocalInput(newsDraft.published_at),
           visible: newsDraft.visible,
+          pinned: newsDraft.pinned,
         }),
       });
       const j = await res.json().catch(() => ({}));
@@ -674,6 +685,7 @@ export default function AdminPage() {
         const rest = prev.filter((n: any) => String(n.id) !== String(j.news?.id));
         return [j.news, ...rest].sort((a: any, b: any) => String(b.published_at).localeCompare(String(a.published_at)));
       });
+      if (Array.isArray(j.pinnedKeys)) setNewsPinned(j.pinnedKeys.map(String));
       setNewsDirty(false);
       flash(newsDraft.id ? "Изменения сохранены ✓" : "Новость опубликована ✓");
     } catch {
@@ -843,26 +855,6 @@ export default function AdminPage() {
     flash("Отзыв добавлен ✓");
   };
 
-  const saveBlog = async () => {
-    setSaving(true);
-    const res = await fetch("/api/admin/blog", {
-      method: "PUT", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ items: blogPosts }),
-    });
-    setSaving(false);
-    if (res.ok) {
-      flash("Сохранено ✓");
-      const b = await fetch("/api/admin/blog").then((r) => r.json()).catch(() => null);
-      setBlogPosts(b?.posts ?? []);
-    } else flash("Ошибка");
-  };
-
-  const deleteBlogPost = async (id: string) => {
-    if (!confirm("Удалить статью?")) return;
-    await fetch(`/api/admin/blog?id=${id}`, { method: "DELETE" });
-    setBlogPosts((prev) => prev.filter((p) => p.id !== id));
-  };
-
   const applyPhoto = (src: string) => {
     if (!pickerFor) return;
     const { kind, index } = pickerFor;
@@ -883,10 +875,6 @@ export default function AdminPage() {
       setTeachers((prev) => prev.map((x, j) => (j === index ? { ...x, photo: src } : x)));
     } else if (kind === "schedule") {
       setSchedule((prev) => prev.map((x, j) => (j === index ? { ...x, image: src } : x)));
-    } else if (kind === "blog") {
-      // Раньше этой ветки не было: пикер из «Блога» открывался, выбор молча
-      // терялся, а админ видел тост «Фото выбрано ✓».
-      setBlogPosts((prev) => prev.map((x, j) => (j === index ? { ...x, cover: src } : x)));
     } else if (kind === "news") {
       setNewsDraft((prev) => (prev ? { ...prev, image_url: src } : prev));
     } else if (kind === "newsBody") {
@@ -896,7 +884,7 @@ export default function AdminPage() {
     flash("Фото выбрано ✓");
   };
 
-  const pickBtn = (kind: "program" | "hero" | "heroList" | "step" | "teacher" | "schedule" | "blog" | "news" | "newsBody", index: number, label = "Выбрать") => (
+  const pickBtn = (kind: "program" | "hero" | "heroList" | "step" | "teacher" | "schedule" | "news" | "newsBody", index: number, label = "Выбрать") => (
     <button
       type="button"
       onClick={() => { setPickerFor({ kind, index }); if (pickerFiles.length === 0) fetch("/api/admin/files").then(r => r.ok ? r.json() : null).then(j => setPickerFiles(j?.files ?? [])); }}
@@ -1658,41 +1646,6 @@ export default function AdminPage() {
           </div>
         )}
 
-        {/* ─── Blog ─── */}
-        {tab === "blog" && (
-          <div className="space-y-4">
-            <p className="text-sm text-muted-foreground">SEO-статьи для блога. Пишите полезный контент для родителей — он привлечёт трафик из поиска.</p>
-            {blogPosts.map((post, i) => (
-              <div key={post.id ?? i} className="bg-card rounded-2xl border border-border/60 p-4 space-y-3">
-                <div className="grid sm:grid-cols-2 gap-3">
-                  <Field label="Заголовок"><input className={inputCls} value={post.title ?? ""} onChange={(e) => setBlogPosts((prev) => prev.map((x, j) => j === i ? { ...x, title: e.target.value, slug: x.slug || e.target.value.toLowerCase().replace(/[^a-z0-9а-яё]+/gi, "-").replace(/^-|-$/g, "").slice(0, 80) } : x))} /></Field>
-                  <Field label="Slug (URL)"><input className={inputCls} value={post.slug ?? ""} onChange={(e) => setBlogPosts((prev) => prev.map((x, j) => j === i ? { ...x, slug: e.target.value } : x))} placeholder="avtomaticheski-iz-nazvaniya" /></Field>
-                </div>
-                <Field label="Краткое описание (excerpt)"><textarea rows={2} className={inputCls + " h-auto py-2"} value={post.excerpt ?? ""} onChange={(e) => setBlogPosts((prev) => prev.map((x, j) => j === i ? { ...x, excerpt: e.target.value } : x))} /></Field>
-                <Field label="Обложка (URL)">
-                  <div className="flex gap-2">
-                    <input className={inputCls + " flex-1"} value={post.cover ?? ""} onChange={(e) => setBlogPosts((prev) => prev.map((x, j) => j === i ? { ...x, cover: e.target.value } : x))} />
-                    {pickBtn("blog", i)}
-                  </div>
-                </Field>
-                <Field label="Текст статьи (Markdown: # заголовок, **жирный**, - список, [ссылка](url))">
-                  <textarea rows={10} className={inputCls + " h-auto py-2 font-mono text-xs leading-relaxed"} value={post.content ?? ""} onChange={(e) => setBlogPosts((prev) => prev.map((x, j) => j === i ? { ...x, content: e.target.value } : x))} placeholder="# Заголовок статьи&#10;&#10;Первый абзац с **важным** текстом.&#10;&#10;## Подзаголовок&#10;&#10;- Пункт списка&#10;- Ещё пункт" />
-                </Field>
-                <div className="flex flex-wrap items-center gap-3">
-                  <label className="inline-flex items-center gap-2 text-sm h-10"><input type="checkbox" checked={post.visible !== false} onChange={(e) => setBlogPosts((prev) => prev.map((x, j) => j === i ? { ...x, visible: e.target.checked } : x))} className="w-4 h-4" />опубликована</label>
-                  <button onClick={() => deleteBlogPost(post.id)} className="p-2 rounded-lg hover:bg-destructive/10 text-destructive"><Trash2 className="w-4 h-4" /></button>
-                  {post.slug && (
-                    <a href={`/blog/${post.slug}`} target="_blank" className="text-xs text-brand-warm hover:underline">Посмотреть →</a>
-                  )}
-                </div>
-              </div>
-            ))}
-            <div className="flex flex-col sm:flex-row gap-3">
-              <button onClick={() => setBlogPosts((prev) => [...prev, { slug: "", title: "", excerpt: "", content: "", cover: "", visible: true }])} className={btnCls + " bg-card border border-border text-foreground hover:bg-accent"}><Plus className="w-4 h-4" /> Новая статья</button>
-              <button onClick={saveBlog} disabled={saving} className={btnCls}>{saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />} Сохранить</button>
-            </div>
-          </div>
-        )}
 
         {/* ─── Новости: свои + импорт из VK ─── */}
         {tab === "news" && newsDraft && newsPreviewItem && (
@@ -1726,10 +1679,28 @@ export default function AdminPage() {
               </div>
             )}
             {newsDraft.fromVk && (
-              <div className="rounded-xl border border-brand-teal/30 bg-brand-teal/5 px-3 py-2 text-xs text-muted-foreground">
-                Заметка импортирована из VK. Правки сохранятся, но следующая синхронизация
-                вернёт текст и обложку из поста — чтобы закрепить свой вариант, отключите
-                синхронизацию или заведите отдельную новость кнопкой «Написать новость».
+              <div
+                className={
+                  "rounded-xl border px-3 py-2.5 text-xs flex flex-wrap items-center gap-x-3 gap-y-2 " +
+                  (newsDraft.pinned
+                    ? "border-brand-warm/40 bg-brand-warm/8 text-foreground"
+                    : "border-brand-teal/30 bg-brand-teal/5 text-muted-foreground")
+                }
+              >
+                <span className="min-w-[12rem] flex-1">
+                  {newsDraft.pinned
+                    ? "Новость закреплена: синхронизация VK пройдёт мимо неё — текст, обложка и дата останутся как у вас. Снимете галочку — снова будет браться из поста."
+                    : "Заметка импортирована из VK: правки сохранятся, но следующая синхронизация вернёт текст, обложку и дату из поста."}
+                </span>
+                <label className="inline-flex items-center gap-2 cursor-pointer select-none shrink-0">
+                  <input
+                    type="checkbox"
+                    checked={newsDraft.pinned}
+                    onChange={(e) => patchNews({ pinned: e.target.checked })}
+                    className="w-4 h-4"
+                  />
+                  <span className="font-semibold text-foreground">Закрепить за студией</span>
+                </label>
               </div>
             )}
 
@@ -2065,6 +2036,11 @@ export default function AdminPage() {
                           {n.published_at ? new Date(n.published_at).toLocaleDateString("ru-RU", { day: "numeric", month: "short", year: "numeric" }) : "без даты"}
                         </span>
                         <NewsSourceBadge item={n} />
+                        {newsPinned.includes(String(n.vk_post_id ?? "")) && (
+                          <span className="text-brand-warm font-semibold" title="Закреплена: синхронизация VK её не перезапишет">
+                            закреплена
+                          </span>
+                        )}
                         {n.visible === false && <span className="text-destructive">скрыта</span>}
                         {key && <code className="font-mono text-[10px] text-muted-foreground/70 truncate max-w-[160px]">{newsUrl(n)}</code>}
                       </div>
@@ -2201,7 +2177,6 @@ export default function AdminPage() {
                     if (kind === "teacher" && teachers[index]) return teachers[index].photo;
                     if (kind === "program" && programs[index]) return programs[index].image;
                     if (kind === "schedule" && schedule[index]) return schedule[index].image;
-                    if (kind === "blog" && blogPosts[index]) return blogPosts[index].cover;
                     if (kind === "news" && newsDraft) return newsDraft.image_url;
                     return "";
                   })();
