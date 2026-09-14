@@ -6,18 +6,19 @@ import {
   Loader2, Save, Upload, Trash2, LogOut, ArrowUp, ArrowDown,
   Settings, Image as ImageIcon, LayoutDashboard, Inbox, School,
   Eye, Star, BookOpen, Search, Download, Plus, Newspaper, RefreshCw, ExternalLink, X,
-  GraduationCap, HelpCircle, PenTool, Play, CalendarDays, Clock, Copy,
+  GraduationCap, HelpCircle, PenTool, Play, CalendarDays, Clock, Copy, Sparkles,
 } from "lucide-react";
 import { gallery as defaultGallery } from "@/data/site";
 import { compressImageFile, isVideoSrc, humanSize, IMAGE_MAX, VIDEO_MAX } from "@/lib/compress";
 
 type Tab = "settings" | "hero" | "visibility" | "programs" | "gallery" |
-  "teachers" | "reviews" | "learning" | "faq" | "blog" | "news" | "seo" | "io" | "inbox" | "blocks" | "schedule";
+  "teachers" | "reviews" | "learning" | "faq" | "blog" | "news" | "seo" | "io" | "inbox" | "blocks" | "schedule" | "banners";
 
 const TABS: { id: Tab; label: string; icon: any; hint: string }[] = [
   { id: "settings", label: "Настройки", icon: Settings, hint: "Реквизиты студии: название, телефон, адрес, соцсети, часы работы. Используются в шапке, подвале и на контактах." },
   { id: "hero", label: "Экран", icon: LayoutDashboard, hint: "Первый экран главной страницы: заголовок, подзаголовок, кнопки и ротация фотографий (показывается со сменой кадров)." },
-  { id: "visibility", label: "Видимость", icon: Eye, hint: "Включать и скрывать целые разделы главной страницы (блок, форма, карта и т.д.) без удаления контента." },
+  { id: "banners", label: "Баннеры", icon: Sparkles, hint: "Небольшие «облачные» промо-баннеры в первом экране (карточки-ссылки: Расписание, Пробное занятие и т.п.). Текст, иконка, ссылка, цвет и порядок — настраиваются здесь." },
+  { id: "visibility", label: "Порядок", icon: Eye, hint: "Включать/скрывать целые блоки главной И переставлять их местами вверх/вниз (порядок секций). Контент при этом не удаляется." },
   { id: "blocks", label: "Контент", icon: LayoutDashboard, hint: "Дополнительные блоки главной: «с какой задачей пришли», результаты занятий, цифры доверия и девиз студии." },
   { id: "programs", label: "Направления", icon: School, hint: "Карточки учебных и творческих направлений (страницы /programs/…). Название, описание, возраст, цена, фото." },
   { id: "schedule", label: "Расписание", icon: CalendarDays, hint: "Расписание занятий по группам (страница /raspisanie, пункт меню «Расписание»). Дни, уроки, время и картинка для печати. На главной не показывается." },
@@ -38,6 +39,36 @@ const VIS_LABELS: Record<string, string> = {
   gallery: "Галерея", teachers: "Преподаватели", reviews: "Отзывы", news: "Новости VK",
   faq: "Частые вопросы", events: "События", cta: "CTA-баннер", enrollment: "Форма записи", contacts: "Контакты и карта",
 };
+
+/** Подписи всех переставляемых блоков главной (для вкладки «Порядок»). */
+const SECTION_LABELS: Record<string, string> = {
+  tasks: "Блок «С какой задачей пришли»", about: "О студии", programs: "Направления",
+  results: "Результаты занятий", truststats: "Цифры доверия", learning: "Как проходят занятия",
+  gallery: "Галерея", teachers: "Преподаватели", reviews: "Отзывы", events: "События",
+  news: "Новости VK", faq: "Частые вопросы", parentnav: "Навигатор для родителей",
+  cta: "CTA-баннер", enrollment: "Форма записи", contacts: "Контакты и карта",
+};
+
+/** Список иконок для промо-банеров (значения — ключи iconMap). */
+const BANNER_ICONS: { value: string; label: string }[] = [
+  { value: "CalendarDays", label: "Расписание / календарь" },
+  { value: "Sparkles", label: "Искры / «волшебно»" },
+  { value: "Compass", label: "Компас / направления" },
+  { value: "BookOpen", label: "Книга" },
+  { value: "GraduationCap", label: "Выпускная шапка" },
+  { value: "Palette", label: "Палитра / творчество" },
+  { value: "Languages", label: "Языки" },
+  { value: "Users", label: "Люди / группа" },
+  { value: "Star", label: "Звезда / отзывы" },
+  { value: "HeartHandshake", label: "Забота" },
+  { value: "MessageSquare", label: "Сообщение" },
+  { value: "HelpCircle", label: "Вопрос" },
+];
+const BANNER_ACCENTS = [
+  { value: "warm", label: "Тёплый" },
+  { value: "teal", label: "Бирюзовый" },
+  { value: "violet", label: "Сиреневый" },
+];
 
 const SITE_LABELS: Record<string, string> = {
   name: "Название (короткое)",
@@ -131,6 +162,8 @@ export default function AdminPage() {
   const [teachers, setTeachers] = useState<any[]>([]);
   const [faqs, setFaqs] = useState<any[]>([]);
   const [schedule, setSchedule] = useState<any[]>([]);
+  const [homeOrder, setHomeOrder] = useState<string[]>([]);
+  const [heroBanners, setHeroBanners] = useState<any[]>([]);
   const [parentPains, setParentPains] = useState<any[]>([]);
   const [resultsAfterLearning, setResultsAfterLearning] = useState<string[]>([]);
   const [trustStats, setTrustStats] = useState<any[]>([]);
@@ -171,6 +204,8 @@ export default function AdminPage() {
     setTeachers(s.teachers ?? []);
     setFaqs(s.faqs ?? []);
     setSchedule(s.schedule ?? []);
+    setHomeOrder(Array.isArray(s.sectionsOrder) && s.sectionsOrder.length ? s.sectionsOrder : Object.keys(SECTION_LABELS));
+    setHeroBanners(s.heroBanners ?? []);
     setParentPains(s.parentPains ?? []);
     setResultsAfterLearning(s.resultsAfterLearning ?? []);
     setTrustStats(s.trustStats ?? []);
@@ -195,7 +230,7 @@ export default function AdminPage() {
     setSaving(true);
     const res = await fetch("/api/admin/settings", {
       method: "PUT", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ settings: siteConfig, hero, visibility, learningExperience: learning, teachers, faqs, schedule, parentPains, resultsAfterLearning, trustStats, programOutcomes, studioMotto }),
+      body: JSON.stringify({ settings: siteConfig, hero, visibility, learningExperience: learning, teachers, faqs, schedule, heroBanners, sectionsOrder: homeOrder, parentPains, resultsAfterLearning, trustStats, programOutcomes, studioMotto }),
     });
     setSaving(false);
     flash(res.ok ? "Сохранено ✓" : "Ошибка");
@@ -714,16 +749,38 @@ export default function AdminPage() {
           </div>
         )}
 
-        {/* ─── Visibility ─── */}
+        {/* ─── Visibility & Order ─── */}
         {tab === "visibility" && (
-          <div className="bg-card rounded-2xl border border-border/60 p-5 space-y-3 max-w-md">
-            {Object.keys(VIS_LABELS).map((k) => (
-              <label key={k} className="flex items-center justify-between text-sm">
-                <span>{VIS_LABELS[k]}</span>
-                <input type="checkbox" checked={visibility[k] !== false} onChange={(e) => setVisibility((p) => ({ ...p, [k]: e.target.checked }))} className="w-4 h-4" />
-              </label>
-            ))}
-            <button onClick={saveSettings} disabled={saving} className={btnCls}>{saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />} Сохранить</button>
+          <div className="bg-card rounded-2xl border border-border/60 p-5 space-y-2 max-w-2xl">
+            <p className="text-sm text-muted-foreground mb-3">
+              Порядок блоков главной страницы. Стрелками переставляйте сверху вниз, галочкой —
+              показывать или скрывать (контент не удаляется). Первый экран и подвал закреплены.
+            </p>
+            {homeOrder.map((id, i) => {
+              const hideable = id in VIS_LABELS;
+              const on = hideable ? visibility[id] !== false : true;
+              return (
+                <div key={id} className="flex items-center gap-2 py-1.5 border-b border-border/40 last:border-0">
+                  <span className="w-5 text-center text-xs text-muted-foreground tabular-nums">{i + 1}</span>
+                  <div className="flex flex-col">
+                    <button onClick={() => move(homeOrder, i, -1, setHomeOrder)} disabled={i === 0} className="p-0.5 rounded hover:bg-accent disabled:opacity-25" title="Выше"><ArrowUp className="w-3.5 h-3.5" /></button>
+                    <button onClick={() => move(homeOrder, i, 1, setHomeOrder)} disabled={i === homeOrder.length - 1} className="p-0.5 rounded hover:bg-accent disabled:opacity-25" title="Ниже"><ArrowDown className="w-3.5 h-3.5" /></button>
+                  </div>
+                  <span className={"flex-1 text-sm " + (on ? "text-foreground" : "text-muted-foreground line-through")}>
+                    {SECTION_LABELS[id] ?? id}
+                  </span>
+                  {hideable ? (
+                    <label className="flex items-center gap-1.5 text-xs text-muted-foreground cursor-pointer">
+                      <input type="checkbox" checked={on} onChange={(e) => setVisibility((p) => ({ ...p, [id]: e.target.checked }))} className="w-4 h-4" />
+                      <span className="w-14">виден</span>
+                    </label>
+                  ) : (
+                    <span className="text-[10px] uppercase tracking-wide text-muted-foreground/60 w-14 text-right">всегда</span>
+                  )}
+                </div>
+              );
+            })}
+            <button onClick={saveSettings} disabled={saving} className={btnCls + " mt-3"}>{saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />} Сохранить порядок</button>
           </div>
         )}
 
@@ -1131,6 +1188,53 @@ export default function AdminPage() {
             <div className="flex flex-col sm:flex-row gap-3">
               <button onClick={() => setFaqs((prev) => [...prev, { question: "", answer: "" }])} className={btnCls + " bg-card border border-border text-foreground hover:bg-accent"}><Plus className="w-4 h-4" /> Добавить вопрос</button>
               <button onClick={saveSettings} disabled={saving} className={btnCls}>{saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />} Сохранить</button>
+            </div>
+          </div>
+        )}
+
+        {/* ─── Banners ─── */}
+        {tab === "banners" && (
+          <div className="space-y-4">
+            <div className="bg-card rounded-2xl border border-border/60 p-4">
+              <p className="text-sm text-muted-foreground">
+                Небольшие «облачные» баннеры под кнопками первого экрана. Каждый — карточка-ссылка:
+                иконка, заголовок, короткая подпись, ссылка (путь <code className="text-[11px] px-1 bg-accent rounded">/raspisanie</code>,
+                якорь <code className="text-[11px] px-1 bg-accent rounded">#enrollment</code> или внешний URL) и цвет.
+                Порядок — стрелками. Оставьте пустым, чтобы полностью убрать блок из хиро.
+              </p>
+            </div>
+
+            {heroBanners.map((b, i) => (
+              <div key={b.id ?? i} className="bg-card rounded-2xl border border-border/60 p-4 space-y-3">
+                <div className="grid sm:grid-cols-2 gap-3">
+                  <Field label="Заголовок"><input className={inputCls} value={b.title ?? ""} onChange={(e) => setHeroBanners((prev) => prev.map((x, j) => j === i ? { ...x, title: e.target.value } : x))} placeholder="Расписание" /></Field>
+                  <Field label="Подпись (необязательно)"><input className={inputCls} value={b.subtitle ?? ""} onChange={(e) => setHeroBanners((prev) => prev.map((x, j) => j === i ? { ...x, subtitle: e.target.value } : x))} placeholder="дни и часы" /></Field>
+                  <Field label="Ссылка"><input className={inputCls} value={b.href ?? ""} onChange={(e) => setHeroBanners((prev) => prev.map((x, j) => j === i ? { ...x, href: e.target.value } : x))} placeholder="/raspisanie или #enrollment" /></Field>
+                  <div className="grid grid-cols-2 gap-3">
+                    <Field label="Иконка">
+                      <select className={inputCls} value={b.icon ?? "Sparkles"} onChange={(e) => setHeroBanners((prev) => prev.map((x, j) => j === i ? { ...x, icon: e.target.value } : x))}>
+                        {BANNER_ICONS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
+                      </select>
+                    </Field>
+                    <Field label="Цвет">
+                      <select className={inputCls} value={b.accent ?? "warm"} onChange={(e) => setHeroBanners((prev) => prev.map((x, j) => j === i ? { ...x, accent: e.target.value } : x))}>
+                        {BANNER_ACCENTS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
+                      </select>
+                    </Field>
+                  </div>
+                </div>
+                <div className="flex items-center gap-1">
+                  <span className="text-xs text-muted-foreground mr-auto">Баннер {i + 1} из {heroBanners.length}</span>
+                  <button type="button" onClick={() => move(heroBanners, i, -1, setHeroBanners)} disabled={i === 0} className="p-2 rounded-lg hover:bg-accent disabled:opacity-25" title="Выше"><ArrowUp className="w-4 h-4" /></button>
+                  <button type="button" onClick={() => move(heroBanners, i, 1, setHeroBanners)} disabled={i === heroBanners.length - 1} className="p-2 rounded-lg hover:bg-accent disabled:opacity-25" title="Ниже"><ArrowDown className="w-4 h-4" /></button>
+                  <button type="button" onClick={() => setHeroBanners((prev) => prev.filter((_, j) => j !== i))} className="p-2 rounded-lg hover:bg-destructive/10 text-destructive" title="Удалить"><Trash2 className="w-4 h-4" /></button>
+                </div>
+              </div>
+            ))}
+
+            <div className="flex flex-col sm:flex-row gap-3">
+              <button onClick={() => setHeroBanners((prev) => [...prev, { id: `b-${Date.now()}`, icon: "Sparkles", title: "", subtitle: "", href: "#enrollment", accent: "warm" }])} className={btnCls + " bg-card border border-border text-foreground hover:bg-accent"}><Plus className="w-4 h-4" /> Добавить баннер</button>
+              <button onClick={saveSettings} disabled={saving} className={btnCls}>{saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />} Сохранить баннеры</button>
             </div>
           </div>
         )}

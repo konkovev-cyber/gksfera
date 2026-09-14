@@ -1,6 +1,6 @@
 import { createClient } from "@supabase/supabase-js";
 import * as defaults from "@/data/site";
-import type { Program, GalleryItem, Review, NewsItem, FAQItem, ScheduleGroup } from "@/data/site";
+import type { Program, GalleryItem, Review, NewsItem, FAQItem, ScheduleGroup, HeroBanner } from "@/data/site";
 
 export type SiteData = typeof defaults;
 
@@ -57,6 +57,8 @@ export async function getContent(): Promise<{
     studioMotto: defaults.studioMotto,
     news: [...defaults.news] as NewsItem[],
     schedule: [...defaults.schedule] as ScheduleGroup[],
+    heroBanners: [...defaults.heroBanners] as HeroBanner[],
+    sectionsOrder: [...defaults.sectionsOrder],
   };
 
   const visibility: Visibility = {
@@ -116,6 +118,12 @@ export async function getContent(): Promise<{
         data.faqs = value as FAQItem[];
       } else if (key === "schedule" && Array.isArray(value)) {
         data.schedule = value as ScheduleGroup[];
+      } else if (key === "heroBanners" && Array.isArray(value)) {
+        data.heroBanners = value as HeroBanner[];
+      } else if (key === "sections" && Array.isArray(value)) {
+        // Порядок блоков главной. Оставляем только строки; недостающие ключи
+        // допишем ниже (нормализация), лишние отбрасываем.
+        data.sectionsOrder = value.map(String);
       } else if (key === "parentPains" && Array.isArray(value)) {
         data.parentPains = value as typeof defaults.parentPains;
       } else if (key === "resultsAfterLearning" && Array.isArray(value)) {
@@ -207,7 +215,19 @@ export async function getContent(): Promise<{
       .map(({ show, ...rest }) => rest) as typeof defaults.navItems;
   }
 
+  // Порядок секций нормализуем: берём сохранённый, добавляем недостающие
+  // (появились новые блоки) и убираем несуществующие.
+  data.sectionsOrder = reconcileOrder(data.sectionsOrder, defaults.sectionsOrder);
+
   return { data: data as SiteData, visibility };
+}
+
+/** Приводит сохранённый порядок к полному: известные — как задано, новые — в хвосте. */
+function reconcileOrder(order: string[], base: string[]): string[] {
+  const known = new Set(base);
+  const out = order.filter((k, i) => known.has(k) && order.indexOf(k) === i); // уникальные известные
+  for (const k of base) if (!out.includes(k)) out.push(k);
+  return out;
 }
 
 function mapNewsRow(n: Record<string, unknown>): NewsItem {

@@ -22,6 +22,8 @@ export async function GET() {
     teachers: data.teachers,
     faqs: data.faqs,
     schedule: data.schedule,
+    heroBanners: data.heroBanners,
+    sectionsOrder: data.sectionsOrder,
     programs: data.programs,
     gallery: data.gallery,
     parentPains: data.parentPains,
@@ -45,6 +47,8 @@ export async function PUT(req: NextRequest) {
     teachers?: unknown[];
     faqs?: unknown[];
     schedule?: unknown[];
+    heroBanners?: unknown[];
+    sectionsOrder?: string[];
     parentPains?: unknown[];
     resultsAfterLearning?: unknown[];
     trustStats?: unknown[];
@@ -115,6 +119,21 @@ export async function PUT(req: NextRequest) {
       updated_at: new Date().toISOString(),
     });
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+
+  // Массивные настройки в стиле «значение = JSON-массив»: общий цикл записи.
+  for (const [k, v] of [
+    ["heroBanners", body.heroBanners],
+    ["sections", body.sectionsOrder], // назовём ключ «sections» — коротко и по смыслу
+  ] as [string, unknown[] | undefined][]) {
+    if (Array.isArray(v)) {
+      const { error } = await db.from("site_settings").upsert({
+        key: k,
+        value: v,
+        updated_at: new Date().toISOString(),
+      });
+      if (error) return NextResponse.json({ error: `${k}: ` + error.message }, { status: 500 });
+    }
   }
 
   if (body.parentPains && Array.isArray(body.parentPains)) {

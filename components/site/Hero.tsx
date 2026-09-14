@@ -12,6 +12,7 @@ import {
   useMotionTemplate,
 } from "framer-motion";
 import { useContent } from "./ContentContext";
+import { HeroBanners } from "./HeroBanners";
 import { cn } from "@/lib/utils";
 
 const NOISE =
@@ -221,6 +222,9 @@ export function Hero() {
             >
               5–15 лет · небольшие группы · более 15 лет работы · Горячий Ключ
             </motion.p>
+
+            {/* Промо-баннеры («облачные чипы») — настраиваются в админке */}
+            <HeroBanners />
           </motion.div>
 
           {/* Изображение с 3D-наклоном */}

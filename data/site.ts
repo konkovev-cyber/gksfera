@@ -135,6 +135,31 @@ export type ScheduleGroup = {
   days: ScheduleDay[];
 };
 
+/** Небольшой промо-баннер («облако») в первом экране. */
+export type HeroBanner = {
+  id?: string;
+  /** Ключ иконки из iconMap (program-icons.ts). */
+  icon: string;
+  title: string;
+  /** Короткая вторая строка (необязательно). */
+  subtitle?: string;
+  /** Ссылка: путь (/raspisanie), якорь (#enrollment) или внешний URL (https://…). */
+  href: string;
+  /** Цветной акцент иконки. */
+  accent?: "warm" | "teal" | "violet";
+};
+
+/**
+ * Порядок блоков главной страницы (нижечем ниже Hero). Ключи соответствуют
+ * секциям в app/page.tsx и переключателям видимости. Переставляется в админке
+ * (вкладка «Порядок»). Любые отсутствующие здесь ключи дописываются в конец.
+ */
+export const sectionsOrder: string[] = [
+  "tasks", "about", "programs", "results", "truststats", "learning",
+  "gallery", "teachers", "reviews", "events", "news", "faq",
+  "parentnav", "cta", "enrollment", "contacts",
+];
+
 export type EventItem = {
   id: string;
   date: string;
@@ -204,6 +229,17 @@ export const heroContent = {
     "/images/PF6A8152_resized.jpg",
   ] as string[],
 };
+
+/**
+ * Промо-баннеры («облачные» чипы) в первом экране. Небольшие, ведут на нужные
+ * разделы. Полностью редактируются в админке (вкладка «Баннеры»): текст, иконка,
+ * ссылка, акцент и порядок. Среди них — ссылка на расписание.
+ */
+export const heroBanners: HeroBanner[] = [
+  { id: "b-schedule", icon: "CalendarDays", title: "Расписание", subtitle: "дни и часы", href: "/raspisanie", accent: "teal" },
+  { id: "b-trial", icon: "Sparkles", title: "Пробное — бесплатно", subtitle: "знакомство", href: "#enrollment", accent: "warm" },
+  { id: "b-programs", icon: "Compass", title: "Направления", subtitle: "5–15 лет", href: "#programs", accent: "violet" },
+];
 
 /**
  * Быстрый выбор — с какой задачей родитель пришёл на сайт.
