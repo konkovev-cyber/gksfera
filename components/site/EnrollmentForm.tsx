@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, type FormEvent } from "react";
+import { useState, useEffect, useRef, type FormEvent } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import {
   Send,
@@ -47,6 +47,13 @@ export function EnrollmentForm() {
   const [status, setStatus] = useState<SubmitStatus>("idle");
   const [errorMsg, setErrorMsg] = useState("");
 
+  // Защита от спама: штамп времени открытия формы + honeypot-поле
+  const mountedAt = useRef(0);
+  const honeypotRef = useRef<HTMLInputElement>(null);
+  useEffect(() => {
+    mountedAt.current = Date.now();
+  }, []);
+
   // Автоподбор направления из query-параметра (?interest=...)
   useEffect(() => {
     const interest = searchParams.get("interest");
@@ -92,16 +99,24 @@ export function EnrollmentForm() {
           interest_label: form.interest,
           phone: form.contact,
           comment: form.comment,
+          t: mountedAt.current,           // когда открыли форму (анти-бот по времени)
+          company_website: honeypotRef.current?.value ?? "", // скрытое поле: заполняют только боты
         }),
       });
 
-      if (!res.ok) throw new Error("Insert failed");
+      const j = await res.json().catch(() => ({} as any));
+      if (!res.ok) {
+        throw new Error(j?.error || "Insert failed");
+      }
 
       setStatus("success");
       setForm(initialState);
-    } catch {
+    } catch (err) {
       setStatus("error");
-      setErrorMsg("Не удалось отправить заявку. Пожалуйста, позвоните нам или напишите в VK.");
+      const msg = err instanceof Error && err.message && err.message !== "Insert failed"
+        ? err.message
+        : "Не удалось отправить заявку. Пожалуйста, позвоните нам или напишите в VK.";
+      setErrorMsg(msg);
     }
   };
 
@@ -204,6 +219,19 @@ export function EnrollmentForm() {
               onSubmit={handleSubmit}
               className="bg-card rounded-2xl p-5 sm:p-6 border border-border/60 shadow-lg space-y-4"
             >
+              {/* Honeypot: скрыт от людей, приманка для ботов. Не трогать. */}
+              <div aria-hidden="true" className="absolute w-0 h-0 overflow-hidden opacity-0 pointer-events-none select-none" tabIndex={-1}>
+                <label htmlFor="company_website">Не заполнять это поле</label>
+                <input
+                  ref={honeypotRef}
+                  type="text"
+                  id="company_website"
+                  name="company_website"
+                  tabIndex={-1}
+                  autoComplete="off"
+                  defaultValue=""
+                />
+              </div>
               <div className="grid sm:grid-cols-2 gap-4">
                 <div>
                   <label htmlFor="parentName" className="block text-xs font-medium text-foreground mb-1.5">
