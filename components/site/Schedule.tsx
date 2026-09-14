@@ -6,14 +6,35 @@ import type { ScheduleGroup, ScheduleLesson } from "@/data/site";
 import { cn } from "@/lib/utils";
 
 function LessonRow({ lesson }: { lesson: ScheduleLesson }) {
-  const range = lesson.end ? `${lesson.time}–${lesson.end}` : lesson.time;
   return (
     <li className="flex items-baseline gap-3 py-1.5 border-b border-border/40 last:border-0">
-      <span className="shrink-0 tabular-nums text-sm font-bold text-brand-warm min-w-[72px]" title={lesson.end ? `${lesson.time} — до ${lesson.end}` : lesson.time}>
-        {range}
+      <span
+        className="shrink-0 tabular-nums text-sm font-bold text-brand-warm min-w-[52px]"
+        title={lesson.end ? `${lesson.time} — до ${lesson.end}` : lesson.time}
+      >
+        {lesson.time}
       </span>
       <span className="text-sm text-foreground leading-snug">{lesson.subject}</span>
     </li>
+  );
+}
+
+/**
+ * Время окончания уроков дня: берётся из последнего урока с указанным «до».
+ * Показывается отдельной строкой и жирным — чтобы родители знали, во сколько
+ * забирать ребёнка.
+ */
+function PickupLine({ time }: { time?: string }) {
+  if (!time) return null;
+  return (
+    <p className="mt-2 pt-2 border-t border-primary/25 flex items-baseline justify-between gap-2">
+      <span className="text-xs uppercase tracking-wide text-muted-foreground">
+        Окончание уроков
+      </span>
+      <span className="font-display font-extrabold text-base tabular-nums text-foreground">
+        {time}
+      </span>
+    </p>
   );
 }
 
@@ -36,23 +57,29 @@ function GroupCard({ group }: { group: ScheduleGroup }) {
         <p className="text-sm text-muted-foreground">Уроки ещё не добавлены.</p>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {days.map((d, di) => (
-            <div key={di} className="rounded-2xl border border-border/50 bg-background/60 p-4">
-              <div className="flex items-center gap-1.5 mb-2 pb-2 border-b-2 border-primary/30">
-                <CalendarDays className="w-4 h-4 text-primary" aria-hidden="true" />
-                <span className="font-display font-bold text-sm text-foreground">{d.day}</span>
+          {days.map((d, di) => {
+            const pickup = [...d.lessons].reverse().find((l) => l.end)?.end;
+            return (
+              <div key={di} className="rounded-2xl border border-border/50 bg-background/60 p-4">
+                <div className="flex items-center gap-1.5 mb-2 pb-2 border-b-2 border-primary/30">
+                  <CalendarDays className="w-4 h-4 text-primary" aria-hidden="true" />
+                  <span className="font-display font-bold text-sm text-foreground">{d.day}</span>
+                </div>
+                {d.lessons.length === 0 ? (
+                  <p className="text-xs text-muted-foreground">Выходной</p>
+                ) : (
+                  <>
+                    <ul>
+                      {d.lessons.map((l, li) => (
+                        <LessonRow key={li} lesson={l} />
+                      ))}
+                    </ul>
+                    <PickupLine time={pickup} />
+                  </>
+                )}
               </div>
-              {d.lessons.length === 0 ? (
-                <p className="text-xs text-muted-foreground">Выходной</p>
-              ) : (
-                <ul>
-                  {d.lessons.map((l, li) => (
-                    <LessonRow key={li} lesson={l} />
-                  ))}
-                </ul>
-              )}
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
 

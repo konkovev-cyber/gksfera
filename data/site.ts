@@ -695,7 +695,7 @@ export const schedule: ScheduleGroup[] = [
   {
     id: "junior",
     title: "Младшая группа",
-    note: "Подготовка к школе",
+    note: "2 класс",
     days: [
       {
         day: "Понедельник",

@@ -1303,7 +1303,7 @@ export default function AdminPage() {
                           <div key={li} className="flex items-center gap-2">
                             <Clock className="w-4 h-4 text-muted-foreground shrink-0" />
                             <input className={inputCls + " w-20 shrink-0"} value={l.time ?? ""} onChange={(e) => patchLesson(gi, di, li, { time: e.target.value })} placeholder="8:30" inputMode="numeric" />
-                            <span className="text-muted-foreground text-xs shrink-0">до</span>
+                            <span className="text-muted-foreground text-xs shrink-0 cursor-help" title="Если указать время у последнего урока дня, на странице оно выйдет отдельной строкой «Окончание уроков» жирным — для родителей, во сколько забирать ребёнка.">до</span>
                             <input className={inputCls + " w-20 shrink-0"} value={l.end ?? ""} onChange={(e) => patchLesson(gi, di, li, { end: e.target.value })} placeholder="—" inputMode="numeric" />
                             <input className={inputCls + " flex-1"} value={l.subject ?? ""} onChange={(e) => patchLesson(gi, di, li, { subject: e.target.value })} placeholder="Математика" />
                             <button type="button" onClick={() => moveLesson(gi, di, li, -1)} className="p-1.5 rounded-lg hover:bg-accent text-muted-foreground" title="Выше"><ArrowUp className="w-3.5 h-3.5" /></button>
