@@ -69,8 +69,8 @@ export function Footer() {
               {content.footerLinks.navigation.map((item) => (
                 <li key={item.href}>
                   <Link
-                    href={item.href}
-                    onClick={(e) => handleNavClick(e, item.href)}
+                    href={item.href ?? "#"}
+                    onClick={(e) => handleNavClick(e, item.href ?? "#")}
                     className="inline-flex items-center min-h-[44px] text-sm text-background/60 hover:text-brand-warm transition-colors"
                   >
                     {item.label}

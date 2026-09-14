@@ -21,7 +21,7 @@ const TABS: { id: Tab; label: string; icon: any; hint: string }[] = [
   { id: "visibility", label: "Порядок", icon: Eye, hint: "Включать/скрывать целые блоки главной И переставлять их местами вверх/вниз (порядок секций). Контент при этом не удаляется." },
   { id: "blocks", label: "Контент", icon: LayoutDashboard, hint: "Дополнительные блоки главной: «с какой задачей пришли», результаты занятий, цифры доверия и девиз студии." },
   { id: "programs", label: "Направления", icon: School, hint: "Карточки учебных и творческих направлений (страницы /programs/…). Название, описание, возраст, цена, фото." },
-  { id: "schedule", label: "Расписание", icon: CalendarDays, hint: "Расписание занятий по группам (страница /raspisanie, пункт меню «Расписание»). Дни, уроки, время и картинка для печати. На главной не показывается." },
+  { id: "schedule", label: "Расписание", icon: CalendarDays, hint: "Расписание занятий по группам (страница /raspisanie, пункт меню «Расписание» во вкладке-выпадашке «О студии»). Дни, уроки, время и картинка для печати. Показ/скрытие самого раздела — на вкладке «Порядок». На главной не показывается." },
   { id: "gallery", label: "Галерея", icon: ImageIcon, hint: "Фото и видео для раздела «Жизнь „Сферы“». Здесь загрузка (можно сразу несколько), порядок и подпись. На главной — карусель из 4 + кнопка «Смотреть все фото»." },
   { id: "teachers", label: "Педагоги", icon: GraduationCap, hint: "Карточки преподавателей: имя, роль, описание, опыт и фото (блок на главной и страница педагогов)." },
   { id: "reviews", label: "Отзывы", icon: Star, hint: "Отзывы родителей — свои или импорт из группы ВКонтакте. Показываются в блоке отзывов и на /reviews." },
@@ -780,6 +780,20 @@ export default function AdminPage() {
                 </div>
               );
             })}
+            <div className="pt-3 mt-1 border-t border-border/50">
+              <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-2">
+                Отдельные страницы
+              </p>
+              <label className="flex items-center justify-between gap-3 text-sm py-1">
+                <span>
+                  Расписание <span className="text-xs text-muted-foreground">/raspisanie — страница и пункт меню</span>
+                </span>
+                <input type="checkbox" checked={visibility.raspisanie !== false} onChange={(e) => setVisibility((p) => ({ ...p, raspisanie: e.target.checked }))} className="w-4 h-4" />
+              </label>
+              <p className="text-[11px] text-muted-foreground mt-1">
+                Если выключить — страница станет недоступна (404), а пункт «Расписание» исчезнет из меню и из подвала.
+              </p>
+            </div>
             <button onClick={saveSettings} disabled={saving} className={btnCls + " mt-3"}>{saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />} Сохранить порядок</button>
           </div>
         )}

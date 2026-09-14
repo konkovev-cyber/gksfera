@@ -1,6 +1,6 @@
 import { createClient } from "@supabase/supabase-js";
 import * as defaults from "@/data/site";
-import type { Program, GalleryItem, Review, NewsItem, FAQItem, ScheduleGroup, HeroBanner } from "@/data/site";
+import type { Program, GalleryItem, Review, NewsItem, FAQItem, ScheduleGroup, HeroBanner, NavItem } from "@/data/site";
 
 export type SiteData = typeof defaults;
 
@@ -17,6 +17,8 @@ export type Visibility = {
   cta: boolean;
   enrollment: boolean;
   contacts: boolean;
+  /** Страница /raspisanie: отключение убирает пункт из меню и закрывает страницу. */
+  raspisanie: boolean;
 };
 
 const service = () =>
@@ -74,6 +76,7 @@ export async function getContent(): Promise<{
     cta: true,
     enrollment: true,
     contacts: true,
+    raspisanie: true,
   };
 
   try {
@@ -204,22 +207,44 @@ export async function getContent(): Promise<{
       } satisfies NewsItem));
     }
 
-    // Фильтруем navItems по show-функциям серверно и удаляем функции (RSC не сериализует)
-    data.navItems = defaults.navItems
-      .filter((item) => !item.show || item.show())
-      .map(({ show, ...rest }) => rest) as typeof defaults.navItems;
+    // Пункты меню скрываем по реальному состоянию видимости блоков (ниже).
   } catch (e) {
     console.error("[content] Supabase недоступен, используем значения по умолчанию:", e);
-    data.navItems = defaults.navItems
-      .filter((item) => !item.show || item.show())
-      .map(({ show, ...rest }) => rest) as typeof defaults.navItems;
   }
 
   // Порядок секций нормализуем: берём сохранённый, добавляем недостающие
   // (появились новые блоки) и убираем несуществующие.
   data.sectionsOrder = reconcileOrder(data.sectionsOrder, defaults.sectionsOrder);
 
+  // Пункты меню (шапка и подвал) скрываем вместе с отключёнными блоками.
+  data.navItems = filterNav(data.navItems, visibility);
+  data.footerLinks = {
+    ...data.footerLinks,
+    navigation: filterNav(defaults.footerLinks.navigation, visibility),
+  };
+
   return { data: data as SiteData, visibility };
+}
+
+/**
+ * Рекурсивно убирает пункты, чей блок видимости отключён. Родитель с выпадающим
+ * списком остаётся, если живёт хотя бы один потомок (или есть своя ссылка),
+ * иначе исчезает целиком.
+ */
+function filterNav(items: NavItem[], vis: Visibility): NavItem[] {
+  const on = (key?: string) => (key ? vis[key as keyof Visibility] !== false : true);
+  const out: NavItem[] = [];
+  for (const item of items) {
+    if (!on(item.vis)) continue;
+    if (item.children?.length) {
+      const children = filterNav(item.children, vis);
+      if (children.length === 0 && !item.href) continue; // пустой дропдаун не показываем
+      out.push({ ...item, children });
+    } else {
+      out.push({ ...item });
+    }
+  }
+  return out;
 }
 
 /** Приводит сохранённый порядок к полному: известные — как задано, новые — в хвосте. */

@@ -48,7 +48,16 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   ];
 
   try {
-    const [{ data }, news] = await Promise.all([getContent(), getAllNews()]);
+    const [{ data, visibility }, news] = await Promise.all([getContent(), getAllNews()]);
+    // Страница расписания: только если раздел не отключён в админке.
+    if (visibility.raspisanie !== false) {
+      entries.push({
+        url: `${baseUrl}/raspisanie`,
+        lastModified,
+        changeFrequency: 'weekly',
+        priority: 0.8,
+      });
+    }
     for (const p of data.programs) {
       entries.push({
         url: `${baseUrl}/programs/${slugify(p.title)}`,

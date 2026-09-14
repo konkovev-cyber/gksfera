@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { notFound } from "next/navigation";
 import { getContent } from "@/lib/content";
 import { ContentProvider } from "@/components/site/ContentContext";
 import { Header } from "@/components/site/Header";
@@ -17,7 +18,9 @@ export const metadata: Metadata = {
 export const dynamic = "force-dynamic";
 
 export default async function SchedulePage() {
-  const { data } = await getContent();
+  const { data, visibility } = await getContent();
+  // Раздел можно отключить в админке — тогда страницы нет (404) и пункта в меню тоже.
+  if (visibility.raspisanie === false) notFound();
   const groups = (data.schedule ?? []).filter((g) => g && Array.isArray(g.days));
 
   return (

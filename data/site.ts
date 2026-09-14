@@ -608,27 +608,46 @@ export const parentOptions: ParentOption[] = [
   { id: "writing", label: "Интересует писательский клуб", targetProgramId: "writers-club" },
 ];
 
-export const navItems = [
-  { label: "О студии", href: "#about" },
-  { label: "Направления", href: "#programs" },
-  { label: "Расписание", href: "/raspisanie" },
-  { label: "Галерея", href: "#gallery" },
-  { label: "Отзывы", href: "/reviews", show: () => siteConfig.showReviews },
-  { label: "Новости", href: "/news" },
+/**
+ * Пункт навигации. `vis` — ключ видимости: когда соответствующий блок отключён
+ * в админке, пункт автоматически исчезает из меню (и из подвала).
+ * Пункт с `children` — родитель выпадающего меню; его `href`, если задан,
+ * показывается первым элементом списка.
+ */
+export type NavItem = {
+  label: string;
+  href?: string;
+  vis?: string;
+  children?: NavItem[];
+};
+
+export const navItems: NavItem[] = [
+  {
+    label: "О студии",
+    href: "#about",
+    vis: "about",
+    children: [
+      { label: "Направления", href: "#programs", vis: "programs" },
+      { label: "Расписание", href: "/raspisanie", vis: "raspisanie" },
+    ],
+  },
+  { label: "Галерея", href: "#gallery", vis: "gallery" },
+  { label: "Отзывы", href: "/reviews", vis: "reviews" },
+  { label: "Новости", href: "/news", vis: "news" },
   { label: "Блог", href: "/blog" },
-  { label: "Контакты", href: "#contacts" },
+  { label: "Контакты", href: "#contacts", vis: "contacts" },
 ];
 
 export const footerLinks = {
   navigation: [
-    { label: "О студии", href: "#about" },
-    { label: "Направления", href: "#programs" },
-    { label: "Расписание", href: "/raspisanie" },
-    { label: "Галерея", href: "#gallery" },
-    { label: "Отзывы", href: "/reviews" },
-    { label: "Новости", href: "/news" },
-    { label: "Контакты", href: "#contacts" },
-  ],
+    { label: "О студии", href: "#about", vis: "about" },
+    { label: "Направления", href: "#programs", vis: "programs" },
+    { label: "Расписание", href: "/raspisanie", vis: "raspisanie" },
+    { label: "Галерея", href: "#gallery", vis: "gallery" },
+    { label: "Отзывы", href: "/reviews", vis: "reviews" },
+    { label: "Новости", href: "/news", vis: "news" },
+    { label: "Контакты", href: "#contacts", vis: "contacts" },
+  ] as NavItem[],
   legal: [
     { label: "Политика конфиденциальности", href: "/privacy" },
     { label: "Согласие на обработку персональных данных", href: "/consent" },
