@@ -2,12 +2,12 @@
 
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
-import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import { Menu, X, Phone, MessageCircle, ChevronDown } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useContent } from "./ContentContext";
 import { ThemeToggle } from "./ThemeToggle";
+import { LogoLockup } from "./LogoLockup";
 import type { NavItem } from "@/data/site";
 
 import { cn } from "@/lib/utils";
@@ -139,22 +139,13 @@ export function Header() {
         )}
       >
         <div className="container-max flex items-center justify-between px-4 sm:px-6 lg:px-8 h-16 md:h-20">
-          {/* Логотип */}
+          {/* Логотип — тот же узел, что в подвале: круглая марка + подпись */}
           <Link
             href="/"
-            className="flex items-center gap-2.5 sm:gap-3 group min-w-0"
+            className="flex items-center group min-w-0"
             aria-label="Сфера — на главную"
           >
-            <Logo scrolled={scrolled} />
-            {/* Текстовая подпись — только ниже desktop (на lg показываем wordmark) */}
-            <div className="lg:hidden flex flex-col leading-tight min-w-0">
-              <span className="font-display font-extrabold text-lg sm:text-xl tracking-tight text-foreground whitespace-nowrap">
-                СФЕРА
-              </span>
-              <span className="text-[10px] sm:text-[11px] text-muted-foreground mt-0.5 font-medium whitespace-nowrap">
-                Развивающая студия
-              </span>
-            </div>
+            <LogoLockup priority />
           </Link>
 
           {/* Десктоп-меню */}
@@ -282,16 +273,8 @@ export function Header() {
               className="absolute right-0 top-0 bottom-0 w-[85%] max-w-sm bg-card shadow-2xl flex flex-col"
             >
               <div className="flex items-center justify-between p-5 border-b border-border">
-                <Link href="/" className="flex items-center gap-3">
-                  <Logo scrolled={false} />
-                  <div className="flex flex-col leading-tight">
-                    <span className="font-display font-extrabold text-lg tracking-tight text-foreground">
-                      СФЕРА
-                    </span>
-                    <span className="text-[10px] text-muted-foreground mt-0.5">
-                      Развивающая студия
-                    </span>
-                  </div>
+                <Link href="/" className="flex items-center group">
+                  <LogoLockup size="sm" />
                 </Link>
                 <button
                   className="inline-flex items-center justify-center w-11 h-11 rounded-lg hover:bg-accent transition-colors"
@@ -405,37 +388,6 @@ export function Header() {
           </motion.div>
         )}
       </AnimatePresence>
-    </>
-  );
-}
-
-function Logo({ scrolled }: { scrolled: boolean }) {
-  return (
-    <>
-      {/* Мобильный: squircle-иконка. bg-white обязателен —
-          на тёмной теме / scrolled-состоянии шапки прозрачный PNG
-          с тёмными штрихами становится нечитаемым. */}
-      <div className="lg:hidden relative w-11 h-11 flex-shrink-0 rounded-2xl overflow-hidden bg-white shadow-sm ring-1 ring-black/5 dark:ring-white/10">
-        <Image
-          src="/images/logo-icon.png"
-          alt="Логотип Сфера"
-          width={44}
-          height={44}
-          className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-          priority
-        />
-      </div>
-      {/* Десктоп: wordmark-таблетка с белой подложкой. */}
-      <div className="hidden lg:flex relative items-center h-12 flex-shrink-0 bg-white rounded-2xl px-4 py-2 shadow-sm ring-1 ring-black/5 dark:ring-white/10">
-        <Image
-          src="/images/logo-wordmark.png"
-          alt="Сфера — учебно-развивающая студия"
-          width={400}
-          height={154}
-          className="h-8 w-auto object-contain transition-transform duration-300 group-hover:scale-[1.02]"
-          priority
-        />
-      </div>
     </>
   );
 }

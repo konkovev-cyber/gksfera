@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { Phone, MapPin, MessageCircle } from "lucide-react";
 import { useContent } from "./ContentContext";
+import { LogoLockup } from "./LogoLockup";
 
 
 export function Footer() {
@@ -44,16 +45,8 @@ export function Footer() {
         <div className="grid grid-cols-2 gap-x-5 gap-y-7 sm:gap-x-8 lg:grid-cols-4 lg:gap-x-10">
           {/* Логотип + слоган */}
           <div className="col-span-2 lg:col-span-1">
-            <div className="flex items-center gap-3 mb-3">
-              <FooterLogo />
-              <div className="flex flex-col leading-none">
-                <span className="font-display font-extrabold text-xl tracking-tight text-background">
-                  СФЕРА
-                </span>
-                <span className="text-[10px] text-background/60 mt-0.5 font-medium">
-                  Студия · Горячий Ключ
-                </span>
-              </div>
+            <div className="mb-3">
+              <LogoLockup onDark />
             </div>
             <p className="text-sm text-background/70 leading-relaxed max-w-xs">
               {content.siteConfig.fullName}
@@ -160,18 +153,5 @@ export function Footer() {
         </div>
       </div>
     </footer>
-  );
-}
-
-function FooterLogo() {
-  return (
-    <div className="relative w-11 h-11 flex-shrink-0 rounded-2xl overflow-hidden bg-white shadow-sm ring-1 ring-white/10">
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img
-        src="/images/logo-icon.png"
-        alt="Логотип Сфера"
-        className="w-full h-full object-cover"
-      />
-    </div>
   );
 }
