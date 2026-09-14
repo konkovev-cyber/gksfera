@@ -255,8 +255,11 @@ function reconcileOrder(order: string[], base: string[]): string[] {
   return out;
 }
 
+const NEWS_COLUMNS = "id,vk_post_id,title,content,excerpt,image_url,source_url,published_at";
+
 function mapNewsRow(n: Record<string, unknown>): NewsItem {
   return {
+    id: n.id != null ? (typeof n.id === "number" ? n.id : String(n.id)) : undefined,
     vk_post_id: String(n.vk_post_id ?? ""),
     title: String(n.title ?? ""),
     content: String(n.content ?? ""),
@@ -273,7 +276,7 @@ export async function getAllNews(): Promise<NewsItem[]> {
     const db = service();
     const { data } = await db
       .from("news")
-      .select("vk_post_id,title,content,excerpt,image_url,source_url,published_at")
+      .select(NEWS_COLUMNS)
       .eq("visible", true)
       .order("published_at", { ascending: false })
       .limit(50);
@@ -283,18 +286,29 @@ export async function getAllNews(): Promise<NewsItem[]> {
   }
 }
 
-/** Одна новость по vk_post_id (для страницы /news/[id]). */
-export async function getNewsByVkId(id: string): Promise<NewsItem | null> {
+/**
+ * Одна новость по ключу URL. Колонка одна (vk_post_id), поэтому одинаково
+ * находится и «130» (пост VK), и «den-otkrytyh-dverey» (slug своей новости).
+ */
+export async function getNewsByKey(id: string): Promise<NewsItem | null> {
+  const key = String(id ?? "").trim();
+  if (!key) return null;
   try {
     const db = service();
     const { data } = await db
       .from("news")
-      .select("vk_post_id,title,content,excerpt,image_url,source_url,published_at")
-      .eq("vk_post_id", id)
+      .select(NEWS_COLUMNS)
+      .eq("vk_post_id", key)
       .eq("visible", true)
       .maybeSingle();
     return data ? mapNewsRow(data as Record<string, unknown>) : null;
   } catch {
     return null;
   }
+}
+
+/** Все ключи новостей (для generateStaticParams / sitemap). */
+export async function getNewsKeys(): Promise<string[]> {
+  const all = await getAllNews();
+  return all.map((n) => n.vk_post_id).filter(Boolean);
 }

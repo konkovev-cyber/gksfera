@@ -1,11 +1,13 @@
 import type { MetadataRoute } from 'next';
 import { getContent, getAllNews } from '@/lib/content';
+import { newsUrl } from '@/lib/news';
 import { slugify } from '@/lib/utils';
+import { SITE_ORIGIN } from '@/data/site';
 
 export const revalidate = 3600;
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const baseUrl = 'https://sfera-goryachiy-klyuch.ru';
+  const baseUrl = SITE_ORIGIN;
   const lastModified = new Date();
 
   const entries: MetadataRoute.Sitemap = [
@@ -76,8 +78,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       });
     }
     for (const n of news) {
+      const href = newsUrl(n);
+      if (href === "/news") continue; // строка без ключа — ссылаться некуда
       entries.push({
-        url: `${baseUrl}/news/${n.vk_post_id}`,
+        url: `${baseUrl}${href}`,
         lastModified: new Date(n.published_at),
         changeFrequency: 'monthly',
         priority: 0.6,

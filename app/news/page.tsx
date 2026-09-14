@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Calendar, ArrowRight, ImageOff } from "lucide-react";
 import { getContent, getAllNews } from "@/lib/content";
+import { newsUrl, newsKey } from "@/lib/news";
+import { NewsSourceBadge } from "@/components/site/NewsArticle";
 import { ContentProvider } from "@/components/site/ContentContext";
 import { Header } from "@/components/site/Header";
 import { Footer } from "@/components/site/Footer";
@@ -30,8 +32,8 @@ function fmtDate(iso: string): string {
 function NewsCard({ item }: { item: NewsItem }) {
   return (
     <Link
-      href={`/news/${item.vk_post_id}`}
-      className="group block bg-card rounded-2xl border border-border/60 overflow-hidden hover:shadow-lg transition-shadow h-full"
+      href={newsUrl(item)}
+      className="group block bg-card rounded-2xl border border-border/60 overflow-hidden hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300 h-full"
     >
       <div className="relative aspect-[4/3] overflow-hidden bg-brand-cream/50">
         {item.image_url ? (
@@ -47,6 +49,7 @@ function NewsCard({ item }: { item: NewsItem }) {
             <ImageOff className="w-8 h-8" />
           </div>
         )}
+        <NewsSourceBadge item={item} className="absolute left-3 top-3 shadow-sm" />
       </div>
       <div className="p-5">
         <div className="flex items-center gap-2 text-xs text-muted-foreground mb-2">
@@ -101,8 +104,8 @@ export default async function NewsArchivePage() {
             </div>
           ) : (
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 mt-10">
-              {news.map((item) => (
-                <NewsCard key={item.vk_post_id} item={item} />
+              {news.map((item, i) => (
+                <NewsCard key={newsKey(item) || `n-${i}`} item={item} />
               ))}
             </div>
           )}

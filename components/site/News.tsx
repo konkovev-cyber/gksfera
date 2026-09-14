@@ -5,6 +5,8 @@ import Link from "next/link";
 import { Reveal } from "./Reveal";
 import { useContent } from "./ContentContext";
 import { Calendar, ArrowRight, ChevronLeft, ChevronRight } from "lucide-react";
+import { newsKey, newsUrl } from "@/lib/news";
+import { NewsSourceBadge } from "./NewsArticle";
 
 const MONTHS_RU = ["января","февраля","марта","апреля","мая","июня","июля","августа","сентября","октября","ноября","декабря"];
 // Детерминированный формат: берём дату прямо из ISO-строки (без new Date/tz),
@@ -113,11 +115,11 @@ export function News() {
               {news.map((item, i) => (
                 <div
                   data-news-card
-                  key={item.vk_post_id ?? i}
+                  key={newsKey(item) || `n-${i}`}
                   className="shrink-0 snap-start w-[82%] min-[420px]:w-[58%] sm:w-[calc((100%-1.25rem)/2)] md:w-[calc((100%-2.5rem)/3)] lg:w-[calc((100%-3.75rem)/4)]"
                 >
                   <Link
-                    href={`/news/${item.vk_post_id}`}
+                    href={newsUrl(item)}
                     className="group block bg-card rounded-2xl border border-border/60 overflow-hidden hover:shadow-lg transition-shadow h-full"
                   >
                     {item.image_url && (
@@ -129,6 +131,7 @@ export function News() {
                           className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-500"
                           loading="lazy"
                         />
+                        <NewsSourceBadge item={item} className="absolute left-3 top-3" />
                       </div>
                     )}
                     <div className="p-5">

@@ -4,6 +4,7 @@ import { Manrope } from 'next/font/google';
 import { MotionProvider } from '@/components/site/MotionProvider';
 import { getContent } from '@/lib/content';
 import { ldScript } from '@/lib/utils';
+import { SITE_ORIGIN } from '@/data/site';
 
 const manrope = Manrope({
   subsets: ['cyrillic', 'latin'],
@@ -24,7 +25,7 @@ export async function generateMetadata(): Promise<Metadata> {
   const ogImage = String(cfg.seoOgImage || '/og-image.png');
 
   return {
-    metadataBase: new URL('https://sfera-goryachiy-klyuch.ru'),
+    metadataBase: new URL(SITE_ORIGIN),
     title: { default: title, template: titleTemplate },
     description,
     keywords: keywords.split(',').map((k) => k.trim()).filter(Boolean),

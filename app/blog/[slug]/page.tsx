@@ -3,7 +3,8 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft, Calendar, ExternalLink } from "lucide-react";
 import { getContent } from "@/lib/content";
-import { ldScript, escapeHtml, safeHref } from "@/lib/utils";
+import { ldScript } from "@/lib/utils";
+import { mdToHtml } from "@/lib/markdown";
 import { ContentProvider } from "@/components/site/ContentContext";
 import { Header } from "@/components/site/Header";
 import { Footer } from "@/components/site/Footer";
@@ -50,27 +51,8 @@ function fmtDate(iso: string): string {
   } catch { return ""; }
 }
 
-/** Простой Markdown → HTML (заголовки, жирный, курсив, списки, параграфы, ссылки).
- *  Сначала экранируем ВЕСЬ пользовательский HTML (безопасность: любой <script>,
- *  <img onerror> и т.п. становится текстом), затем добавляем только свои теги.
- *  Ссылки — только по безобидным схемам (http/https/mailto/якорь/путь). */
-function mdToHtml(md: string): string {
-  return escapeHtml(md)
-    .replace(/^### (.+)$/gm, '<h3 class="font-display font-bold text-xl mt-8 mb-3">$1</h3>')
-    .replace(/^## (.+)$/gm, '<h2 class="font-display font-extrabold text-2xl mt-10 mb-4">$1</h2>')
-    .replace(/^# (.+)$/gm, '<h1 class="font-display font-extrabold text-3xl mt-10 mb-4">$1</h1>')
-    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
-    .replace(/\*(.+?)\*/g, '<em>$1</em>')
-    .replace(/\[(.+?)\]\((.+?)\)/g, (_m, text, url) => {
-      const href = safeHref(url.replace(/&amp;/g, "&")); // escapeHtml удвоил & в url
-      if (href === "#") return text; // опасная/пустая ссылка — оставить текст
-      return `<a href="${href}" class="text-brand-warm hover:underline" target="_blank" rel="noopener nofollow noreferrer">${text}</a>`;
-    })
-    .replace(/^- (.+)$/gm, '<li class="ml-4 list-disc">$1</li>')
-    .replace(/(<li[^>]*>.*<\/li>\n?)+/g, (m) => `<ul class="my-3 space-y-1">${m}</ul>`)
-    .replace(/\n\n/g, '</p><p class="mt-4">')
-    .replace(/^(?!<[hlu])(.+)$/gm, '<p class="mt-4">$1</p>');
-}
+/** Простой Markdown → HTML вынесен в lib/markdown.ts — там же, откуда его берёт
+ *  страница новости: редактор в админке показывает предпросмотр тем же кодом. */
 
 export default async function BlogPostPage({ params }: Props) {
   const [{ data }, db] = await Promise.all([getContent(), Promise.resolve(service())]);

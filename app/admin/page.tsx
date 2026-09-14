@@ -7,9 +7,13 @@ import {
   Settings, Image as ImageIcon, LayoutDashboard, Inbox, School,
   Eye, Star, BookOpen, Search, Download, Plus, Newspaper, RefreshCw, ExternalLink, X,
   GraduationCap, HelpCircle, PenTool, Play, CalendarDays, Copy, Sparkles,
+  List, Quote, Link2, ArrowLeft, Pencil, ImagePlus, Clock,
 } from "lucide-react";
 import { gallery as defaultGallery } from "@/data/site";
 import { compressImageFile, isVideoSrc, humanSize, IMAGE_MAX, VIDEO_MAX } from "@/lib/compress";
+import { slugifyRu, uniqueSlug, newsKey, newsUrl, isVkNews } from "@/lib/news";
+import { NewsBody, NewsSourceBadge } from "@/components/site/NewsArticle";
+import { cn } from "@/lib/utils";
 
 type Tab = "settings" | "hero" | "visibility" | "programs" | "gallery" |
   "teachers" | "reviews" | "learning" | "faq" | "blog" | "news" | "seo" | "io" | "inbox" | "blocks" | "schedule" | "banners";
@@ -28,7 +32,7 @@ const TABS: { id: Tab; label: string; icon: any; hint: string }[] = [
   { id: "learning", label: "Занятия", icon: BookOpen, hint: "Секция «Как проходят занятия» на главной: заголовок и пошаговый путь (шаги с описанием и фото). Это не расписание, а как устроены занятия." },
   { id: "faq", label: "Вопросы", icon: HelpCircle, hint: "Частые вопросы и ответы (раскрывающийся список на главной и страница вопросов)." },
   { id: "blog", label: "Блог", icon: PenTool, hint: "Статьи блога: заголовок, анонс, текст, обложка и дата. Выводятся в разделе блога и на /blog." },
-  { id: "news", label: "Новости VK", icon: Newspaper, hint: "Новости из группы ВКонтакте (синхронизация по API). Лента на главной и архив /news." },
+  { id: "news", label: "Новости", icon: Newspaper, hint: "Новости студии: пишутся прямо здесь (текст, фото, форматирование) и подтягиваются из группы ВКонтакте. Лента на главной и архив /news." },
   { id: "seo", label: "SEO", icon: Search, hint: "Метаданные для поиска и соцсетей: title, description, Open Graph — чтобы сайт красиво открывался по ссылке и ранжировался." },
   { id: "io", label: "Импорт", icon: Download, hint: "Резервная копия и перенос всего контента в JSON (или отдельно только новостей). Для бэкапа или миграции на другой проект." },
   { id: "inbox", label: "Заявки", icon: Inbox, hint: "Обращения с формы «Записаться»: имя, телефон, направление, комментарий. Приходит из формы на сайте и из Telegram." },
@@ -36,7 +40,7 @@ const TABS: { id: Tab; label: string; icon: any; hint: string }[] = [
 
 const VIS_LABELS: Record<string, string> = {
   about: "О студии", programs: "Направления", learning: "Как проходят занятия",
-  gallery: "Галерея", teachers: "Преподаватели", reviews: "Отзывы", news: "Новости VK",
+  gallery: "Галерея", teachers: "Преподаватели", reviews: "Отзывы", news: "Новости",
   faq: "Частые вопросы", events: "События", cta: "CTA-баннер", enrollment: "Форма записи", contacts: "Контакты и карта",
 };
 
@@ -45,7 +49,7 @@ const SECTION_LABELS: Record<string, string> = {
   tasks: "Блок «С какой задачей пришли»", about: "О студии", programs: "Направления",
   results: "Результаты занятий", truststats: "Цифры доверия", learning: "Как проходят занятия",
   gallery: "Галерея", teachers: "Преподаватели", reviews: "Отзывы", events: "События",
-  news: "Новости VK", faq: "Частые вопросы", parentnav: "Навигатор для родителей",
+  news: "Новости", faq: "Частые вопросы", parentnav: "Навигатор для родителей",
   cta: "CTA-баннер", enrollment: "Форма записи", contacts: "Контакты и карта",
 };
 
@@ -111,6 +115,38 @@ const PAIN_ICON_OPTIONS = [
   "Backpack", "BrainCircuit", "PenTool", "Pencil", "Sparkles", "MessageSquare",
   "Star", "HelpCircle",
 ];
+
+/**
+ * Черновик новости в редакторе. published_at хранится в локальном формате
+ * input[type=datetime-local] («2026-09-15T14:30»), чтобы поле показывало то же
+ * время, что видит человек, а не сдвигалось на часовой пояс сервера.
+ */
+type NewsDraft = {
+  id: number | string | null;
+  vk_post_id: string;
+  title: string;
+  excerpt: string;
+  content: string;
+  image_url: string;
+  source_url: string;
+  published_at: string;
+  visible: boolean;
+  /** строка импортирована из VK — текст перезапишет синхронизация */
+  fromVk: boolean;
+};
+
+const pad2 = (n: number) => String(n).padStart(2, "0");
+
+function toLocalInput(iso?: string | null): string {
+  const d = iso ? new Date(iso) : new Date();
+  if (Number.isNaN(d.getTime())) return "";
+  return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}T${pad2(d.getHours())}:${pad2(d.getMinutes())}`;
+}
+
+function fromLocalInput(local: string): string {
+  const d = new Date(local);
+  return Number.isNaN(d.getTime()) ? new Date().toISOString() : d.toISOString();
+}
 
 const inputCls = "w-full h-10 px-3 text-sm rounded-lg border border-input bg-background focus:outline-none focus:ring-2 focus:ring-ring/60";
 /**
@@ -183,7 +219,10 @@ export default function AdminPage() {
   const [blogPosts, setBlogPosts] = useState<any[]>([]);
   const [syncing, setSyncing] = useState(false);
   const [vkDomain, setVkDomain] = useState("");
-  const [pickerFor, setPickerFor] = useState<null | { kind: "program" | "hero" | "heroList" | "step" | "teacher" | "schedule"; index: number }>(null);
+  const [pickerFor, setPickerFor] = useState<null | {
+    kind: "program" | "hero" | "heroList" | "step" | "teacher" | "schedule" | "blog" | "news" | "newsBody";
+    index: number;
+  }>(null);
   const [pickerFiles, setPickerFiles] = useState<{ src: string; size: number }[]>([]);
   const [pickerFilter, setPickerFilter] = useState("");
 
@@ -536,8 +575,241 @@ export default function AdminPage() {
   const deleteNewsItem = async (id: string) => {
     if (!confirm("Удалить новость?")) return;
     await fetch(`/api/admin/news?id=${id}`, { method: "DELETE" });
-    setNews((prev) => prev.filter((n) => n.id !== id));
+    setNews((prev) => prev.filter((n) => String(n.id) !== String(id)));
+    flash("Новость удалена");
   };
+
+  /* ───────────────────── РЕДАКТОР НОВОСТЕЙ ───────────────────── */
+
+  const [newsDraft, setNewsDraft] = useState<NewsDraft | null>(null);
+  const [newsDirty, setNewsDirty] = useState(false);
+  const [newsBusy, setNewsBusy] = useState(false);
+  const [newsError, setNewsError] = useState("");
+  /** на узких экранах формы и предпросмотр по очереди */
+  const [newsPane, setNewsPane] = useState<"edit" | "preview">("edit");
+  const newsBodyRef = useRef<HTMLTextAreaElement>(null);
+  const newsCaret = useRef<{ s: number; e: number }>({ s: 0, e: 0 });
+  const newsFileRef = useRef<HTMLInputElement>(null);
+  const newsBodyFileRef = useRef<HTMLInputElement>(null);
+
+  const patchNews = (p: Partial<NewsDraft>) => {
+    setNewsDraft((d) => (d ? { ...d, ...p } : d));
+    setNewsDirty(true);
+    setNewsError("");
+  };
+
+  /** Заголовок сам подсказывает адрес, пока адрес не трогали вручную. */
+  const openNewsNew = () => {
+    setNewsDraft({
+      id: null, vk_post_id: "", title: "", excerpt: "", content: "",
+      image_url: "", source_url: "", published_at: toLocalInput(null), visible: true, fromVk: false,
+    });
+    setNewsDirty(false); setNewsError(""); setNewsPane("edit");
+  };
+
+  const openNewsEdit = (n: any) => {
+    setNewsDraft({
+      id: n.id ?? null,
+      vk_post_id: String(n.vk_post_id ?? ""),
+      title: String(n.title ?? ""),
+      excerpt: String(n.excerpt ?? ""),
+      content: String(n.content ?? ""),
+      image_url: String(n.image_url ?? ""),
+      source_url: String(n.source_url ?? ""),
+      published_at: toLocalInput(n.published_at),
+      visible: n.visible !== false,
+      fromVk: isVkNews(n),
+    });
+    setNewsDirty(false); setNewsError(""); setNewsPane("edit");
+  };
+
+  const closeNewsEditor = () => {
+    if (newsDirty && !confirm("Есть несохранённые изменения. Всё равно закрыть?")) return;
+    setNewsDraft(null); setNewsDirty(false); setNewsError("");
+  };
+
+  const saveNews = async () => {
+    if (!newsDraft) return;
+    const title = newsDraft.title.trim();
+    if (!title) { setNewsError("Напишите заголовок — по нему генерируется адрес."); newsBodyRef.current?.focus(); return; }
+
+    setNewsBusy(true);
+    setNewsError("");
+    try {
+      const taken = news
+        .filter((n: any) => String(n.id) !== String(newsDraft.id))
+        .map((n: any) => String(n.vk_post_id ?? ""))
+        .filter(Boolean);
+      let key = newsDraft.vk_post_id.trim().toLowerCase();
+      if (!key) key = uniqueSlug(slugifyRu(title), taken);
+      else if (taken.includes(key)) {
+        // не молча «другое имя», а явно: человек мог задать адрес намеренно
+        if (!confirm(`Адрес «${key}» уже занят. Предложить «${uniqueSlug(key, taken)}»?`)) {
+          setNewsBusy(false); return;
+        }
+        key = uniqueSlug(key, taken);
+      }
+
+      const res = await fetch("/api/admin/news", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          id: newsDraft.id,
+          vk_post_id: key,
+          title,
+          content: newsDraft.content,
+          excerpt: newsDraft.excerpt.trim() || newsDraft.content.replace(/[#*>`![\]]/g, "").replace(/\s+/g, " ").trim().slice(0, 180),
+          image_url: newsDraft.image_url.trim(),
+          source_url: newsDraft.source_url.trim(),
+          published_at: fromLocalInput(newsDraft.published_at),
+          visible: newsDraft.visible,
+        }),
+      });
+      const j = await res.json().catch(() => ({}));
+      if (!res.ok) { setNewsError(j?.error ?? "Не удалось сохранить"); return; }
+
+      // id из ответа — иначе повторное «Сохранить» создало бы дубль
+      setNewsDraft((d) => (d ? { ...d, id: j.news?.id ?? d.id, vk_post_id: j.news?.vk_post_id ?? key } : d));
+      setNews((prev) => {
+        const rest = prev.filter((n: any) => String(n.id) !== String(j.news?.id));
+        return [j.news, ...rest].sort((a: any, b: any) => String(b.published_at).localeCompare(String(a.published_at)));
+      });
+      setNewsDirty(false);
+      flash(newsDraft.id ? "Изменения сохранены ✓" : "Новость опубликована ✓");
+    } catch {
+      setNewsError("Нет связи с сервером — попробуйте ещё раз.");
+    } finally {
+      setNewsBusy(false);
+    }
+  };
+
+  /** Обёртка выделения (**текст**) или вставка плейсхолдера вместо пустого. */
+  const mdWrap = (before: string, after: string, placeholder: string) => {
+    const ta = newsBodyRef.current;
+    if (!ta || !newsDraft) return;
+    const s = ta.selectionStart, e = ta.selectionEnd, cur = newsDraft.content;
+    const sel = cur.slice(s, e) || placeholder;
+    const text = cur.slice(0, s) + before + sel + after + cur.slice(e);
+    patchNews({ content: text });
+    requestAnimationFrame(() => { ta.focus(); ta.setSelectionRange(s + before.length, s + before.length + sel.length); });
+  };
+
+  /** Префикс строки: «## », «- », «> ». Повторное нажатие снимает префикс. */
+  const mdLinePrefix = (prefix: string) => {
+    const ta = newsBodyRef.current;
+    if (!ta || !newsDraft) return;
+    const s = ta.selectionStart, e = ta.selectionEnd, cur = newsDraft.content;
+    const lineStart = cur.lastIndexOf("\n", s - 1) + 1;
+    let lineEnd = cur.indexOf("\n", e);
+    if (lineEnd === -1) lineEnd = cur.length;
+    const line = cur.slice(lineStart, lineEnd);
+    const bare = line.replace(/^(#{1,3}\s+|>\s+|[-*]\s+)/, "");
+    const had = line !== bare;
+    const next = cur.slice(0, lineStart) + (had ? bare : prefix + bare) + cur.slice(lineEnd);
+    patchNews({ content: next });
+    requestAnimationFrame(() => {
+      ta.focus();
+      const pos = lineStart + (had ? 0 : prefix.length) + bare.length;
+      ta.setSelectionRange(pos, pos);
+    });
+  };
+
+  const mdLink = () => {
+    const ta = newsBodyRef.current;
+    if (!ta || !newsDraft) return;
+    const s = ta.selectionStart, e = ta.selectionEnd, cur = newsDraft.content;
+    const sel = cur.slice(s, e) || "текст ссылки";
+    const inserted = `[${sel}](https://)`;
+    patchNews({ content: cur.slice(0, s) + inserted + cur.slice(e) });
+    // курсор внутрь https:// — править адрес, а не выделять всё
+    requestAnimationFrame(() => { ta.focus(); const p = s + sel.length + 3; ta.setSelectionRange(p, p + 8); });
+  };
+
+  /** Картинка в тело: своей строкой — рендерер делает из неё figure с подписью. */
+  const mdInsertImage = (src: string, alt = "Фото") => {
+    setNewsDraft((d) => {
+      if (!d) return d;
+      const ta = newsBodyRef.current;
+      const line = `![${alt}](${src})`;
+      if (!ta) return { ...d, content: `${d.content}\n\n${line}\n` };
+      const s = newsCaret.current.s, e = newsCaret.current.e, cur = d.content;
+      const before = cur.slice(0, s), after = cur.slice(e);
+      const lead = before && !before.endsWith("\n\n") ? (before.endsWith("\n") ? "\n" : "\n\n") : "";
+      const tail = after && !after.startsWith("\n") ? "\n\n" : "";
+      const merged = before + lead + line + tail + after;
+      const pos = (before + lead + line + tail).length;
+      requestAnimationFrame(() => { ta.focus(); ta.setSelectionRange(pos, pos); });
+      return { ...d, content: merged };
+    });
+    setNewsDirty(true);
+    setNewsError("");
+  };
+
+  /** Ctrl/Cmd+B, +I, +K прямо в textarea — как в обычном редакторе. */
+  const onNewsBodyKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (!(e.ctrlKey || e.metaKey)) return;
+    const k = e.key.toLowerCase();
+    if (k === "b") { e.preventDefault(); mdWrap("**", "**", "жирный"); }
+    else if (k === "i") { e.preventDefault(); mdWrap("*", "*", "курсив"); }
+    else if (k === "k") { e.preventDefault(); mdLink(); }
+    else if (k === "s") { e.preventDefault(); saveNews(); }
+  };
+
+  const rememberCaret = () => {
+    const ta = newsBodyRef.current;
+    if (ta) newsCaret.current = { s: ta.selectionStart, e: ta.selectionEnd };
+  };
+
+  /** Загрузка файла прямо в Storage (через signed URL), строку в галерею НЕ пишем. */
+  const uploadNewsImage = async (file: File, where: "cover" | "body") => {
+    setNewsBusy(true); setNewsError("");
+    try {
+      const { file: prepared } = await compressImageFile(file);
+      const signRes = await fetch("/api/admin/photos/sign", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ filename: prepared.name, size: prepared.size, contentType: prepared.type }),
+      });
+      const sign = await signRes.json().catch(() => ({}));
+      if (!signRes.ok || sign.error) throw new Error(sign.error ?? "не удалось получить ссылку на загрузку");
+
+      const putRes = await fetch(sign.signedUrl, {
+        method: "PUT",
+        headers: {
+          "Content-Type": prepared.type || "image/jpeg",
+          Authorization: `Bearer ${process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? ""}`,
+          "x-upsert": "false",
+        },
+        body: prepared,
+      });
+      if (!putRes.ok) throw new Error(`загрузка не удалась (HTTP ${putRes.status})`);
+
+      const src = String(sign.publicUrl ?? "");
+      if (where === "cover") patchNews({ image_url: src });
+      else mdInsertImage(src, "Фото");
+      flash(where === "cover" ? "Обложка загружена ✓" : "Фото добавлено в текст ✓");
+    } catch (err) {
+      setNewsError(err instanceof Error ? err.message : "Ошибка загрузки файла");
+    } finally {
+      setNewsBusy(false);
+      if (newsFileRef.current) newsFileRef.current.value = "";
+      if (newsBodyFileRef.current) newsBodyFileRef.current.value = "";
+    }
+  };
+
+  const newsPreviewItem: any = newsDraft
+    ? {
+        id: newsDraft.id ?? "draft",
+        vk_post_id: newsDraft.vk_post_id || slugifyRu(newsDraft.title || "novost"),
+        title: newsDraft.title || "Без заголовка",
+        content: newsDraft.content,
+        excerpt: newsDraft.excerpt,
+        image_url: newsDraft.image_url || null,
+        source_url: newsDraft.source_url,
+        published_at: fromLocalInput(newsDraft.published_at),
+      }
+    : null;
+  const newsWords = (newsDraft?.content ?? "").trim() ? Math.round((newsDraft?.content ?? "").trim().split(/\s+/).length * 1.1) : 0;
+
 
   const syncVkReviews = async () => {
     setSyncingReviews(true);
@@ -611,12 +883,20 @@ export default function AdminPage() {
       setTeachers((prev) => prev.map((x, j) => (j === index ? { ...x, photo: src } : x)));
     } else if (kind === "schedule") {
       setSchedule((prev) => prev.map((x, j) => (j === index ? { ...x, image: src } : x)));
+    } else if (kind === "blog") {
+      // Раньше этой ветки не было: пикер из «Блога» открывался, выбор молча
+      // терялся, а админ видел тост «Фото выбрано ✓».
+      setBlogPosts((prev) => prev.map((x, j) => (j === index ? { ...x, cover: src } : x)));
+    } else if (kind === "news") {
+      setNewsDraft((prev) => (prev ? { ...prev, image_url: src } : prev));
+    } else if (kind === "newsBody") {
+      mdInsertImage(src, newsDraft?.title ? "Фото к новости" : "Фото");
     }
     setPickerFor(null);
     flash("Фото выбрано ✓");
   };
 
-  const pickBtn = (kind: "program" | "hero" | "heroList" | "step" | "teacher" | "schedule", index: number, label = "Выбрать") => (
+  const pickBtn = (kind: "program" | "hero" | "heroList" | "step" | "teacher" | "schedule" | "blog" | "news" | "newsBody", index: number, label = "Выбрать") => (
     <button
       type="button"
       onClick={() => { setPickerFor({ kind, index }); if (pickerFiles.length === 0) fetch("/api/admin/files").then(r => r.ok ? r.json() : null).then(j => setPickerFiles(j?.files ?? [])); }}
@@ -1392,7 +1672,7 @@ export default function AdminPage() {
                 <Field label="Обложка (URL)">
                   <div className="flex gap-2">
                     <input className={inputCls + " flex-1"} value={post.cover ?? ""} onChange={(e) => setBlogPosts((prev) => prev.map((x, j) => j === i ? { ...x, cover: e.target.value } : x))} />
-                    {pickBtn("blog" as any, i)}
+                    {pickBtn("blog", i)}
                   </div>
                 </Field>
                 <Field label="Текст статьи (Markdown: # заголовок, **жирный**, - список, [ссылка](url))">
@@ -1414,61 +1694,402 @@ export default function AdminPage() {
           </div>
         )}
 
-        {/* ─── News VK ─── */}
-        {tab === "news" && (
-          <div className="space-y-4">
-            <div className="bg-card rounded-2xl border border-border/60 p-5">
-              <h3 className="font-display font-bold text-base mb-3">Синхронизация с VK</h3>
-              <p className="text-sm text-muted-foreground mb-4">Загрузить последние новости из сообщества VK. Фото, заголовки и текст извлекаются автоматически.</p>
-              <div className="flex flex-wrap gap-3 items-end">
-                <div className="flex-1 min-w-[200px]">
-                  <Field label="VK-домен (необязательно)">
-                    <input className={inputCls} value={vkDomain} onChange={(e) => setVkDomain(e.target.value)} placeholder="sfera_gk" />
-                  </Field>
+        {/* ─── Новости: свои + импорт из VK ─── */}
+        {tab === "news" && newsDraft && newsPreviewItem && (
+          <div className="space-y-3">
+            {/* Шапка редактора: куда вернёмся и что сохранится */}
+            <div className="sticky top-[52px] sm:top-[60px] z-20 -mx-3 px-3 sm:mx-0 sm:px-0 py-2 bg-background/90 backdrop-blur">
+              <div className="flex flex-wrap items-center gap-2">
+                <button onClick={closeNewsEditor} className={btnSecondaryCls + " !h-9 !px-3 text-xs shrink-0"}>
+                  <ArrowLeft className="w-4 h-4" /> К списку
+                </button>
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-semibold text-foreground leading-tight">
+                    {newsDraft.id ? "Редактирование новости" : "Новая новость"}
+                    {newsDirty && <span className="ml-2 text-[11px] font-normal text-brand-warm">● не сохранено</span>}
+                  </p>
+                  <p className="text-[11px] text-muted-foreground truncate">
+                    {newsUrl({ vk_post_id: newsDraft.vk_post_id || slugifyRu(newsDraft.title || "novost") })}
+                    {newsDraft.visible ? "" : " · скрыта"}
+                  </p>
                 </div>
-                <button onClick={syncVK} disabled={syncing} className={btnCls}>
-                  {syncing ? <Loader2 className="w-4 h-4 animate-spin" /> : <RefreshCw className="w-4 h-4" />}
-                  {syncing ? "Синхронизация…" : "Загрузить из VK"}
+                <button onClick={saveNews} disabled={newsBusy} data-news-save className={btnCls + " !h-9 !px-4 text-xs shrink-0"}>
+                  {newsBusy ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                  Сохранить
                 </button>
               </div>
             </div>
 
-            {news.length === 0 && !syncing && (
-              <p className="text-sm text-muted-foreground">Новостей пока нет. Нажмите «Загрузить из VK» чтобы получить новости.</p>
+            {newsError && (
+              <div className="rounded-xl border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive">
+                {newsError}
+              </div>
             )}
-            {news.map((n) => (
-              <div key={n.id} className="bg-card rounded-2xl border border-border/60 p-3 sm:p-4">
-                <div className="flex gap-3">
-                  {n.image_url && (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img src={n.image_url} alt="" className="w-16 h-12 sm:w-20 sm:h-14 object-cover rounded-lg border border-border shrink-0" />
+            {newsDraft.fromVk && (
+              <div className="rounded-xl border border-brand-teal/30 bg-brand-teal/5 px-3 py-2 text-xs text-muted-foreground">
+                Заметка импортирована из VK. Правки сохранятся, но следующая синхронизация
+                вернёт текст и обложку из поста — чтобы закрепить свой вариант, отключите
+                синхронизацию или заведите отдельную новость кнопкой «Написать новость».
+              </div>
+            )}
+
+            {/* На узких экранах форма и просмотр по очереди, на широких — рядом */}
+            <div className="lg:hidden inline-flex rounded-xl border border-border/60 bg-card p-1 gap-1">
+              {(["edit", "preview"] as const).map((p) => (
+                <button
+                  key={p}
+                  onClick={() => setNewsPane(p)}
+                  className={cn(
+                    "h-8 px-3 rounded-lg text-xs font-semibold transition-colors",
+                    newsPane === p ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-accent",
                   )}
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className="text-xs text-muted-foreground">
-                        {n.published_at ? new Date(n.published_at).toLocaleDateString("ru-RU", { day: "numeric", month: "short", year: "numeric" }) : ""}
-                      </span>
+                >
+                  {p === "edit" ? "Редактор" : "Просмотр"}
+                </button>
+              ))}
+            </div>
+
+            <div className="grid lg:grid-cols-[minmax(0,1fr)_360px] gap-4 items-start">
+              {/* ── Форма ── */}
+              <div className={cn("space-y-3", newsPane === "preview" && "hidden lg:block")}>
+                <div className="bg-card rounded-2xl border border-border/60 p-4 space-y-3">
+                  <Field label="Заголовок">
+                    <input
+                      className={inputCls + " font-semibold"}
+                      value={newsDraft.title}
+                      onChange={(e) => patchNews({ title: e.target.value })}
+                      placeholder="Например: День открытых дверей 20 сентября"
+                      maxLength={200}
+                    />
+                  </Field>
+                  <div className="grid sm:grid-cols-2 gap-3">
+                    <Field label="Адрес (латиницей)">
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-[11px] text-muted-foreground shrink-0">/news/</span>
+                        <input
+                          className={inputCls + " font-mono text-xs"}
+                          value={newsDraft.vk_post_id}
+                          onChange={(e) => patchNews({ vk_post_id: e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, "-") })}
+                          onBlur={(e) => { if (!e.target.value.trim()) patchNews({ vk_post_id: slugifyRu(newsDraft.title) }); }}
+                          placeholder={slugifyRu(newsDraft.title || "avtomaticheski-iz-zagolovka")}
+                          disabled={newsDraft.fromVk}
+                          title={newsDraft.fromVk ? "У новости из VK адрес — id поста, его менять нельзя" : "Оставьте пустым — возьмём из заголовка"}
+                        />
+                      </div>
+                    </Field>
+                    <Field label="Дата публикации">
+                      <div className="flex items-center gap-1.5">
+                        <input
+                          type="datetime-local"
+                          className={inputCls}
+                          value={newsDraft.published_at}
+                          onChange={(e) => patchNews({ published_at: e.target.value })}
+                        />
+                        <button
+                          type="button"
+                          onClick={() => patchNews({ published_at: toLocalInput(null) })}
+                          className="h-10 px-2.5 rounded-lg border border-border text-xs text-muted-foreground hover:bg-accent shrink-0"
+                          title="Поставить текущие дату и время"
+                        >
+                          <Clock className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </Field>
+                  </div>
+                  <Field label="Краткое описание (для ленты и поиска)">
+                    <textarea
+                      rows={2}
+                      className={inputCls + " h-auto py-2 leading-snug"}
+                      value={newsDraft.excerpt}
+                      onChange={(e) => patchNews({ excerpt: e.target.value })}
+                      maxLength={400}
+                      placeholder="2–3 предложения: что произошло и кому это интересно."
+                    />
+                  </Field>
+                  <p className="text-[11px] text-muted-foreground -mt-1">
+                    {newsDraft.excerpt.trim() ? `${newsDraft.excerpt.length} из 400` : "Оставите пустым — возьмём начало текста."}
+                  </p>
+                </div>
+
+                {/* Обложка */}
+                <div className="bg-card rounded-2xl border border-border/60 p-4 space-y-2.5">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Обложка</p>
+                  <div className="flex items-start gap-3">
+                    <div className="relative w-28 h-20 rounded-xl overflow-hidden border border-border bg-brand-cream/60 shrink-0 flex items-center justify-center">
+                      {newsDraft.image_url ? (
+                        <>
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img src={newsDraft.image_url} alt="" className="w-full h-full object-cover" />
+                          <button
+                            type="button"
+                            onClick={() => patchNews({ image_url: "" })}
+                            className="absolute right-1 top-1 p-1 rounded-md bg-black/55 text-white hover:bg-black/75"
+                            title="Убрать обложку"
+                          >
+                            <X className="w-3 h-3" />
+                          </button>
+                        </>
+                      ) : (
+                        <ImagePlus className="w-6 h-6 text-muted-foreground/40" />
+                      )}
                     </div>
-                    <p className="text-sm font-medium text-foreground line-clamp-2">{n.title}</p>
-                    {n.excerpt && <p className="text-xs text-muted-foreground mt-1 line-clamp-1 sm:line-clamp-2">{n.excerpt}</p>}
+                    <div className="flex-1 min-w-0 space-y-2">
+                      <div className="flex flex-wrap gap-2">
+                        <button type="button" onClick={() => { rememberCaret(); setPickerFor({ kind: "news", index: -1 }); }} className={btnSecondaryCls + " !h-9 !px-3 text-xs"}>
+                          <ImageIcon className="w-4 h-4" /> Из загруженных
+                        </button>
+                        <label className={btnSecondaryCls + " !h-9 !px-3 text-xs cursor-pointer"}>
+                          <Upload className="w-4 h-4" /> Загрузить файл
+                          <input
+                            ref={newsFileRef}
+                            type="file"
+                            accept="image/*"
+                            className="hidden"
+                            onChange={(e) => { const f = e.target.files?.[0]; if (f) uploadNewsImage(f, "cover"); }}
+                          />
+                        </label>
+                        {newsBusy && <Loader2 className="w-4 h-4 animate-spin text-muted-foreground self-center" />}
+                      </div>
+                      <input
+                        className={inputCls + " text-xs font-mono"}
+                        value={newsDraft.image_url}
+                        onChange={(e) => patchNews({ image_url: e.target.value })}
+                        placeholder="или вставьте ссылку https://…"
+                      />
+                    </div>
                   </div>
                 </div>
-                <div className="flex items-center gap-2 mt-2 sm:mt-0 sm:self-start">
-                  <label className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
-                    <input type="checkbox" checked={n.visible !== false} onChange={(e) => toggleNewsVisible(n.id, e.target.checked)} className="w-3.5 h-3.5" />
-                    видна
+
+                {/* Текст */}
+                <div className="bg-card rounded-2xl border border-border/60 p-4 space-y-2.5">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Текст новости</p>
+                    <p className="text-[11px] text-muted-foreground">
+                      {(newsDraft.content.length / 1000).toFixed(1)}k символов
+                      {newsWords > 0 && ` · ~${Math.max(1, Math.round(newsWords / 180))} мин чтения`}
+                    </p>
+                  </div>
+
+                  {/* Панель форматирования — простые действия, без «изучи markdown» */}
+                  <div className="flex flex-wrap items-center gap-1 -mx-1 px-1 pb-1 border-b border-border/50">
+                    {[
+                      { t: "Жирный (Ctrl+B)", icon: <b className="text-sm leading-none">Ж</b>, on: () => mdWrap("**", "**", "жирный") },
+                      { t: "Курсив (Ctrl+I)", icon: <i className="text-sm leading-none font-serif">К</i>, on: () => mdWrap("*", "*", "курсив") },
+                      { t: "Заголовок раздела", icon: <span className="text-[11px] font-bold leading-none">H2</span>, on: () => mdLinePrefix("## ") },
+                      { t: "Список", icon: <List className="w-4 h-4" />, on: () => mdLinePrefix("- ") },
+                      { t: "Цитата", icon: <Quote className="w-4 h-4" />, on: () => mdLinePrefix("> ") },
+                      { t: "Ссылка (Ctrl+K)", icon: <Link2 className="w-4 h-4" />, on: mdLink },
+                    ].map((b, i) => (
+                      <button
+                        key={i}
+                        type="button"
+                        title={b.t}
+                        onMouseDown={(e) => e.preventDefault() /* не терять выделение в textarea */}
+                        onClick={b.on}
+                        className="h-8 min-w-8 px-1.5 rounded-lg hover:bg-accent text-foreground inline-flex items-center justify-center"
+                      >
+                        {b.icon}
+                      </button>
+                    ))}
+                    <span className="w-px h-5 bg-border/70 mx-1" aria-hidden />
+                    <button
+                      type="button"
+                      title="Фото в текст (встанет отдельным блоком с подписью)"
+                      onMouseDown={rememberCaret}
+                      onClick={() => { rememberCaret(); setPickerFor({ kind: "newsBody", index: -1 }); }}
+                      className="h-8 px-2 rounded-lg hover:bg-accent text-foreground inline-flex items-center gap-1 text-xs"
+                    >
+                      <ImageIcon className="w-4 h-4" /> Фото
+                    </button>
+                    <label
+                      className="h-8 px-2 rounded-lg hover:bg-accent text-foreground inline-flex items-center gap-1 text-xs cursor-pointer"
+                      title="Загрузить фото с компьютера и вставить в текст"
+                      onMouseDown={rememberCaret}
+                    >
+                      <Upload className="w-4 h-4" /> Файл
+                      <input
+                        ref={newsBodyFileRef}
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={(e) => { const f = e.target.files?.[0]; if (f) { rememberCaret(); uploadNewsImage(f, "body"); } }}
+                      />
+                    </label>
+                  </div>
+
+                  <textarea
+                    ref={newsBodyRef}
+                    rows={14}
+                    className={inputCls + " h-auto py-3 leading-relaxed resize-y font-sans text-sm"}
+                    value={newsDraft.content}
+                    onChange={(e) => patchNews({ content: e.target.value })}
+                    onKeyDown={onNewsBodyKeyDown}
+                    onSelect={rememberCaret}
+                    placeholder={"Расскажите, что произошло.\n\nПустая строка — новый абзац.\n\n- можно списком\n## и заголовком раздела\n\nФото и ссылки добавляются кнопками выше."}
+                  />
+                  <p className="text-[11px] text-muted-foreground">
+                    Формат: <code className="font-mono">**жирный**</code>, <code className="font-mono">*курсив*</code>,{" "}
+                    <code className="font-mono">- список</code>, <code className="font-mono">## заголовок</code>,{" "}
+                    <code className="font-mono">&gt; цитата</code>. HTML вставлять нельзя — текст на сайте экранируется.
+                  </p>
+                </div>
+
+                <div className="bg-card rounded-2xl border border-border/60 p-4 space-y-3">
+                  <label className="inline-flex items-center gap-2.5 text-sm cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={newsDraft.visible}
+                      onChange={(e) => patchNews({ visible: e.target.checked })}
+                      className="w-4 h-4"
+                    />
+                    Показывать на сайте
                   </label>
-                  {n.source_url && (
-                    <a href={n.source_url} target="_blank" rel="noopener noreferrer" className="p-1.5 rounded-lg hover:bg-accent text-muted-foreground" title="Открыть в VK">
-                      <ExternalLink className="w-3.5 h-3.5" />
-                    </a>
-                  )}
-                  <button onClick={() => deleteNewsItem(n.id)} className="p-1.5 rounded-lg hover:bg-destructive/10 text-destructive" title="Удалить">
-                    <Trash2 className="w-3.5 h-3.5" />
-                  </button>
+                  <Field label="Ссылка на пост (необязательно)">
+                    <input
+                      className={inputCls + " text-xs"}
+                      value={newsDraft.source_url}
+                      onChange={(e) => patchNews({ source_url: e.target.value })}
+                      placeholder="https://vk.com/wall-…_… — тогда внизу появится «Обсудить в VK»"
+                    />
+                  </Field>
                 </div>
               </div>
-            ))}
+
+              {/* ── Живой предпросмотр: тот же код, что рендерит /news/[id] ── */}
+              <div className={cn(newsPane === "edit" && "hidden lg:block", "lg:sticky lg:top-28")}>
+                <p className="text-[11px] uppercase tracking-wide text-muted-foreground mb-2 flex items-center gap-1.5">
+                  <Eye className="w-3.5 h-3.5" /> Так это увидят на сайте
+                </p>
+                <div className="bg-card rounded-2xl border border-border/60 p-4 sm:p-5 max-h-[calc(100vh-11rem)] overflow-y-auto">
+                  <div className="flex items-center gap-2 text-xs text-muted-foreground mb-2">
+                    <span>{new Date(newsPreviewItem.published_at).toLocaleDateString("ru-RU", { day: "numeric", month: "long", year: "numeric" })}</span>
+                    <NewsSourceBadge item={newsPreviewItem} />
+                  </div>
+                  <h3 className="font-display font-extrabold text-xl sm:text-2xl text-foreground text-balance leading-tight">
+                    {newsPreviewItem.title}
+                  </h3>
+                  {newsPreviewItem.image_url && (
+                    <div className="mt-4 rounded-xl overflow-hidden border border-border/60 bg-brand-cream/50">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={newsPreviewItem.image_url} alt="" className="w-full object-contain max-h-64" />
+                    </div>
+                  )}
+                  {newsPreviewItem.excerpt && !newsPreviewItem.content && (
+                    <p className="mt-3 text-sm text-muted-foreground italic">{newsPreviewItem.excerpt}</p>
+                  )}
+                  <NewsBody item={newsPreviewItem} className="mt-4 text-sm [&_*]:text-inherit" />
+                  {!newsPreviewItem.content && !newsPreviewItem.excerpt && (
+                    <p className="mt-4 text-sm text-muted-foreground/60 italic">Текст пока пуст…</p>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {tab === "news" && !newsDraft && (
+          <div className="space-y-4">
+            <div className="bg-card rounded-2xl border border-border/60 p-4 sm:p-5 space-y-3">
+              <div className="flex flex-wrap items-center gap-2">
+                <button onClick={openNewsNew} className={btnCls}>
+                  <Plus className="w-4 h-4" /> Написать новость
+                </button>
+                <button onClick={syncVK} disabled={syncing} className={btnSecondaryCls}>
+                  {syncing ? <Loader2 className="w-4 h-4 animate-spin" /> : <RefreshCw className="w-4 h-4" />}
+                  {syncing ? "Синхронизация…" : "Загрузить из VK"}
+                </button>
+                <label className={btnSecondaryCls + " cursor-pointer"}>
+                  <Upload className="w-4 h-4" /> Импорт JSON
+                  <input
+                    type="file"
+                    accept="application/json,.json"
+                    className="hidden"
+                    onChange={(e) => { const f = e.target.files?.[0]; if (f) importNews(f); if (e.target) e.target.value = ""; }}
+                  />
+                </label>
+                <button onClick={exportNews} className={btnSecondaryCls}>
+                  <Download className="w-4 h-4" /> Экспорт
+                </button>
+                <span className="ml-auto text-xs text-muted-foreground tabular-nums">
+                  всего {news.length} · видно {news.filter((n) => n.visible !== false).length}
+                </span>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                «Написать новость» — свой текст с фото и форматированием. «Загрузить из VK» —
+                подтянуть свежие посты группы; они помечены «из VK» и правятся отдельно.
+              </p>
+              <details className="text-sm">
+                <summary className="cursor-pointer text-xs text-muted-foreground hover:text-foreground">
+                  Настройки синхронизации VK
+                </summary>
+                <div className="mt-2 grid sm:grid-cols-[minmax(0,1fr)_auto] gap-2 items-end">
+                  <Field label="VK-домен сообщества (необязательно)">
+                    <input className={inputCls} value={vkDomain} onChange={(e) => setVkDomain(e.target.value)} placeholder="sfera_gk" />
+                  </Field>
+                  <p className="text-[11px] text-muted-foreground pb-2">
+                    Пусто — возьмём из настроек сайта.
+                  </p>
+                </div>
+              </details>
+            </div>
+
+            {news.length === 0 && !syncing && (
+              <div className="bg-card rounded-2xl border border-dashed border-border p-8 text-center">
+                <Newspaper className="w-8 h-8 mx-auto text-muted-foreground/40 mb-3" />
+                <p className="text-sm text-muted-foreground">
+                  Новостей пока нет. Напишите свою — или подтяните посты из группы ВКонтакте.
+                </p>
+              </div>
+            )}
+
+            <div className="space-y-2.5">
+              {news.map((n: any) => {
+                const key = newsKey(n);
+                return (
+                  <div
+                    key={key || String(n.id)}
+                    className="bg-card rounded-2xl border border-border/60 p-2.5 sm:p-3 flex flex-wrap sm:flex-nowrap items-start gap-3 hover:border-brand-warm/40 transition-colors"
+                  >
+                    <div className="w-16 h-12 sm:w-20 sm:h-14 rounded-lg overflow-hidden border border-border bg-brand-cream/60 shrink-0 flex items-center justify-center">
+                      {n.image_url ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={n.image_url} alt="" className="w-full h-full object-cover" loading="lazy" />
+                      ) : (
+                        <ImageIcon className="w-4 h-4 text-muted-foreground/40" />
+                      )}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm font-semibold text-foreground leading-snug line-clamp-2">{n.title}</p>
+                      <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] text-muted-foreground">
+                        <span className="tabular-nums">
+                          {n.published_at ? new Date(n.published_at).toLocaleDateString("ru-RU", { day: "numeric", month: "short", year: "numeric" }) : "без даты"}
+                        </span>
+                        <NewsSourceBadge item={n} />
+                        {n.visible === false && <span className="text-destructive">скрыта</span>}
+                        {key && <code className="font-mono text-[10px] text-muted-foreground/70 truncate max-w-[160px]">{newsUrl(n)}</code>}
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-1 shrink-0 ml-auto sm:ml-0">
+                      <label className="inline-flex items-center gap-1.5 text-xs text-muted-foreground mr-1 cursor-pointer" title="Показывать на сайте">
+                        <input type="checkbox" checked={n.visible !== false} onChange={(e) => toggleNewsVisible(String(n.id), e.target.checked)} className="w-3.5 h-3.5" />
+                        <span className="hidden sm:inline">видна</span>
+                      </label>
+                      <button onClick={() => openNewsEdit(n)} className="p-2 rounded-lg hover:bg-accent text-muted-foreground hover:text-foreground" title="Редактировать">
+                        <Pencil className="w-4 h-4" />
+                      </button>
+                      {key && (
+                        <a href={newsUrl(n)} target="_blank" rel="noopener noreferrer" className="p-2 rounded-lg hover:bg-accent text-muted-foreground" title="Открыть на сайте">
+                          <ExternalLink className="w-4 h-4" />
+                        </a>
+                      )}
+                      <button onClick={() => deleteNewsItem(String(n.id))} className="p-2 rounded-lg hover:bg-destructive/10 text-destructive" title="Удалить">
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
           </div>
         )}
 
@@ -1580,6 +2201,8 @@ export default function AdminPage() {
                     if (kind === "teacher" && teachers[index]) return teachers[index].photo;
                     if (kind === "program" && programs[index]) return programs[index].image;
                     if (kind === "schedule" && schedule[index]) return schedule[index].image;
+                    if (kind === "blog" && blogPosts[index]) return blogPosts[index].cover;
+                    if (kind === "news" && newsDraft) return newsDraft.image_url;
                     return "";
                   })();
                   const filter = (s: string) => !pickerFilter || s.toLowerCase().includes(pickerFilter.toLowerCase());

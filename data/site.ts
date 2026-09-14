@@ -95,8 +95,14 @@ export type Review = {
   childInfo?: string;
 };
 
+/** Абсолютный адрес сайта: один источник для metadataBase, OG-ссылок и sitemap.
+ *  Раньше домен был продублирован литералом в layout.tsx и sitemap.ts. */
+export const SITE_ORIGIN = "https://sfera-goryachiy-klyuch.ru";
+
 export type NewsItem = {
+  /** Ключ URL: числовой id поста VK либо slug для новости, написанной на сайте. */
   vk_post_id: string;
+  id?: number | string;
   title: string;
   content: string;
   excerpt: string;
