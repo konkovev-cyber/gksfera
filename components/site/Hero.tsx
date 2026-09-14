@@ -92,6 +92,23 @@ export function Hero() {
   // Защита от выхода за границы после изменения набора в админке
   const safeIdx = heroImages.length > 0 ? activeImg % heroImages.length : 0;
 
+  /**
+   * Соотношения сторон реально загруженных фото. Рамка hero подстраивается под
+   * отношение текущего снимка: раньше жёсткий 4:5 отрезал 35% ширины альбомного
+   * фото (по краям как раз дети), а на xl — 19%. Кламп не даёт экстремальным
+   * панорамам и портретам раскачивать вёрстку.
+   */
+  const [photoRatios, setPhotoRatios] = useState<Record<string, number>>({});
+  const noteRatio = (src: string, el: HTMLImageElement | null) => {
+    if (!el?.naturalWidth || !el?.naturalHeight) return;
+    const r = el.naturalWidth / el.naturalHeight;
+    setPhotoRatios((prev) => (prev[src] && Math.abs(prev[src] - r) < 0.01 ? prev : { ...prev, [src]: r }));
+  };
+  const clamp = (v: number, a: number, b: number) => Math.min(b, Math.max(a, v));
+  // Диапазон 0.85…1.5: между стартовым 4:5 и типовым 5:4 — так обрезка сходится
+  // к нулю, но рамка остаётся в пределах макета на любом фото из админки.
+  const frameRatio = clamp(photoRatios[heroImages[safeIdx]] ?? 1.25, 0.85, 1.5);
+
   return (
     <section
       className="relative py-20 md:py-28 lg:py-32 pt-24 md:pt-32 overflow-hidden"
@@ -239,15 +256,14 @@ export function Hero() {
             transition={{ duration: 0.7, delay: 0.25, ease: [0.22, 1, 0.36, 1] }}
             onMouseMove={onTiltMove}
             onMouseLeave={onTiltLeave}
-            style={
-              fineMotion
-                ? { rotateX: rotX, rotateY: rotY, transformPerspective: 1200 }
-                : undefined
-            }
-            className="relative aspect-[4/5] sm:aspect-[5/4] lg:aspect-[4/5] xl:aspect-square will-change-transform"
+            style={{
+              aspectRatio: String(frameRatio),
+              ...(fineMotion ? { rotateX: rotX, rotateY: rotY, transformPerspective: 1200 } : null),
+            }}
+            className="relative aspect-[5/4] will-change-transform transition-[aspect-ratio] duration-700 ease-out"
           >
             <div className="absolute inset-0 rounded-3xl overflow-hidden shadow-2xl ring-1 ring-black/5 bg-muted" data-hero-rotate>
-              {/* Ротация фото: кроссфейд + медленный Ken Burns (scale). */}
+              {/* Ротация фото: кроссфейд + очень медленное «дыхание» кадра. */}
               <AnimatePresence>
                 {heroImages.map((src, i) =>
                   i === safeIdx ? (
@@ -259,16 +275,12 @@ export function Hero() {
                       exit={{ opacity: 0 }}
                       transition={{ duration: 1.4, ease: "easeInOut" }}
                     >
-                      <motion.div
-                        className="absolute inset-0"
-                        initial={false}
-                        animate={
-                          fineMotion
-                            ? { scale: heroImages.length > 1 ? [1.02, 1.12] : 1 }
-                            : { scale: 1 }
-                        }
-                        transition={{ duration: 8, ease: "linear" }}
-                      >
+                      {/* «Дыхание» кадра — CSS-анимация (hero-breathe), а не
+                          framer: на keyframes с repeat: Infinity framer доходил
+                          до 1.05 и останавливался. Плюс режим «уменьшить
+                          движение» выключает эффект средствами CSS — без
+                          расхождения SSR и клиента. */}
+                      <div className="absolute inset-0 hero-breathe">
                         <Image
                           src={src}
                           alt={content.heroContent.imageAlt}
@@ -276,8 +288,9 @@ export function Hero() {
                           priority={i === 0}
                           sizes="(max-width: 1024px) 100vw, 50vw"
                           className="object-cover"
+                          onLoad={(e) => noteRatio(src, e.currentTarget)}
                         />
-                      </motion.div>
+                      </div>
                     </motion.div>
                   ) : null,
                 )}

@@ -196,6 +196,22 @@
   .animate-marquee { animation-duration: 90s !important; }
 }
 
+/* «Дыхание» фото в первом экране: очень слабое приближение (до 5%) и назад,
+   18 секунд на цикл — читается как живость кадра, а не как зум. Стартовая
+   точка scale(1) важна: в этот момент кадр показан целиком, без обрезки. */
+@keyframes hero-breathe {
+  0%   { transform: scale(1); }
+  50%  { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}
+.hero-breathe {
+  animation: hero-breathe 18s ease-in-out infinite;
+  will-change: transform;
+}
+@media (prefers-reduced-motion: reduce) {
+  .hero-breathe { animation: none; }
+}
+
 @keyframes text-shimmer {
   to {
     background-position: 200% center;
