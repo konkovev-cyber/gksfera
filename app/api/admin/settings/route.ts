@@ -21,6 +21,7 @@ export async function GET() {
     learningExperience: data.learningExperience,
     teachers: data.teachers,
     faqs: data.faqs,
+    schedule: data.schedule,
     programs: data.programs,
     gallery: data.gallery,
     parentPains: data.parentPains,
@@ -43,6 +44,7 @@ export async function PUT(req: NextRequest) {
     learningExperience?: Record<string, unknown>;
     teachers?: unknown[];
     faqs?: unknown[];
+    schedule?: unknown[];
     parentPains?: unknown[];
     resultsAfterLearning?: unknown[];
     trustStats?: unknown[];
@@ -106,6 +108,15 @@ export async function PUT(req: NextRequest) {
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
+  if (body.schedule && Array.isArray(body.schedule)) {
+    const { error } = await db.from("site_settings").upsert({
+      key: "schedule",
+      value: body.schedule,
+      updated_at: new Date().toISOString(),
+    });
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+
   if (body.parentPains && Array.isArray(body.parentPains)) {
     const { error } = await db.from("site_settings").upsert({
       key: "parentPains",
@@ -152,5 +163,6 @@ export async function PUT(req: NextRequest) {
   }
 
   revalidatePath("/");
+  revalidatePath("/raspisanie");
   return NextResponse.json({ ok: true });
 }

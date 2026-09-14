@@ -120,6 +120,21 @@ export type GalleryItem = {
   pos?: string;
 };
 
+/** Урок в расписании: время начала, опциональное время окончания, предмет. */
+export type ScheduleLesson = { time: string; end?: string; subject: string };
+/** Один день недели со списком уроков. */
+export type ScheduleDay = { day: string; lessons: ScheduleLesson[] };
+/** Группа (поток) с расписанием по дням и опциональной картинкой для печати. */
+export type ScheduleGroup = {
+  id: string;
+  title: string;
+  /** Короткая подпись под заголовком группы (возраст, «с 1 по 4 класс» и т.п.). */
+  note?: string;
+  /** URL картинки-расписания (для печати/скачивания). Опционально. */
+  image?: string;
+  days: ScheduleDay[];
+};
+
 export type EventItem = {
   id: string;
   date: string;
@@ -560,6 +575,7 @@ export const parentOptions: ParentOption[] = [
 export const navItems = [
   { label: "О студии", href: "#about" },
   { label: "Направления", href: "#programs" },
+  { label: "Расписание", href: "/raspisanie" },
   { label: "Галерея", href: "#gallery" },
   { label: "Отзывы", href: "/reviews", show: () => siteConfig.showReviews },
   { label: "Новости", href: "/news" },
@@ -571,6 +587,7 @@ export const footerLinks = {
   navigation: [
     { label: "О студии", href: "#about" },
     { label: "Направления", href: "#programs" },
+    { label: "Расписание", href: "/raspisanie" },
     { label: "Галерея", href: "#gallery" },
     { label: "Отзывы", href: "/reviews" },
     { label: "Новости", href: "/news" },
@@ -612,6 +629,60 @@ export const programInterestMap: Record<string, string> = {
 };
 
 export const news: NewsItem[] = [];
+
+/**
+ * Расписание занятий по группам. Не показывается на главной — только на
+ * странице /raspisanie (пункт меню «Расписание»). Полностью редактируется в
+ * админке (вкладка «Расписание»): можно менять группы, дни, уроки, времена и
+ * загружать картинку-расписание для печати.
+ */
+export const schedule: ScheduleGroup[] = [
+  {
+    id: "junior",
+    title: "Младшая группа",
+    note: "Подготовка к школе",
+    days: [
+      {
+        day: "Понедельник",
+        lessons: [
+          { time: "8:30", subject: "Письмо и русский язык" },
+          { time: "9:50", subject: "Английский язык" },
+          { time: "10:45", subject: "Математика" },
+          { time: "11:40", end: "12:25", subject: "Чтение" },
+        ],
+      },
+      {
+        day: "Вторник",
+        lessons: [
+          { time: "8:30", subject: "Письмо и русский язык" },
+          { time: "9:50", subject: "Музыка" },
+          { time: "10:45", subject: "Математика" },
+          { time: "11:40", subject: "Чтение" },
+          { time: "12:35", end: "13:20", subject: "Окружающий мир" },
+        ],
+      },
+      {
+        day: "Среда",
+        lessons: [
+          { time: "8:30", subject: "Письмо и русский язык" },
+          { time: "9:50", subject: "Окружающий мир" },
+          { time: "10:45", subject: "Математика" },
+          { time: "11:40", subject: "Рисование" },
+          { time: "12:35", end: "13:20", subject: "Чтение" },
+        ],
+      },
+      {
+        day: "Четверг",
+        lessons: [
+          { time: "8:55", subject: "Письмо и русский язык" },
+          { time: "9:50", subject: "Геометрия" },
+          { time: "10:45", subject: "Английский язык" },
+          { time: "11:40", end: "12:25", subject: "Чтение" },
+        ],
+      },
+    ],
+  },
+];
 
 export const faqs: FAQItem[] = [
   {

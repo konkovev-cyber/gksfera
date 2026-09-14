@@ -27,7 +27,7 @@ export function MobileCTA() {
   if (!visible) return null;
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-40 md:hidden">
+    <div id="mobile-cta" className="fixed bottom-0 left-0 right-0 z-40 md:hidden print:hidden">
       <div className="bg-background/95 backdrop-blur-xl border-t border-border shadow-[0_-4px_20px_-4px_rgba(0,0,0,0.1)] px-3 py-2.5 pb-[max(0.625rem,env(safe-area-inset-bottom))]">
         <div className="flex items-center gap-2">
           <a

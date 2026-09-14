@@ -218,3 +218,16 @@
   scrollbar-width: thin;
   scrollbar-color: hsl(var(--border)) transparent;
 }
+
+/* Печать страницы «Расписание» (и вообще сайта): убираем интерфейсную
+   обвязку и лишние отступы, чтобы на лист попадало только содержимое. */
+@media print {
+  header, footer, #mobile-cta { display: none !important; }
+  main { padding-top: 0 !important; padding-bottom: 0 !important; min-height: 0 !important; }
+  body { background: #fff !important; color: #000 !important; }
+  /* Не допечатывать URL после ссылок и не рвать строку урока на две страницы. */
+  a[href]::after { content: "" !important; }
+  li, .print-avoid-break { break-inside: avoid; }
+  /* Тёмная тема на печати не нужна — форсируем светлое содержимое блоков. */
+  [data-theme="dark"] body { background: #fff !important; }
+}

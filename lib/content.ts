@@ -1,6 +1,6 @@
 import { createClient } from "@supabase/supabase-js";
 import * as defaults from "@/data/site";
-import type { Program, GalleryItem, Review, NewsItem, FAQItem } from "@/data/site";
+import type { Program, GalleryItem, Review, NewsItem, FAQItem, ScheduleGroup } from "@/data/site";
 
 export type SiteData = typeof defaults;
 
@@ -56,6 +56,7 @@ export async function getContent(): Promise<{
     programOutcomes: { ...defaults.programOutcomes },
     studioMotto: defaults.studioMotto,
     news: [...defaults.news] as NewsItem[],
+    schedule: [...defaults.schedule] as ScheduleGroup[],
   };
 
   const visibility: Visibility = {
@@ -113,6 +114,8 @@ export async function getContent(): Promise<{
         data.teachers = value as typeof defaults.teachers;
       } else if (key === "faqs" && Array.isArray(value)) {
         data.faqs = value as FAQItem[];
+      } else if (key === "schedule" && Array.isArray(value)) {
+        data.schedule = value as ScheduleGroup[];
       } else if (key === "parentPains" && Array.isArray(value)) {
         data.parentPains = value as typeof defaults.parentPains;
       } else if (key === "resultsAfterLearning" && Array.isArray(value)) {

@@ -6,13 +6,13 @@ import {
   Loader2, Save, Upload, Trash2, LogOut, ArrowUp, ArrowDown,
   Settings, Image as ImageIcon, LayoutDashboard, Inbox, School,
   Eye, Star, BookOpen, Search, Download, Plus, Newspaper, RefreshCw, ExternalLink, X,
-  GraduationCap, HelpCircle, PenTool, Play,
+  GraduationCap, HelpCircle, PenTool, Play, CalendarDays, Clock, Copy,
 } from "lucide-react";
 import { gallery as defaultGallery } from "@/data/site";
 import { compressImageFile, isVideoSrc, humanSize, IMAGE_MAX, VIDEO_MAX } from "@/lib/compress";
 
 type Tab = "settings" | "hero" | "visibility" | "programs" | "gallery" |
-  "teachers" | "reviews" | "learning" | "faq" | "blog" | "news" | "seo" | "io" | "inbox" | "blocks";
+  "teachers" | "reviews" | "learning" | "faq" | "blog" | "news" | "seo" | "io" | "inbox" | "blocks" | "schedule";
 
 const TABS: { id: Tab; label: string; icon: any; hint: string }[] = [
   { id: "settings", label: "Настройки", icon: Settings, hint: "Реквизиты студии: название, телефон, адрес, соцсети, часы работы. Используются в шапке, подвале и на контактах." },
@@ -20,6 +20,7 @@ const TABS: { id: Tab; label: string; icon: any; hint: string }[] = [
   { id: "visibility", label: "Видимость", icon: Eye, hint: "Включать и скрывать целые разделы главной страницы (блок, форма, карта и т.д.) без удаления контента." },
   { id: "blocks", label: "Контент", icon: LayoutDashboard, hint: "Дополнительные блоки главной: «с какой задачей пришли», результаты занятий, цифры доверия и девиз студии." },
   { id: "programs", label: "Направления", icon: School, hint: "Карточки учебных и творческих направлений (страницы /programs/…). Название, описание, возраст, цена, фото." },
+  { id: "schedule", label: "Расписание", icon: CalendarDays, hint: "Расписание занятий по группам (страница /raspisanie, пункт меню «Расписание»). Дни, уроки, время и картинка для печати. На главной не показывается." },
   { id: "gallery", label: "Галерея", icon: ImageIcon, hint: "Фото и видео для раздела «Жизнь „Сферы“». Здесь загрузка (можно сразу несколько), порядок и подпись. На главной — карусель из 4 + кнопка «Смотреть все фото»." },
   { id: "teachers", label: "Педагоги", icon: GraduationCap, hint: "Карточки преподавателей: имя, роль, описание, опыт и фото (блок на главной и страница педагогов)." },
   { id: "reviews", label: "Отзывы", icon: Star, hint: "Отзывы родителей — свои или импорт из группы ВКонтакте. Показываются в блоке отзывов и на /reviews." },
@@ -129,6 +130,7 @@ export default function AdminPage() {
   const [learning, setLearning] = useState<{ title: string; description: string; steps: any[] }>({ title: "", description: "", steps: [] });
   const [teachers, setTeachers] = useState<any[]>([]);
   const [faqs, setFaqs] = useState<any[]>([]);
+  const [schedule, setSchedule] = useState<any[]>([]);
   const [parentPains, setParentPains] = useState<any[]>([]);
   const [resultsAfterLearning, setResultsAfterLearning] = useState<string[]>([]);
   const [trustStats, setTrustStats] = useState<any[]>([]);
@@ -140,7 +142,7 @@ export default function AdminPage() {
   const [blogPosts, setBlogPosts] = useState<any[]>([]);
   const [syncing, setSyncing] = useState(false);
   const [vkDomain, setVkDomain] = useState("");
-  const [pickerFor, setPickerFor] = useState<null | { kind: "program" | "hero" | "heroList" | "step" | "teacher"; index: number }>(null);
+  const [pickerFor, setPickerFor] = useState<null | { kind: "program" | "hero" | "heroList" | "step" | "teacher" | "schedule"; index: number }>(null);
   const [pickerFiles, setPickerFiles] = useState<{ src: string; size: number }[]>([]);
   const [pickerFilter, setPickerFilter] = useState("");
 
@@ -168,6 +170,7 @@ export default function AdminPage() {
     setLearning(s.learningExperience ?? { title: "", description: "", steps: [] });
     setTeachers(s.teachers ?? []);
     setFaqs(s.faqs ?? []);
+    setSchedule(s.schedule ?? []);
     setParentPains(s.parentPains ?? []);
     setResultsAfterLearning(s.resultsAfterLearning ?? []);
     setTrustStats(s.trustStats ?? []);
@@ -192,7 +195,7 @@ export default function AdminPage() {
     setSaving(true);
     const res = await fetch("/api/admin/settings", {
       method: "PUT", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ settings: siteConfig, hero, visibility, learningExperience: learning, teachers, faqs, parentPains, resultsAfterLearning, trustStats, programOutcomes, studioMotto }),
+      body: JSON.stringify({ settings: siteConfig, hero, visibility, learningExperience: learning, teachers, faqs, schedule, parentPains, resultsAfterLearning, trustStats, programOutcomes, studioMotto }),
     });
     setSaving(false);
     flash(res.ok ? "Сохранено ✓" : "Ошибка");
@@ -345,6 +348,46 @@ export default function AdminPage() {
     const j = i + dir; if (j < 0 || j >= arr.length) return;
     const copy = [...arr]; [copy[i], copy[j]] = [copy[j], copy[i]]; setter(copy);
   };
+
+  // ─── Расписание: вложенные хелперы (группы → дни → уроки) ───
+  const moveIn = <T,>(arr: T[], i: number, dir: -1 | 1): T[] => {
+    const j = i + dir; if (j < 0 || j >= arr.length) return arr;
+    const copy = [...arr]; [copy[i], copy[j]] = [copy[j], copy[i]]; return copy;
+  };
+  const patchGroup = (gi: number, patch: Record<string, unknown>) =>
+    setSchedule((prev) => prev.map((g, j) => (j === gi ? { ...g, ...patch } : g)));
+  const addGroup = () =>
+    setSchedule((prev) => [...prev, { id: `grp-${Date.now()}`, title: "Новая группа", note: "", days: [] }]);
+  const removeGroup = (gi: number) => setSchedule((prev) => prev.filter((_, j) => j !== gi));
+  const duplicateGroup = (gi: number) =>
+    setSchedule((prev) => {
+      const g = prev[gi];
+      const copy = {
+        ...g,
+        id: `grp-${Date.now()}`,
+        title: `${g.title || "Группа"} (копия)`,
+        days: (g.days ?? []).map((d: any) => ({ ...d, lessons: [...(d.lessons ?? [])] })),
+      };
+      const out = [...prev]; out.splice(gi + 1, 0, copy); return out;
+    });
+  // дни
+  const setDays = (gi: number, days: any[]) => patchGroup(gi, { days });
+  const addDay = (gi: number) =>
+    patchGroup(gi, { days: [...(schedule[gi].days ?? []), { day: "День недели", lessons: [{ time: "", subject: "" }] }] });
+  const patchDay = (gi: number, di: number, patch: Record<string, unknown>) =>
+    patchGroup(gi, { days: (schedule[gi].days ?? []).map((d: any, k: number) => (k === di ? { ...d, ...patch } : d)) });
+  const removeDay = (gi: number, di: number) =>
+    setDays(gi, ((schedule[gi].days ?? []) as any[]).filter((_: any, k: number) => k !== di));
+  const moveDay = (gi: number, di: number, dir: -1 | 1) => setDays(gi, moveIn(schedule[gi].days ?? [], di, dir));
+  // уроки
+  const patchLesson = (gi: number, di: number, li: number, patch: Record<string, unknown>) =>
+    patchDay(gi, di, { lessons: (schedule[gi].days[di].lessons ?? []).map((l: any, k: number) => (k === li ? { ...l, ...patch } : l)) });
+  const addLesson = (gi: number, di: number) =>
+    patchDay(gi, di, { lessons: [...(schedule[gi].days[di].lessons ?? []), { time: "", subject: "" }] });
+  const removeLesson = (gi: number, di: number, li: number) =>
+    patchDay(gi, di, { lessons: ((schedule[gi].days[di].lessons ?? []) as any[]).filter((_: any, k: number) => k !== li) });
+  const moveLesson = (gi: number, di: number, li: number, dir: -1 | 1) =>
+    patchDay(gi, di, { lessons: moveIn(schedule[gi].days[di].lessons ?? [], li, dir) });
 
   const doExport = async () => {
     const res = await fetch("/api/admin/export");
@@ -523,12 +566,14 @@ export default function AdminPage() {
       setLearning((p) => ({ ...p, steps: p.steps.map((s, j) => (j === index ? { ...s, image: src } : s)) }));
     } else if (kind === "teacher") {
       setTeachers((prev) => prev.map((x, j) => (j === index ? { ...x, photo: src } : x)));
+    } else if (kind === "schedule") {
+      setSchedule((prev) => prev.map((x, j) => (j === index ? { ...x, image: src } : x)));
     }
     setPickerFor(null);
     flash("Фото выбрано ✓");
   };
 
-  const pickBtn = (kind: "program" | "hero" | "heroList" | "step" | "teacher", index: number, label = "Выбрать") => (
+  const pickBtn = (kind: "program" | "hero" | "heroList" | "step" | "teacher" | "schedule", index: number, label = "Выбрать") => (
     <button
       type="button"
       onClick={() => { setPickerFor({ kind, index }); if (pickerFiles.length === 0) fetch("/api/admin/files").then(r => r.ok ? r.json() : null).then(j => setPickerFiles(j?.files ?? [])); }}
@@ -1090,6 +1135,88 @@ export default function AdminPage() {
           </div>
         )}
 
+        {/* ─── Schedule ─── */}
+        {tab === "schedule" && (
+          <div className="space-y-4">
+            <div className="bg-card rounded-2xl border border-border/60 p-4">
+              <p className="text-sm text-muted-foreground">
+                Расписание показывается на странице <code className="text-[11px] px-1 bg-accent rounded">/raspisanie</code> (пункт меню «Расписание») и <b>не</b> появляется на главной.
+                Группа → дни недели → уроки. У каждого урока — время начала, при желании время окончания («до …») и предмет.
+                Можно загрузить картинку-расписание — она выводится под таблицей группы, её удобно скачать и распечатать.
+              </p>
+            </div>
+
+            {schedule.map((g, gi) => (
+              <div key={g.id ?? gi} className="bg-card rounded-2xl border border-border/60 p-4 sm:p-5 space-y-4">
+                <div className="grid sm:grid-cols-2 gap-3">
+                  <Field label="Название группы"><input className={inputCls} value={g.title ?? ""} onChange={(e) => patchGroup(gi, { title: e.target.value })} placeholder="Например: Младшая группа" /></Field>
+                  <Field label="Подпись под названием (необязательно)"><input className={inputCls} value={g.note ?? ""} onChange={(e) => patchGroup(gi, { note: e.target.value })} placeholder="Например: подготовка к школе" /></Field>
+                </div>
+
+                <Field label="Картинка для печати (необязательно)">
+                  <div className="flex flex-wrap items-center gap-2">
+                    {g.image ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={g.image} alt="" className="h-16 w-auto max-w-[160px] rounded-lg border border-border object-contain bg-background" />
+                    ) : (
+                      <span className="text-xs text-muted-foreground">не задана</span>
+                    )}
+                    {pickBtn("schedule", gi, g.image ? "Заменить" : "Выбрать картинку")}
+                    {g.image && (
+                      <button type="button" onClick={() => patchGroup(gi, { image: undefined })} className="h-10 px-3 rounded-lg border border-border hover:bg-destructive/10 hover:text-destructive text-sm inline-flex items-center gap-1.5">
+                        <X className="w-4 h-4" /> Убрать
+                      </button>
+                    )}
+                  </div>
+                </Field>
+
+                <div className="space-y-3">
+                  <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Дни недели</div>
+                  {(g.days ?? []).map((d: any, di: number) => (
+                    <div key={di} className="rounded-xl border border-border/60 bg-background/50 p-3 space-y-2">
+                      <div className="flex items-center gap-2">
+                        <input className={inputCls + " flex-1"} value={d.day ?? ""} onChange={(e) => patchDay(gi, di, { day: e.target.value })} placeholder="Понедельник" />
+                        <button type="button" onClick={() => moveDay(gi, di, -1)} className="p-2 rounded-lg hover:bg-accent" title="Выше"><ArrowUp className="w-4 h-4" /></button>
+                        <button type="button" onClick={() => moveDay(gi, di, 1)} className="p-2 rounded-lg hover:bg-accent" title="Ниже"><ArrowDown className="w-4 h-4" /></button>
+                        <button type="button" onClick={() => removeDay(gi, di)} className="p-2 rounded-lg hover:bg-destructive/10 text-destructive" title="Удалить день"><Trash2 className="w-4 h-4" /></button>
+                      </div>
+                      <div className="space-y-1.5">
+                        {(d.lessons ?? []).map((l: any, li: number) => (
+                          <div key={li} className="flex items-center gap-2">
+                            <Clock className="w-4 h-4 text-muted-foreground shrink-0" />
+                            <input className={inputCls + " w-20 shrink-0"} value={l.time ?? ""} onChange={(e) => patchLesson(gi, di, li, { time: e.target.value })} placeholder="8:30" inputMode="numeric" />
+                            <span className="text-muted-foreground text-xs shrink-0">до</span>
+                            <input className={inputCls + " w-20 shrink-0"} value={l.end ?? ""} onChange={(e) => patchLesson(gi, di, li, { end: e.target.value })} placeholder="—" inputMode="numeric" />
+                            <input className={inputCls + " flex-1"} value={l.subject ?? ""} onChange={(e) => patchLesson(gi, di, li, { subject: e.target.value })} placeholder="Математика" />
+                            <button type="button" onClick={() => moveLesson(gi, di, li, -1)} className="p-1.5 rounded-lg hover:bg-accent text-muted-foreground" title="Выше"><ArrowUp className="w-3.5 h-3.5" /></button>
+                            <button type="button" onClick={() => moveLesson(gi, di, li, 1)} className="p-1.5 rounded-lg hover:bg-accent text-muted-foreground" title="Ниже"><ArrowDown className="w-3.5 h-3.5" /></button>
+                            <button type="button" onClick={() => removeLesson(gi, di, li)} className="p-1.5 rounded-lg hover:bg-destructive/10 text-destructive" title="Удалить урок"><X className="w-4 h-4" /></button>
+                          </div>
+                        ))}
+                        <button type="button" onClick={() => addLesson(gi, di)} className="inline-flex items-center gap-1 text-xs font-semibold text-brand-warm hover:underline mt-1"><Plus className="w-3.5 h-3.5" /> Добавить урок</button>
+                      </div>
+                    </div>
+                  ))}
+                  <button type="button" onClick={() => addDay(gi)} className={btnSecondaryCls + " !h-9 text-xs"}><Plus className="w-4 h-4" /> Добавить день</button>
+                </div>
+
+                <div className="flex flex-wrap items-center gap-1 pt-1 border-t border-border/50">
+                  <span className="text-xs text-muted-foreground mr-auto">Группа {gi + 1} из {schedule.length}</span>
+                  <button type="button" onClick={() => move(schedule, gi, -1, setSchedule)} className="p-2 rounded-lg hover:bg-accent" title="Группу выше"><ArrowUp className="w-4 h-4" /></button>
+                  <button type="button" onClick={() => move(schedule, gi, 1, setSchedule)} className="p-2 rounded-lg hover:bg-accent" title="Группу ниже"><ArrowDown className="w-4 h-4" /></button>
+                  <button type="button" onClick={() => duplicateGroup(gi)} className="p-2 rounded-lg hover:bg-accent" title="Дублировать группу"><Copy className="w-4 h-4" /></button>
+                  <button type="button" onClick={() => removeGroup(gi)} className="p-2 rounded-lg hover:bg-destructive/10 text-destructive" title="Удалить группу"><Trash2 className="w-4 h-4" /></button>
+                </div>
+              </div>
+            ))}
+
+            <div className="flex flex-col sm:flex-row gap-3">
+              <button onClick={addGroup} className={btnCls + " bg-card border border-border text-foreground hover:bg-accent"}><Plus className="w-4 h-4" /> Добавить группу</button>
+              <button onClick={saveSettings} disabled={saving} className={btnCls}>{saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />} Сохранить расписание</button>
+            </div>
+          </div>
+        )}
+
         {/* ─── Blog ─── */}
         {tab === "blog" && (
           <div className="space-y-4">
@@ -1291,6 +1418,7 @@ export default function AdminPage() {
                     if (kind === "heroList") return Array.isArray(hero.images) ? (hero.images[index] ?? "") : "";
                     if (kind === "teacher" && teachers[index]) return teachers[index].photo;
                     if (kind === "program" && programs[index]) return programs[index].image;
+                    if (kind === "schedule" && schedule[index]) return schedule[index].image;
                     return "";
                   })();
                   const filter = (s: string) => !pickerFilter || s.toLowerCase().includes(pickerFilter.toLowerCase());
