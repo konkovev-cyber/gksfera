@@ -14,22 +14,22 @@ import { compressImageFile, isVideoSrc, humanSize, IMAGE_MAX, VIDEO_MAX } from "
 type Tab = "settings" | "hero" | "visibility" | "programs" | "gallery" |
   "teachers" | "reviews" | "learning" | "faq" | "blog" | "news" | "seo" | "io" | "inbox" | "blocks";
 
-const TABS: { id: Tab; label: string; icon: any }[] = [
-  { id: "settings", label: "Настройки", icon: Settings },
-  { id: "hero", label: "Экран", icon: LayoutDashboard },
-  { id: "visibility", label: "Видимость", icon: Eye },
-  { id: "blocks", label: "Контент", icon: LayoutDashboard },
-  { id: "programs", label: "Направления", icon: School },
-  { id: "gallery", label: "Галерея", icon: ImageIcon },
-  { id: "teachers", label: "Педагоги", icon: GraduationCap },
-  { id: "reviews", label: "Отзывы", icon: Star },
-  { id: "learning", label: "Занятия", icon: BookOpen },
-  { id: "faq", label: "Вопросы", icon: HelpCircle },
-  { id: "blog", label: "Блог", icon: PenTool },
-  { id: "news", label: "Новости VK", icon: Newspaper },
-  { id: "seo", label: "SEO", icon: Search },
-  { id: "io", label: "Импорт", icon: Download },
-  { id: "inbox", label: "Заявки", icon: Inbox },
+const TABS: { id: Tab; label: string; icon: any; hint: string }[] = [
+  { id: "settings", label: "Настройки", icon: Settings, hint: "Реквизиты студии: название, телефон, адрес, соцсети, часы работы. Используются в шапке, подвале и на контактах." },
+  { id: "hero", label: "Экран", icon: LayoutDashboard, hint: "Первый экран главной страницы: заголовок, подзаголовок, кнопки и ротация фотографий (показывается со сменой кадров)." },
+  { id: "visibility", label: "Видимость", icon: Eye, hint: "Включать и скрывать целые разделы главной страницы (блок, форма, карта и т.д.) без удаления контента." },
+  { id: "blocks", label: "Контент", icon: LayoutDashboard, hint: "Дополнительные блоки главной: «с какой задачей пришли», результаты занятий, цифры доверия и девиз студии." },
+  { id: "programs", label: "Направления", icon: School, hint: "Карточки учебных и творческих направлений (страницы /programs/…). Название, описание, возраст, цена, фото." },
+  { id: "gallery", label: "Галерея", icon: ImageIcon, hint: "Фото и видео для раздела «Жизнь „Сферы“». Здесь загрузка (можно сразу несколько), порядок и подпись. На главной — карусель из 4 + кнопка «Смотреть все фото»." },
+  { id: "teachers", label: "Педагоги", icon: GraduationCap, hint: "Карточки преподавателей: имя, роль, описание, опыт и фото (блок на главной и страница педагогов)." },
+  { id: "reviews", label: "Отзывы", icon: Star, hint: "Отзывы родителей — свои или импорт из группы ВКонтакте. Показываются в блоке отзывов и на /reviews." },
+  { id: "learning", label: "Занятия", icon: BookOpen, hint: "Секция «Как проходят занятия» на главной: заголовок и пошаговый путь (шаги с описанием и фото). Это не расписание, а как устроены занятия." },
+  { id: "faq", label: "Вопросы", icon: HelpCircle, hint: "Частые вопросы и ответы (раскрывающийся список на главной и страница вопросов)." },
+  { id: "blog", label: "Блог", icon: PenTool, hint: "Статьи блога: заголовок, анонс, текст, обложка и дата. Выводятся в разделе блога и на /blog." },
+  { id: "news", label: "Новости VK", icon: Newspaper, hint: "Новости из группы ВКонтакте (синхронизация по API). Лента на главной и архив /news." },
+  { id: "seo", label: "SEO", icon: Search, hint: "Метаданные для поиска и соцсетей: title, description, Open Graph — чтобы сайт красиво открывался по ссылке и ранжировался." },
+  { id: "io", label: "Импорт", icon: Download, hint: "Резервная копия и перенос всего контента в JSON (или отдельно только новостей). Для бэкапа или миграции на другой проект." },
+  { id: "inbox", label: "Заявки", icon: Inbox, hint: "Обращения с формы «Записаться»: имя, телефон, направление, комментарий. Приходит из формы на сайте и из Telegram." },
 ];
 
 const VIS_LABELS: Record<string, string> = {
@@ -571,14 +571,31 @@ export default function AdminPage() {
       <div className="max-w-5xl mx-auto px-3 sm:px-4 py-4 sm:py-6">
         {/* Навигация по вкладкам: сетка, которая переносится на всех
             размерах экрана — ни одна вкладка не прячется за скроллом. */}
-        <nav className="flex flex-wrap gap-1.5 sm:gap-2 mb-5">
+        <nav className="flex flex-wrap gap-1.5 sm:gap-2 mb-4">
           {TABS.map((t) => (
-            <button key={t.id} onClick={() => setTab(t.id)}
+            <button key={t.id} onClick={() => setTab(t.id)} title={t.hint}
               className={"inline-flex items-center gap-1.5 h-9 px-2.5 sm:px-3 rounded-full text-xs sm:text-sm font-medium transition-colors whitespace-nowrap shrink-0 " + (tab === t.id ? "bg-primary text-primary-foreground" : "bg-card border border-border hover:bg-accent")}>
               <t.icon className="w-4 h-4 shrink-0" /><span>{t.label}</span>
             </button>
           ))}
         </nav>
+
+        {/* Подсказка: что редактирует текущий раздел и где это на сайте */}
+        {(() => {
+          const cur = TABS.find((t) => t.id === tab);
+          if (!cur) return null;
+          return (
+            <div className="flex items-start gap-3 mb-5 rounded-2xl border border-border/60 bg-accent/50 px-4 py-3">
+              <span className="mt-0.5 inline-flex w-8 h-8 rounded-xl bg-primary/10 text-primary items-center justify-center shrink-0">
+                <cur.icon className="w-5 h-5" />
+              </span>
+              <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed pt-1">
+                <span className="font-semibold text-foreground">{cur.label}. </span>
+                {cur.hint}
+              </p>
+            </div>
+          );
+        })()}
 
         {/* ─── Настройки ─── */}
         {tab === "settings" && (
