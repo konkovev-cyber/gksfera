@@ -62,7 +62,8 @@ export async function PUT(req: NextRequest) {
   } | null;
   if (!body?.items) return NextResponse.json({ error: "bad body" }, { status: 400 });
 
-  await db.from("reviews").delete().neq("id", 0);
+  const { error: delErr } = await db.from("reviews").delete().neq("id", 0);
+  if (delErr) return NextResponse.json({ error: delErr.message }, { status: 500 });
   if (body.items.length > 0) {
     const rows = body.items.map((r, i) => ({
       author: r.author,

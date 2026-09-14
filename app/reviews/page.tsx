@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Quote, ExternalLink } from "lucide-react";
 import { getContent } from "@/lib/content";
+import { ldScript } from "@/lib/utils";
 import { ContentProvider } from "@/components/site/ContentContext";
 import { Header } from "@/components/site/Header";
 import { Footer } from "@/components/site/Footer";
@@ -49,7 +50,7 @@ export default async function ReviewsPage() {
       <main className="min-h-screen pt-28 md:pt-36 pb-20">
         <script
           type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+          dangerouslySetInnerHTML={{ __html: ldScript(jsonLd) }}
         />
         <div className="container-max">
           <p className="text-sm font-semibold uppercase tracking-widest text-brand-warm mb-2">

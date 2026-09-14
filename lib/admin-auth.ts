@@ -6,11 +6,16 @@ const COOKIE_NAME = "sfera_admin";
 const MAX_AGE_S = 60 * 60 * 24 * 7; // 7 дней
 
 function secret(): string {
-  return (
+  const s =
     process.env.ADMIN_SECRET ||
-    process.env.SUPABASE_SERVICE_ROLE_KEY ||
-    "dev-insecure-secret"
-  );
+    process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!s) {
+    // Молчаливый дефолт позволял подделать админ-cookie офлайн.
+    throw new Error(
+      "ADMIN_SECRET не задан: установите случайный секрет в переменных окружения (иначе сессии админки небезопасны).",
+    );
+  }
+  return s;
 }
 
 export function makeToken(): string {

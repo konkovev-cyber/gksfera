@@ -9,6 +9,63 @@ import { useContent } from "./ContentContext";
 import { Reveal } from "./Reveal";
 import { cn } from "@/lib/utils";
 import { isVideoSrc } from "@/lib/compress";
+import type { GalleryItem } from "@/data/site";
+
+// Плитка карусели — на уровне модуля, чтобы не пересоздаваться при каждом
+// ре-рендере Gallery (иначе <Image>/<video> перемонтировались бы при скролле).
+function Tile({
+  item,
+  i,
+  onOpen,
+}: {
+  item: GalleryItem;
+  i: number;
+  onOpen: (i: number) => void;
+}) {
+  const video = isVideoSrc(item.src);
+  return (
+    <button
+      data-card
+      onClick={() => onOpen(i)}
+      className={cn(
+        "group relative shrink-0 snap-start aspect-[4/5] w-[74%] min-[420px]:w-[52%] sm:w-[46%] md:w-[calc((100%-2rem)/3)] lg:w-[calc((100%-3rem)/4)] rounded-2xl overflow-hidden bg-muted cursor-pointer",
+      )}
+      aria-label={`${video ? "Открыть видео" : "Открыть фото"}: ${item.alt}`}
+    >
+      {video ? (
+        <video
+          src={item.src}
+          muted
+          playsInline
+          preload="metadata"
+          className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+          style={item.pos ? { objectPosition: item.pos } : undefined}
+        />
+      ) : (
+        <Image
+          src={item.src}
+          alt={item.alt}
+          fill
+          sizes="(max-width: 640px) 74vw, (max-width: 768px) 46vw, (max-width: 1024px) 33vw, 25vw"
+          className="object-cover transition-transform duration-500 group-hover:scale-110"
+          style={item.pos ? { objectPosition: item.pos } : undefined}
+        />
+      )}
+      {video && (
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+          <div className="w-14 h-14 rounded-full bg-black/50 backdrop-blur-sm flex items-center justify-center border-2 border-white/70 group-hover:bg-black/70 group-hover:scale-110 transition-all">
+            <Play className="w-6 h-6 text-white fill-white ml-1" />
+          </div>
+        </div>
+      )}
+      <div className="absolute inset-0 bg-foreground/0 group-hover:bg-foreground/20 transition-colors duration-300 flex items-center justify-center">
+        {!video && (
+          <ZoomIn className="w-8 h-8 text-white opacity-0 group-hover:opacity-80 transition-opacity" />
+        )}
+      </div>
+    </button>
+  );
+}
 
 export function Gallery() {
   const content = useContent();
@@ -25,13 +82,13 @@ export function Gallery() {
     setLightboxIndex((prev) =>
       prev === null ? null : (prev - 1 + content.gallery.length) % content.gallery.length
     );
-  }, []);
+  }, [content.gallery.length]);
   const goNext = useCallback(() => {
     setZoomed(false);
     setLightboxIndex((prev) =>
       prev === null ? null : (prev + 1) % content.gallery.length
     );
-  }, []);
+  }, [content.gallery.length]);
 
   useEffect(() => {
     if (lightboxIndex === null) return;
@@ -39,6 +96,10 @@ export function Gallery() {
       if (e.key === "Escape") closeLightbox();
       if (e.key === "ArrowLeft") goPrev();
       if (e.key === "ArrowRight") goNext();
+      // Пробел/Enter переключают зум, но только когда фокус НЕ на интерактивном
+      // элементе — иначе они глушат активацию собственных кнопок overlay.
+      const t = e.target as HTMLElement | null;
+      if (t && t.closest("button, a, [href], input, select, textarea, [tabindex]:not([tabindex='-1'])")) return;
       if (e.key === " " || e.key === "Enter") { e.preventDefault(); setZoomed((z) => !z); }
     };
     document.body.style.overflow = "hidden";
@@ -48,6 +109,15 @@ export function Gallery() {
       window.removeEventListener("keydown", onKey);
     };
   }, [lightboxIndex, closeLightbox, goPrev, goNext]);
+
+  // Если набор изменился (админ удалил фото при открытом окне) — закрываем,
+  // иначе индекс уходит за границы, а блокировка прокрутки повиснет.
+  useEffect(() => {
+    if (lightboxIndex !== null && !content.gallery[lightboxIndex]) {
+      setLightboxIndex(null);
+      setZoomed(false);
+    }
+  }, [lightboxIndex, content.gallery]);
 
   const handleTouchStart = (e: React.TouchEvent) => {
     touchRef.current = { startX: e.touches[0].clientX, startY: e.touches[0].clientY };
@@ -69,18 +139,34 @@ export function Gallery() {
     const el = scrollerRef.current;
     if (!el) return;
     const max = el.scrollWidth - el.clientWidth;
-    setEdges({
-      start: el.scrollLeft <= 4,
-      end: el.scrollLeft >= max - 4,
-      scrollable: max > 8,
-    });
+    const start = el.scrollLeft <= 4;
+    const end = el.scrollLeft >= max - 4;
+    const scrollable = max > 8;
+    // Возвращаем prev без изменений, если флаги совпали → не плодим ре-рендер
+    // на каждом событии scroll (иначе лента перерисовывалась бы при прокрутке).
+    setEdges((prev) =>
+      prev.start === start && prev.end === end && prev.scrollable === scrollable
+        ? prev
+        : { start, end, scrollable }
+    );
   }, []);
   useEffect(() => {
     updateEdges();
     const el = scrollerRef.current;
     if (!el) return;
-    el.addEventListener("resize", updateEdges);
-    return () => el.removeEventListener("resize", updateEdges);
+    // resize не эмитится обычным <div>, поэтому за размером ленты следим
+    // ResizeObserver'ом — иначе стрелки/состояние «до края» устаревали бы
+    // после поворота экрана/изменения ширины, пока пользователь не проскроллит.
+    let ro: ResizeObserver | undefined;
+    if (typeof ResizeObserver !== "undefined") {
+      ro = new ResizeObserver(() => updateEdges());
+      ro.observe(el);
+    } else {
+      window.addEventListener("resize", updateEdges);
+    }
+    return () => {
+      ro ? ro.disconnect() : window.removeEventListener("resize", updateEdges);
+    };
   }, [updateEdges, content.gallery.length]);
   const scrollByCards = (dir: 1 | -1) => {
     const el = scrollerRef.current;
@@ -89,52 +175,6 @@ export function Gallery() {
     const gap = parseFloat(getComputedStyle(el).columnGap || "16") || 16;
     const step = card ? card.clientWidth + gap : el.clientWidth * 0.8;
     el.scrollBy({ left: dir * step, behavior: "smooth" });
-  };
-
-  const Tile = ({ item, i }: { item: (typeof content.gallery)[number]; i: number }) => {
-    const video = isVideoSrc(item.src);
-    return (
-      <button
-        data-card
-        onClick={() => setLightboxIndex(i)}
-        className={cn(
-          "group relative shrink-0 snap-start aspect-[4/5] w-[74%] min-[420px]:w-[52%] sm:w-[46%] md:w-[calc((100%-2rem)/3)] lg:w-[calc((100%-3rem)/4)] rounded-2xl overflow-hidden bg-muted cursor-pointer",
-        )}
-        aria-label={`${video ? "Открыть видео" : "Открыть фото"}: ${item.alt}`}
-      >
-        {video ? (
-          <video
-            src={item.src}
-            muted
-            playsInline
-            preload="metadata"
-            className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-            style={item.pos ? { objectPosition: item.pos } : undefined}
-          />
-        ) : (
-          <Image
-            src={item.src}
-            alt={item.alt}
-            fill
-            sizes="(max-width: 640px) 74vw, (max-width: 768px) 46vw, (max-width: 1024px) 33vw, 25vw"
-            className="object-cover transition-transform duration-500 group-hover:scale-110"
-            style={item.pos ? { objectPosition: item.pos } : undefined}
-          />
-        )}
-        {video && (
-          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-            <div className="w-14 h-14 rounded-full bg-black/50 backdrop-blur-sm flex items-center justify-center border-2 border-white/70 group-hover:bg-black/70 group-hover:scale-110 transition-all">
-              <Play className="w-6 h-6 text-white fill-white ml-1" />
-            </div>
-          </div>
-        )}
-        <div className="absolute inset-0 bg-foreground/0 group-hover:bg-foreground/20 transition-colors duration-300 flex items-center justify-center">
-          {!video && (
-            <ZoomIn className="w-8 h-8 text-white opacity-0 group-hover:opacity-80 transition-opacity" />
-          )}
-        </div>
-      </button>
-    );
   };
 
   return (
@@ -182,10 +222,13 @@ export function Gallery() {
           <div
             ref={scrollerRef}
             onScroll={updateEdges}
-            className="mt-8 sm:mt-10 -mx-4 px-4 sm:mx-0 sm:px-0 flex gap-4 sm:gap-4 overflow-x-auto snap-x snap-mandatory scroll-smooth pb-4 scrollbar-hide overscroll-x-contain"
+            role="group"
+            aria-label="Галерея, прокручивается"
+            tabIndex={0}
+            className="mt-8 sm:mt-10 -mx-4 px-4 sm:mx-0 sm:px-0 flex gap-4 sm:gap-4 overflow-x-auto snap-x snap-mandatory scroll-smooth pb-4 scrollbar-hide overscroll-x-contain focus:outline-none focus-visible:ring-2 focus-visible:ring-ring/60 rounded-xl"
           >
             {content.gallery.map((item, i) => (
-              <Tile key={i} item={item} i={i} />
+              <Tile key={`${item.src}-${i}`} item={item} i={i} onOpen={(idx) => setLightboxIndex(idx)} />
             ))}
           </div>
         </Reveal>
@@ -218,7 +261,7 @@ export function Gallery() {
 
       {/* Lightbox */}
       <AnimatePresence>
-        {lightboxIndex !== null && (
+        {lightboxIndex !== null && content.gallery[lightboxIndex] && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -290,9 +333,8 @@ export function Gallery() {
                 <video
                   src={content.gallery[lightboxIndex].src}
                   controls
-                  autoPlay
                   playsInline
-                  poster=""
+                  preload="metadata"
                   className="w-full h-full max-h-[70vh] object-contain rounded-xl bg-black"
                 />
               ) : (

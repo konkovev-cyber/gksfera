@@ -24,6 +24,18 @@ export function Header() {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
+  // На десктопе drawer скрыт (lg:hidden), но его состояние могло остаться
+  // открытым после расширения окна — тогда body{overflow:hidden} вешался
+  // намертво и страница переставала скроллиться. Закрываем на брейкпоинте.
+  useEffect(() => {
+    const mq = window.matchMedia("(min-width: 1024px)");
+    const onChange = (e: MediaQueryListEvent) => {
+      if (e.matches) setMobileOpen(false);
+    };
+    mq.addEventListener("change", onChange);
+    return () => mq.removeEventListener("change", onChange);
+  }, []);
+
   useEffect(() => {
     if (mobileOpen) {
       document.body.style.overflow = "hidden";
@@ -41,7 +53,10 @@ export function Header() {
   ) => {
     if (href.startsWith("#")) {
       e.preventDefault();
-      const el = document.querySelector(href);
+      // querySelector бросает на невалидном CSS-селекторе (напр. «#2024») —
+      // проверяем форму якоря; иначе сразу ведём на главную к секции.
+      const valid = /^#[a-zA-Z_][\w-]*$/.test(href);
+      const el = valid ? document.querySelector(href) : null;
       if (el) {
         el.scrollIntoView({ behavior: "smooth", block: "start" });
       } else {

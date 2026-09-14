@@ -6,16 +6,16 @@ import { Reveal } from "./Reveal";
 import { useContent } from "./ContentContext";
 import { Calendar, ArrowRight, ChevronLeft, ChevronRight } from "lucide-react";
 
+const MONTHS_RU = ["января","февраля","марта","апреля","мая","июня","июля","августа","сентября","октября","ноября","декабря"];
+// Детерминированный формат: берём дату прямо из ISO-строки (без new Date/tz),
+// чтобы сервер и клиент рендерили одинаково (нет hydration-несоответствия) и
+// не печатали «Invalid Date» на пустом/битом значении.
 function formatDate(iso: string): string {
-  try {
-    return new Date(iso).toLocaleDateString("ru-RU", {
-      day: "numeric",
-      month: "long",
-      year: "numeric",
-    });
-  } catch {
-    return "";
-  }
+  const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(iso ?? "");
+  if (!m) return "";
+  const mo = Number(m[2]), d = Number(m[3]);
+  if (mo < 1 || mo > 12 || d < 1 || d > 31) return "";
+  return `${d} ${MONTHS_RU[mo - 1]} ${m[1]}`;
 }
 
 export function News() {
@@ -28,14 +28,29 @@ export function News() {
     const el = scrollerRef.current;
     if (!el) return;
     const max = el.scrollWidth - el.clientWidth;
-    setEdges({ start: el.scrollLeft <= 4, end: el.scrollLeft >= max - 4, scrollable: max > 8 });
+    const start = el.scrollLeft <= 4;
+    const end = el.scrollLeft >= max - 4;
+    const scrollable = max > 8;
+    setEdges((prev) =>
+      prev.start === start && prev.end === end && prev.scrollable === scrollable
+        ? prev
+        : { start, end, scrollable }
+    );
   }, []);
   useEffect(() => {
     updateEdges();
     const el = scrollerRef.current;
     if (!el) return;
-    el.addEventListener("resize", updateEdges);
-    return () => el.removeEventListener("resize", updateEdges);
+    let ro: ResizeObserver | undefined;
+    if (typeof ResizeObserver !== "undefined") {
+      ro = new ResizeObserver(() => updateEdges());
+      ro.observe(el);
+    } else {
+      window.addEventListener("resize", updateEdges);
+    }
+    return () => {
+      ro ? ro.disconnect() : window.removeEventListener("resize", updateEdges);
+    };
   }, [updateEdges, news?.length]);
   const scrollByCards = (dir: 1 | -1) => {
     const el = scrollerRef.current;
@@ -70,7 +85,7 @@ export function News() {
                 onClick={() => scrollByCards(-1)}
                 disabled={edges.start}
                 aria-label="Предыдущие новости"
-                className="hidden md:flex absolute left-1 lg:-left-4 top-[42%] -translate-y-1/2 z-10 w-11 h-11 rounded-full border-2 border-border bg-card text-foreground items-center justify-center shadow-lg transition-all hover:border-primary hover:text-primary disabled:opacity-0 disabled:pointer-events-none"
+                className="hidden md:flex absolute left-1 lg:-left-4 top-[42%] -translate-y-1/2 z-10 w-11 h-11 rounded-full border-2 border-border bg-card text-foreground items-center justify-center shadow-lg transition-all hover:border-primary hover:text-primary disabled:opacity-40 disabled:hover:border-border disabled:hover:text-foreground"
               >
                 <ChevronLeft className="w-5 h-5" />
               </button>
@@ -78,7 +93,7 @@ export function News() {
                 onClick={() => scrollByCards(1)}
                 disabled={edges.end}
                 aria-label="Следующие новости"
-                className="hidden md:flex absolute right-1 lg:-right-4 top-[42%] -translate-y-1/2 z-10 w-11 h-11 rounded-full border-2 border-border bg-card text-foreground items-center justify-center shadow-lg transition-all hover:border-primary hover:text-primary disabled:opacity-0 disabled:pointer-events-none"
+                className="hidden md:flex absolute right-1 lg:-right-4 top-[42%] -translate-y-1/2 z-10 w-11 h-11 rounded-full border-2 border-border bg-card text-foreground items-center justify-center shadow-lg transition-all hover:border-primary hover:text-primary disabled:opacity-40 disabled:hover:border-border disabled:hover:text-foreground"
               >
                 <ChevronRight className="w-5 h-5" />
               </button>
@@ -90,7 +105,10 @@ export function News() {
             <div
               ref={scrollerRef}
               onScroll={updateEdges}
-              className="flex gap-5 overflow-x-auto snap-x snap-mandatory scroll-smooth pb-4 -mx-4 px-4 sm:mx-0 sm:px-0 scrollbar-hide overscroll-x-contain"
+              role="group"
+              aria-label="Лента новостей, прокручивается"
+              tabIndex={0}
+              className="flex gap-5 overflow-x-auto snap-x snap-mandatory scroll-smooth pb-4 -mx-4 px-4 sm:mx-0 sm:px-0 scrollbar-hide overscroll-x-contain focus:outline-none focus-visible:ring-2 focus-visible:ring-ring/60 rounded-xl"
             >
               {news.map((item, i) => (
                 <div

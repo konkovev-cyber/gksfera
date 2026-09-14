@@ -7,7 +7,7 @@ import {
   Sparkles, Phone, CheckCircle2, MessageCircle, MapPin, Star, Wallet,
 } from "lucide-react";
 import { getContent } from "@/lib/content";
-import { slugify } from "@/lib/utils";
+import { slugify, ldScript } from "@/lib/utils";
 import { ContentProvider } from "@/components/site/ContentContext";
 import { Header } from "@/components/site/Header";
 import { Footer } from "@/components/site/Footer";
@@ -91,7 +91,7 @@ export default async function ProgramPage({ params }: Props) {
         <div className="container-max max-w-5xl">
           <script
             type="application/ld+json"
-            dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+            dangerouslySetInnerHTML={{ __html: ldScript(jsonLd) }}
           />
 
           {/* Хлебные крошки */}

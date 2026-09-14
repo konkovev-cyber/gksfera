@@ -42,7 +42,12 @@ export async function PUT(req: NextRequest) {
   if (!body?.items) return NextResponse.json({ error: "bad body" }, { status: 400 });
 
   const db = service();
+  const problems: string[] = [];
   for (const item of body.items) {
+    if (!item.slug || !item.title) {
+      problems.push(`пропущен: пустой slug/title (${item.slug || "—"})`);
+      continue;
+    }
     const row = {
       slug: item.slug,
       title: item.title,
@@ -53,18 +58,29 @@ export async function PUT(req: NextRequest) {
       visible: item.visible !== false,
     };
 
-    if (item.id) {
-      await db.from("blog_posts").update(row).eq("id", item.id);
-    } else {
-      const { data: existing } = await db.from("blog_posts").select("id").eq("slug", item.slug).maybeSingle();
-      if (existing?.id) {
-        await db.from("blog_posts").update(row).eq("id", existing.id);
+    try {
+      if (item.id) {
+        const { error } = await db.from("blog_posts").update(row).eq("id", item.id);
+        if (error) problems.push(`update ${item.slug}: ${error.message}`);
       } else {
-        await db.from("blog_posts").insert(row);
+        const { data: existing, error: selErr } = await db
+          .from("blog_posts").select("id").eq("slug", item.slug).maybeSingle();
+        if (selErr) { problems.push(`check ${item.slug}: ${selErr.message}`); continue; }
+        const { error } = existing?.id
+          ? await db.from("blog_posts").update(row).eq("id", existing.id)
+          : await db.from("blog_posts").insert(row);
+        if (error) problems.push(`save ${item.slug}: ${error.message}`);
       }
+    } catch (e) {
+      problems.push(`${item.slug}: ${String(e)}`);
     }
   }
 
+  // Раньше ошибки терялись молча (например, уникальность slug при гонке),
+  // и админ видел «сохранено» при незаписанных данных. Теперь сообщаем честно.
+  if (problems.length > 0) {
+    return NextResponse.json({ error: problems.join("; ") }, { status: 500 });
+  }
   return NextResponse.json({ ok: true });
 }
 
@@ -74,6 +90,7 @@ export async function DELETE(req: NextRequest) {
   const id = new URL(req.url).searchParams.get("id");
   if (!id) return NextResponse.json({ error: "missing id" }, { status: 400 });
   const db = service();
-  await db.from("blog_posts").delete().eq("id", id);
+  const { error } = await db.from("blog_posts").delete().eq("id", id);
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
   return NextResponse.json({ ok: true });
 }

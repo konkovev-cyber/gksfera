@@ -130,9 +130,10 @@ export async function POST(req: NextRequest) {
   // gallery_photos: очистить и вставить заново
   const photos = body.photos as Record<string, unknown>[] | undefined;
   if (Array.isArray(photos)) {
-    await db.from("gallery_photos").delete().neq("id", 0);
+    const { error: delErr } = await db.from("gallery_photos").delete().neq("id", 0);
+    if (delErr) return NextResponse.json({ error: "очистка фото: " + delErr.message }, { status: 500 });
     if (photos.length > 0) {
-      await db.from("gallery_photos").insert(
+      const { error } = await db.from("gallery_photos").insert(
         photos.map((p, i) => ({
           src: String(p.src),
           alt: String(p.alt ?? ""),
@@ -141,6 +142,7 @@ export async function POST(req: NextRequest) {
           sort_order: Number(p.sort_order ?? i + 1),
         }))
       );
+      if (error) return NextResponse.json({ error: "импорт фото: " + error.message }, { status: 500 });
     }
   }
 
@@ -167,29 +169,37 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  // reviews: очистить и вставить заново
+  // reviews: очистить и вставить заново.
+  // Важно: колонки таблицы — author/source/source_url/child_info, а НЕ name/rating.
+  // Прежний маппинг в несуществующие колонки падал с ошибкой, которую глушили,
+  // НО удаление до этого уже выполнялось → импорт бэкапа стирал все отзывы.
   const reviews = body.reviews as Record<string, unknown>[] | undefined;
   if (Array.isArray(reviews)) {
-    await db.from("reviews").delete().neq("id", 0);
+    const { error: delErr } = await db.from("reviews").delete().neq("id", 0);
+    if (delErr) return NextResponse.json({ error: "очистка отзывов: " + delErr.message }, { status: 500 });
     if (reviews.length > 0) {
-      await db.from("reviews").insert(
+      const { error } = await db.from("reviews").insert(
         reviews.map((r, i) => ({
-          name: String(r.name ?? ""),
+          author: String(r.author ?? r.name ?? ""),
+          source: String(r.source ?? ""),
+          source_url: String(r.source_url ?? ""),
           text: String(r.text ?? ""),
-          rating: Number(r.rating ?? 5),
+          child_info: String(r.child_info ?? r.childInfo ?? ""),
           visible: r.visible !== false,
           sort_order: Number(r.sort_order ?? i + 1),
         }))
       );
+      if (error) return NextResponse.json({ error: "импорт отзывов: " + error.message }, { status: 500 });
     }
   }
 
   // news: очистить и вставить заново
   const news = body.news as Record<string, unknown>[] | undefined;
   if (Array.isArray(news)) {
-    await db.from("news").delete().neq("id", 0);
+    const { error: delErr } = await db.from("news").delete().neq("id", 0);
+    if (delErr) return NextResponse.json({ error: "очистка новостей: " + delErr.message }, { status: 500 });
     if (news.length > 0) {
-      await db.from("news").insert(
+      const { error } = await db.from("news").insert(
         news.map((n) => ({
           vk_post_id: n.vk_post_id ? String(n.vk_post_id) : null,
           title: String(n.title ?? ""),
@@ -201,6 +211,7 @@ export async function POST(req: NextRequest) {
           visible: n.visible !== false,
         }))
       );
+      if (error) return NextResponse.json({ error: "импорт новостей: " + error.message }, { status: 500 });
     }
   }
 

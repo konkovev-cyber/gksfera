@@ -27,21 +27,27 @@ const PHONE_MAX_24H = 4;           // не более N заявок с одно
 // Простой in-memory token-bucket по IP. Живёт в рамках «тёплого» экземпляра
 // функции — этого достаточно, чтобы срезать частые автоматические повторы.
 const ipHits = new Map<string, { n: number; reset: number }>();
+function pruneIps(now: number) {
+  if (ipHits.size > 2000) {
+    ipHits.forEach((v, k) => {
+      if (now > v.reset) ipHits.delete(k);
+    });
+  }
+}
 function tooManyFromIp(ip: string): boolean {
   const now = Date.now();
+  pruneIps(now);
   const hit = ipHits.get(ip);
   if (!hit || now > hit.reset) {
+    // Жёсткий кап: даже если всё ещё разрастаемся, вытесняем самое старое.
+    if (ipHits.size > 5000) {
+      const oldest = ipHits.keys().next().value;
+      if (oldest !== undefined) ipHits.delete(oldest);
+    }
     ipHits.set(ip, { n: 1, reset: now + IP_WINDOW_MS });
     return false;
   }
   hit.n += 1;
-  // профилактика разрастания карты
-  if (ipHits.size > 5000) {
-    const now2 = Date.now();
-    ipHits.forEach((v, k) => {
-      if (now2 > v.reset) ipHits.delete(k);
-    });
-  }
   return hit.n > IP_MAX;
 }
 
@@ -71,9 +77,12 @@ function validate(body: any): { ok: true; data: Clean } | { ok: false; status: n
     return { ok: false, status: 200, error: "" }; // молча дропаем (см. вызывающий код)
   }
 
-  // 2. Минимальное время заполнения (e.t — время рендера формы на клиенте)
-  const t = Number(body.t);
-  if (!Number.isFinite(t) || Date.now() - t < MIN_FILL_MS) {
+  // 2. Минимальное время заполнения: клиент шлёт elapsed (сколько мс форма
+  //    была открыта) — не абсолютную метку, чтобы расхождение часов клиента
+  //    с сервером не блокировало честных отправителей и не тривиализировало
+  //    проверку «значением из прошлого».
+  const elapsed = Number(body.elapsed);
+  if (!Number.isFinite(elapsed) || elapsed < MIN_FILL_MS) {
     return { ok: false, status: 400, error: "Слишком быстро. Попробуйте ещё раз." };
   }
 
@@ -93,9 +102,19 @@ function validate(body: any): { ok: true; data: Clean } | { ok: false; status: n
   if (!interest || interest.length > 120) {
     return { ok: false, status: 400, error: "Выберите направление." };
   }
-  const dig = digits(phoneRaw);
-  if (dig.length < 10 || dig.length > 12) {
+  // Контакт: допускается и телефон, и ник (Telegram/VK/WhatsApp — форма это
+  // явно разрешает). Жёстко проверяем формат только когда есть цифры.
+  if (phoneRaw.length < 3) {
+    return { ok: false, status: 400, error: "Укажите телефон или способ связи." };
+  }
+  const dg = digits(phoneRaw);
+  if (dg.length > 0 && (dg.length < 10 || dg.length > 13)) {
     return { ok: false, status: 400, error: "Похоже, номер указан неверно." };
+  }
+  // Согласие на обработку ПДн проверяем и на сервере (не только в браузере):
+  // это данные о детях, одобрение должно подтверждаться на бэкенде.
+  if (body.consent !== true) {
+    return { ok: false, status: 400, error: "Необходимо согласие на обработку данных." };
   }
   // Спам-маркеры в свободных полях: ссылки/URL почти всегда = бот-рассылка
   const linkRe = /(https?:\/\/|www\.|\.ru\/|\.com\/|\.xyz|t\.me\/|discord\.gg)/i;
@@ -118,24 +137,33 @@ function validate(body: any): { ok: true; data: Clean } | { ok: false; status: n
 
 export async function POST(request: Request) {
   try {
-    // только JSON, ограничиваем «размер» через проверку наличия полей
+    // Дешёвые гейты ДО чтения/парсинга тела — чтобы мусорный трафик не
+    // стоил полного буферизования и JSON.parse на каждый запрос.
+    const len = Number(request.headers.get("content-length"));
+    if (Number.isFinite(len) && len > 16 * 1024) {
+      return NextResponse.json({ error: "Слишком большой запрос." }, { status: 413 });
+    }
+
+    // 3. Rate-limit по IP (бэренс-фолбэк: если IP недоступен — общая корзина)
+    const ip =
+      (request.headers.get("x-real-ip") || "").trim() ||
+      (request.headers.get("x-forwarded-for") || "").split(",")[0].trim() ||
+      "shared";
+    if (tooManyFromIp(ip)) {
+      return NextResponse.json(
+        { error: "Слишком много заявок. Подождите несколько минут и попробуйте снова." },
+        { status: 429 }
+      );
+    }
+
     let body: any;
     try {
       body = await request.json();
     } catch {
       return NextResponse.json({ error: "Некорректный запрос" }, { status: 400 });
     }
-
-    // 3. Rate-limit по IP
-    const ip =
-      (request.headers.get("x-forwarded-for") || "").split(",")[0].trim() ||
-      request.headers.get("x-real-ip") ||
-      "unknown";
-    if (tooManyFromIp(ip)) {
-      return NextResponse.json(
-        { error: "Слишком много заявок. Подождите несколько минут и попробуйте снова." },
-        { status: 429 }
-      );
+    if (typeof body !== "object" || body === null) {
+      return NextResponse.json({ error: "Некорректный запрос" }, { status: 400 });
     }
 
     const v = validate(body);
@@ -148,11 +176,12 @@ export async function POST(request: Request) {
 
     // 4. Анти-дубль по телефону через БД (переживает перезапуск функции)
     const since = new Date(Date.now() - PHONE_DUP_MS).toISOString();
-    const { count: recent } = await supabaseAdmin
+    const { count: recent, error: eDup } = await supabaseAdmin
       .from("enrollments")
       .select("id", { count: "exact", head: true })
       .eq("phone", d.phone)
       .gte("created_at", since);
+    if (eDup) console.error("[enrollment] count-dup error:", eDup.message); // fail-open, но заметно в логах
     if ((recent ?? 0) >= 2) {
       return NextResponse.json(
         { error: "Заявка с этим номером уже отправлена. Мы свяжемся с вами — подождите, пожалуйста." },
@@ -160,11 +189,12 @@ export async function POST(request: Request) {
       );
     }
     const since24 = new Date(Date.now() - 24 * 60 * 60_000).toISOString();
-    const { count: perDay } = await supabaseAdmin
+    const { count: perDay, error: eDay } = await supabaseAdmin
       .from("enrollments")
       .select("id", { count: "exact", head: true })
       .eq("phone", d.phone)
       .gte("created_at", since24);
+    if (eDay) console.error("[enrollment] count-day error:", eDay.message);
     if ((perDay ?? 0) >= PHONE_MAX_24H) {
       return NextResponse.json(
         { error: "С этого номера слишком много заявок за сутки. Попробуйте позже или позвоните нам." },
@@ -186,14 +216,20 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Не удалось сохранить заявку. Попробуйте позже." }, { status: 500 });
     }
 
-    // Уведомление в Telegram (асинхронно, не блокирует ответ) — только валидным заявкам
-    sendTelegramNotification({
-      parentName: d.parent_name,
-      childAge: d.child_age,
-      interest: d.interest,
-      contact: d.phone,
-      comment: d.comment,
-    }).catch(() => {});
+    // Уведомление в Telegram — ждём ДО отправки ответа: на serverless экземпляр
+    // «змерзает» после flush-а ответа, и unfire-and-forget запрос терялся.
+    // Внутри — свой таймаут 4с, так что пользователя это не подвесит.
+    try {
+      await sendTelegramNotification({
+        parentName: d.parent_name,
+        childAge: d.child_age,
+        interest: d.interest,
+        contact: d.phone,
+        comment: d.comment,
+      });
+    } catch {
+      /* доставка не критична для ответа */
+    }
 
     return NextResponse.json({ ok: true });
   } catch (e) {

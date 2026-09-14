@@ -4,7 +4,7 @@ import { useState } from "react";
 import { ChevronDown } from "lucide-react";
 import { useContent } from "./ContentContext";
 import { Reveal } from "./Reveal";
-import { cn } from "@/lib/utils";
+import { cn, ldScript } from "@/lib/utils";
 
 function FAQItem({ question, answer, index }: { question: string; answer: string; index: number }) {
   const [open, setOpen] = useState(false);
@@ -50,7 +50,7 @@ export function FAQ() {
       <div className="container-max max-w-3xl">
         <script
           type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+          dangerouslySetInnerHTML={{ __html: ldScript(jsonLd) }}
         />
         <Reveal>
           <div className="text-center mb-10">

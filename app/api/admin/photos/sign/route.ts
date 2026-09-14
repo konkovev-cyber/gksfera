@@ -5,8 +5,12 @@ import { createClient } from "@supabase/supabase-js";
 const BUCKET = "media";
 const IMAGE_MAX = 20 * 1024 * 1024;  // 20MB
 const VIDEO_MAX = 50 * 1024 * 1024;  // 50MB
-const IMAGE_RE = /\.(jpe?g|png|webp|gif|avif)$/i;
-const VIDEO_RE = /\.(mp4|webm|mov|m4v|ogv)$/i;
+// Явные allowlist'ы. SVG/HTML исключены намеренно — могут содержать скрипт
+// и, будучи выложенными на доверенном хосте хранилища, дали бы stored-XSS.
+const IMAGE_EXT_RE = /\.(jpe?g|png|webp|gif|avif)$/i;
+const VIDEO_EXT_RE = /\.(mp4|webm|mov|m4v|ogv)$/i;
+const IMAGE_TYPES = /^image\/(jpeg|jpg|png|webp|gif|avif)$/i;
+const VIDEO_TYPES = /^video\/(mp4|webm|quicktime|x-m4v|ogg|ogv)$/i;
 
 /**
  * POST /api/admin/photos/sign
@@ -30,10 +34,15 @@ export async function POST(req: NextRequest) {
   if (!filename || !size) {
     return NextResponse.json({ error: "нужны filename и size" }, { status: 400 });
   }
-  const isImage = contentType.startsWith("image/") || IMAGE_RE.test(filename);
-  const isVideo = contentType.startsWith("video/") || VIDEO_RE.test(filename);
+  // Требование: И разрешение, И MIME должны быть из allowlist'а одного рода —
+  // иначе «image/png» с именем x.html или SVG-файл не пройдут.
+  const isImage = IMAGE_EXT_RE.test(filename) && IMAGE_TYPES.test(contentType);
+  const isVideo = VIDEO_EXT_RE.test(filename) && VIDEO_TYPES.test(contentType);
   if (!isImage && !isVideo) {
-    return NextResponse.json({ error: "только изображения или видео" }, { status: 400 });
+    return NextResponse.json(
+      { error: "Разрешены только фото (jpg/png/webp/gif/avif) и видео (mp4/webm/mov)" },
+      { status: 400 },
+    );
   }
   const maxBytes = isVideo ? VIDEO_MAX : IMAGE_MAX;
   const kind = isVideo ? "видео" : "фото";
@@ -48,7 +57,7 @@ export async function POST(req: NextRequest) {
     .replace(/[\\/]/g, "_")
     .replace(/[^\w.\-]+/g, "_")
     .replace(/_+/g, "_")
-    .slice(-64);
+    .slice(0, 64);
   const path = `gallery/${Date.now()}-${safe}`;
 
   const db = createClient(

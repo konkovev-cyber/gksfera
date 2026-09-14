@@ -42,3 +42,13 @@ _dom_check.html
 
 # source photos (site uses public/images)
 /FOTO/
+
+# локальные отладочные скрипты с живыми ключами Ч не коммитить
+test_*.js
+pptr-check/
+
+# локальные артефакты и исходники Ч не версионируем
+build-out.txt
+dev-server.log
+foto1/
+*.log

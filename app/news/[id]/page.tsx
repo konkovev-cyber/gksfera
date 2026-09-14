@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft, Calendar, ExternalLink } from "lucide-react";
 import { getContent, getNewsByVkId } from "@/lib/content";
+import { ldScript } from "@/lib/utils";
 import { ContentProvider } from "@/components/site/ContentContext";
 import { Header } from "@/components/site/Header";
 import { Footer } from "@/components/site/Footer";
@@ -60,7 +61,7 @@ export default async function NewsDetailPage({ params }: Props) {
         <article className="container-max max-w-3xl">
           <script
             type="application/ld+json"
-            dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+            dangerouslySetInnerHTML={{ __html: ldScript(jsonLd) }}
           />
 
           <Link

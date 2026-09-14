@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-explicit-any, react-hooks/exhaustive-deps */
+/* eslint-disable react-hooks/exhaustive-deps */
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -818,6 +818,7 @@ export default function AdminPage() {
                       </>
                     ) : (
                       <>
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img src={ph.src} alt="" className="w-full sm:h-16 h-32 object-cover rounded-lg border border-border" />
                         {ph.src?.startsWith("/images/") && (
                           <span className="absolute top-1 left-1 text-[9px] font-semibold uppercase tracking-wide px-1.5 py-0.5 rounded bg-black/70 text-white" title="Файл лежит в /public/images/ на сервере сайта. Для замены — загрузите новый вариант через кнопку выше.">

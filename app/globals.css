@@ -181,6 +181,8 @@
 }
 @media (prefers-reduced-motion: reduce) {
   .marquee-wave { animation: none !important; }
+  /* Сама лента тоже должна стоять, а не бесконечно ехать (WCAG 2.2.2) */
+  .animate-marquee { animation: none !important; }
 }
 
 @keyframes text-shimmer {

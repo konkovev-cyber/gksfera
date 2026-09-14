@@ -22,3 +22,32 @@ export function slugify(text: string): string {
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-+|-+$/g, '');
 }
+
+/**
+ * Безопасная сериализация для <script type="application/ld+json">.
+ * Экранирует <, >, &, чтобы последовательность </script> (или "<" из
+ * пользовательского текста — название из VK, отзыв, заголовок) не могла
+ * закрыть тег и внедрить разметку/скрипт в HTML страницы.
+ */
+export function ldScript(obj: unknown): string {
+  return JSON.stringify(obj).replace(/[<>&]/g, (c) =>
+    c === '<' ? '\\u003c' : c === '>' ? '\\u003e' : '\\u0026',
+  );
+}
+
+/** Экранирование HTML-текста (для ручного рендера Markdown). */
+export function escapeHtml(s: string): string {
+  return String(s ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+/** Пропускаем только безобидные схемы ссылок; остальное (javascript:, data:) — в #. */
+export function safeHref(url: string): string {
+  const u = String(url ?? "").trim();
+  if (/^(https?:\/\/|mailto:|tel:|#|\/)/i.test(u)) return u;
+  return "#";
+}

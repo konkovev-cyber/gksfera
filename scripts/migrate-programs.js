@@ -47,7 +47,10 @@ const NEW_PROGRAMS = [
 
 (async () => {
   console.log('1. Удаляем старые программы...');
-  const del = await db.from('programs').delete().neq('id', 0);
+  // PK programs.id — uuid, .neq('id',0) падал (uuid<>integer) и старые строки
+  // не удалялись → при повторном прогоне копировались бы дубли. Not-null фильтр
+  // типобезопасен для любого типа PK.
+  const del = await db.from('programs').delete().not('id', 'is', null);
   if (del.error) { console.log('delete err:', del.error.message); }
 
   console.log('2. Вставляем 10 новых (category хранится в badge как "educational"/"creative")...');

@@ -60,7 +60,11 @@ export async function POST(req: NextRequest) {
   }
 
   if (!append) {
-    await db.from("news").delete().neq("id", 0);
+    // PK — uuid, поэтому .neq("id", 0) давал ошибку 42883 (uuid<>integer) и
+    // «замена» молча превращалась в «добавить дубли». Фильтр по not-null id
+    // типобезопасен и покрывает все строки; ошибку больше не глотаем.
+    const { error: delErr } = await db.from("news").delete().not("id", "is", null);
+    if (delErr) return NextResponse.json({ error: delErr.message }, { status: 500 });
   }
   const { data: inserted, error } = await db.from("news").insert(normalized).select();
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });

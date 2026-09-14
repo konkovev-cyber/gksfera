@@ -80,7 +80,9 @@ export function Hero() {
       7000, // смена раз в 7 секунд — не слишком часто
     );
     return () => window.clearInterval(id);
-  }, [fineMotion, heroImages.length]);
+    // activeImg в зависимостях: ручной клик по точке перезапускает таймер,
+    // чтобы авто-смена не «догоняла» через долю секунды после выбора вручную.
+  }, [fineMotion, heroImages.length, activeImg]);
   // Защита от выхода за границы после изменения набора в админке
   const safeIdx = heroImages.length > 0 ? activeImg % heroImages.length : 0;
 
@@ -329,7 +331,7 @@ export function Hero() {
         <div className="absolute inset-0 bg-gradient-to-b from-brand-warm/5 via-card to-brand-warm/5" aria-hidden="true" />
 
         <div className="relative py-7 overflow-hidden shadow-[inset_0_2px_8px_-4px_rgba(0,0,0,0.06),inset_0_-2px_8px_-4px_rgba(0,0,0,0.06)]">
-          <div className="flex w-max animate-marquee">
+          <div className="flex w-max animate-marquee" aria-hidden="true">
             {(() => {
               const N = marqueeItems.length || 1;
               const WAVE_PERIOD = 7; // сек — совпадает с @keyframes marquee-wave

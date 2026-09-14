@@ -99,7 +99,8 @@ export function EnrollmentForm() {
           interest_label: form.interest,
           phone: form.contact,
           comment: form.comment,
-          t: mountedAt.current,           // когда открыли форму (анти-бот по времени)
+          consent: form.consent,                 // сервер требует согласие
+          elapsed: Date.now() - mountedAt.current, // сколько мс форма была открыта (анти-бот, без учёта часов сервера)
           company_website: honeypotRef.current?.value ?? "", // скрытое поле: заполняют только боты
         }),
       });
