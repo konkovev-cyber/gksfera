@@ -65,7 +65,7 @@ export async function POST(req: NextRequest) {
       .select()
       .single();
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-    revalidatePath("/");
+    revalidatePath("/", "layout");
     return NextResponse.json({ photo: inserted });
   }
 
@@ -108,7 +108,7 @@ export async function POST(req: NextRequest) {
     .single();
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
-  revalidatePath("/");
+  revalidatePath("/", "layout");
   return NextResponse.json({ photo: inserted });
 }
 
@@ -135,7 +135,7 @@ export async function PUT(req: NextRequest) {
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
-  revalidatePath("/");
+  revalidatePath("/", "layout");
   return NextResponse.json({ ok: true });
 }
 
@@ -158,6 +158,6 @@ export async function DELETE(req: NextRequest) {
   const { error } = await db.from("gallery_photos").delete().eq("id", id);
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
-  revalidatePath("/");
+  revalidatePath("/", "layout");
   return NextResponse.json({ ok: true });
 }

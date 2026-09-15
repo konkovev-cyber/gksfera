@@ -70,7 +70,7 @@ export async function GET() {
     }));
     const { data: seeded, error: seedErr } = await db.from("programs").insert(seed).select();
     if (seedErr) return NextResponse.json({ error: seedErr.message }, { status: 500 });
-    revalidatePath("/");
+    revalidatePath("/", "layout");
     return NextResponse.json({ programs: (seeded ?? []).map(normalize) });
   }
 
@@ -112,6 +112,6 @@ export async function PUT(req: NextRequest) {
     if (res.error) return NextResponse.json({ error: res.error.message }, { status: 500 });
   }
 
-  revalidatePath("/");
+  revalidatePath("/", "layout");
   return NextResponse.json({ ok: true });
 }

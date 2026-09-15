@@ -216,7 +216,7 @@ export async function POST(req: NextRequest) {
   }
 
   const { revalidatePath } = await import("next/cache");
-  revalidatePath("/");
+  revalidatePath("/", "layout");
 
   return NextResponse.json({ ok: true, imported: true });
 }

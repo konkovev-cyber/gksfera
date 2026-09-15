@@ -38,7 +38,7 @@ export async function GET() {
       .select()
       .order("sort_order", { ascending: true });
     if (seedErr) return NextResponse.json({ error: seedErr.message }, { status: 500 });
-    revalidatePath("/");
+    revalidatePath("/", "layout");
     return NextResponse.json({ reviews: seeded ?? [] });
   }
 
@@ -78,6 +78,6 @@ export async function PUT(req: NextRequest) {
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
-  revalidatePath("/");
+  revalidatePath("/", "layout");
   return NextResponse.json({ ok: true });
 }

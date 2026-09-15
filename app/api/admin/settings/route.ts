@@ -181,7 +181,9 @@ export async function PUT(req: NextRequest) {
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
-  revalidatePath("/");
-  revalidatePath("/raspisanie");
+  // Область "layout": без неё валидным оставался бы только сам "/", а
+  // статические /programs/[id], /news, /reviews доживали до ближайшей
+  // пересборки — отсюда «в админке поменял, на сайте нет».
+  revalidatePath("/", "layout");
   return NextResponse.json({ ok: true });
 }
