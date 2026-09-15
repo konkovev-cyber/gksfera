@@ -19,26 +19,26 @@ const NOISE =
   "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='2'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)' opacity='0.55'/%3E%3C/svg%3E";
 
 /**
- * Ячейка стеклянной плашки-«спецификации» поверх фото. Цвет бренда живёт в
- * точке-маркере, текст остаётся нейтральным: brand-warm на белом даёт 2.5:1,
- * а brand-teal на тёмной карточке — 2.4:1, то есть мелкая подпись брендным
- * цветом не читалась бы ни в одной из тем. Нейтральный текст foreground/70 —
- * 6.0:1 в светлой и 7.7:1 в тёмной.
+ * Ячейка стеклянной плашки-«спецификации» поверх фото. Плашка лежит на кадре,
+ * поэтому она затемнённая (.glass-scrim) со светлым текстом: светлое стекло
+ * на фотографии превращается в мутное пятно, а белый по графитовой плёнке
+ * даёт 12.7:1. Брендовый цвет — только в точке-маркере: brand-warm как
+ * мелкий текст на светлом фоне даёт 2.5:1 и не проходит WCAG AA.
  */
 function Float({ label, value, note, tone }: { label: string; value: string; note?: string; tone: "warm" | "teal" }) {
   return (
     <div className="flex flex-col justify-center px-3.5 py-2.5 text-center sm:px-4 sm:text-left">
-      <p className="flex items-center justify-center sm:justify-start gap-1.5 text-[10px] uppercase tracking-wider font-semibold text-foreground/70">
+      <p className="flex items-center justify-center sm:justify-start gap-1.5 text-[10px] uppercase tracking-wider font-semibold text-on-scrim/85">
         <span
           aria-hidden="true"
           className={cn("w-1.5 h-1.5 rounded-full shrink-0", tone === "warm" ? "bg-brand-warm" : "bg-brand-teal")}
         />
         {label}
       </p>
-      <p className="mt-1 text-base sm:text-lg font-display font-extrabold leading-none text-foreground tabular-nums">
+      <p className="mt-1 text-base sm:text-lg font-display font-extrabold leading-none text-on-scrim tabular-nums">
         {value}
       </p>
-      {note && <p className="mt-1 text-[11px] leading-tight text-foreground/70">{note}</p>}
+      {note && <p className="mt-1 text-[11px] leading-tight text-on-scrim/85">{note}</p>}
     </div>
   );
 }
@@ -63,7 +63,9 @@ export function Hero() {
   // Прожектор, следующий за курсором
   const sx = useMotionValue(-600);
   const sy = useMotionValue(-600);
-  const spotlight = useMotionTemplate`radial-gradient(560px circle at ${sx}px ${sy}px, hsl(32 85% 52% / 0.08), transparent 65%)`;
+  // Пятно света за курсором. Тон берётся из токена: литерал старой палитры
+  // (32 85% 52%) рассинхронизировался бы с --brand-warm при смене темы.
+  const spotlight = useMotionTemplate`radial-gradient(560px circle at ${sx}px ${sy}px, hsl(var(--brand-warm) / 0.09), transparent 65%)`;
 
   // 3D-наклон карточки с фото
   const tx = useMotionValue(0);
@@ -136,7 +138,7 @@ export function Hero() {
 
   return (
     <section
-      className="relative py-20 md:py-28 lg:py-32 pt-24 md:pt-32 overflow-hidden"
+      className="relative py-20 md:py-28 lg:py-32 pt-24 md:pt-32 overflow-hidden mesh-hero"
       onMouseMove={(e) => {
         if (!fineMotion) return;
         const r = e.currentTarget.getBoundingClientRect();
@@ -144,6 +146,10 @@ export function Hero() {
         sy.set(e.clientY - r.top);
       }}
     >
+      {/* Mesh-градиент: четыре радиальных пятна (два тёплых, два бирюзовых)
+          заданы слоем .mesh-hero на самой секции — они не двигаются и потому
+          не «плывут» при скролле. Поверх них — три медленных пятных круга
+          ниже, они и дают живость. */}
       {/* Дрейфующие градиентные пятна */}
       <div className="absolute inset-0 pointer-events-none" aria-hidden="true">
         <motion.div
@@ -163,10 +169,11 @@ export function Hero() {
         />
       </div>
 
-      {/* Текстура шума */}
+      {/* Текстура шума. В светлой теме домножаем (заметно на кремовом),
+          в тёмной — overlay: multiply по графиту невидим и только глушит. */}
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute inset-0 opacity-[0.04] mix-blend-multiply"
+        className="pointer-events-none absolute inset-0 opacity-[0.04] mix-blend-multiply dark:opacity-[0.05] dark:mix-blend-overlay"
         style={{ backgroundImage: `url("${NOISE}")` }}
       />
 
@@ -194,7 +201,7 @@ export function Hero() {
               transition={{ delay: 0.1, duration: 0.45 }}
               className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-brand-warm/10 border border-brand-warm/25 text-foreground text-sm font-semibold mb-6"
             >
-              <Sparkles className="w-4 h-4 text-brand-warm" aria-hidden="true" />
+              <Sparkles className="w-4 h-4 text-brand-warm-ink" aria-hidden="true" />
               {content.heroContent.badge}
             </motion.div>
 
@@ -247,14 +254,14 @@ export function Hero() {
             >
               <button
                 onClick={() => scrollTo("#tasks")}
-                className="group inline-flex items-center justify-center gap-2 h-12 sm:h-13 px-7 rounded-full bg-primary text-primary-foreground font-semibold text-base hover:bg-primary/90 transition-all shadow-lg hover:shadow-xl hover:scale-[1.02] active:scale-[0.98]"
+                className="btn-cta group h-12 sm:h-13 px-7 font-semibold text-base"
               >
                 {content.heroContent.primaryCta}
-                <ArrowRight className="w-5 h-5 transition-transform duration-300 group-hover:translate-x-1" />
+                <ArrowRight className="btn-arrow w-5 h-5" />
               </button>
               <button
                 onClick={() => scrollTo("#programs")}
-                className="inline-flex items-center justify-center h-12 sm:h-13 px-7 rounded-full border-2 border-border bg-card/80 backdrop-blur-sm text-foreground font-semibold text-base hover:border-primary hover:text-primary transition-all"
+                className="btn-outline h-12 sm:h-13 px-7 font-semibold text-base"
               >
                 {content.heroContent.secondaryCta}
               </button>
@@ -338,20 +345,19 @@ export function Hero() {
             {/* Плашка-«спецификация» поверх фото. Раньше это были две разные
                 карточки: 193×113 сплошного оранжевого и 131×64 сплошного
                 бирюзового — пара читалась как два посторонних объявления.
-                Теперь одна стеклянная плашка с двумя равными ячейками и
-                волосяной разделительной линией: ячейки растянуты друг под
-                друга, так что разного объёма текста больше не видно. */}
+                Теперь одна затемнённая стеклянная пластина со светлым текстом
+                и двумя равными ячейками: ячейки растянуты друг под друга,
+                поэтому разный объём текста внутри не бросается в глаза. */}
             <motion.div
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.7, duration: 0.5 }}
               className={cn(
-                "absolute -bottom-4 left-3 right-3 sm:-bottom-6 sm:left-6 sm:right-auto sm:w-auto",
-                "rounded-2xl border border-border/50 bg-card/90 backdrop-blur-md",
-                "shadow-[0_18px_40px_-24px_rgba(31,41,55,0.6),0_2px_8px_-4px_rgba(31,41,55,0.2)]",
+                "glass-scrim absolute -bottom-4 left-3 right-3 sm:-bottom-6 sm:left-6 sm:right-auto sm:w-auto",
+                "rounded-2xl",
               )}
             >
-              <div className="grid grid-cols-2 divide-x divide-border/60">
+              <div className="grid grid-cols-2 divide-x divide-white/15">
                 <Float tone="warm" label="Возраст детей" value="5–15 лет" note="Дошкольники и школьники" />
                 <Float tone="teal" label="Опыт работы" value="более 15 лет" />
               </div>
@@ -361,13 +367,13 @@ export function Hero() {
       </div>
 
       {/* Бегущая строка направлений */}
-      <div className="mt-14 md:mt-16 relative z-10 overflow-hidden">
-        {/* Тень-градиент сверху и снизу */}
-        <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-brand-warm/40 to-transparent" aria-hidden="true" />
-        <div className="absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-brand-warm/40 to-transparent" aria-hidden="true" />
-        <div className="absolute inset-0 bg-gradient-to-b from-brand-warm/5 via-card to-brand-warm/5" aria-hidden="true" />
-
-        <div className="relative py-7 overflow-hidden shadow-[inset_0_2px_8px_-4px_rgba(0,0,0,0.06),inset_0_-2px_8px_-4px_rgba(0,0,0,0.06)]">
+      {/* Бегущая строка направлений — без рамки. Раньше под ней висела полоса
+          (две линии-градиента, подложка from-brand-warm/5 via-card и внутренние
+          тени) — получался «конверт». Теперь бегёт только текст, а по краям
+          он растворяется маскированием (.fade-edges: linear-gradient mask),
+          поэтому косынка-градиент справа больше не нужен. */}
+      <div className="mt-12 md:mt-14 relative z-10">
+        <div className="relative py-6 overflow-hidden fade-edges">
           <div className={cn("flex w-max animate-marquee", marqueePaused && "marquee-paused")} aria-hidden="true">
             {(() => {
               const N = marqueeItems.length || 1;
@@ -383,7 +389,7 @@ export function Hero() {
                     className={cn("flex items-center whitespace-nowrap", fineMotion && "marquee-wave")}
                     style={{ animationDelay: `${delay}s` }}
                   >
-                    <span className="text-sm sm:text-[0.95rem] font-display font-bold text-brand-warm tracking-wide uppercase">
+                    <span className="text-sm sm:text-base font-display font-bold uppercase tracking-wide text-brand-warm-ink dark:[text-shadow:0_0_20px_hsl(var(--brand-warm)/0.45)]">
                       {t}
                     </span>
                     <span
@@ -399,29 +405,24 @@ export function Hero() {
               });
             })()}
           </div>
-
-          {/* Мягкий градиент справа, чтобы текст не уходил под кнопку паузы */}
-          <div
-            className="absolute inset-y-0 right-0 w-16 sm:w-20 bg-gradient-to-l from-card via-card/90 to-transparent pointer-events-none z-10"
-            aria-hidden="true"
-          />
-
-          {/* Пауза/пуск бегущей строки */}
-          <button
-            type="button"
-            onClick={() => setMarqueePaused((v) => !v)}
-            aria-pressed={marqueePaused}
-            aria-label={marqueePaused ? "Запустить бегущую строку" : "Остановить бегущую строку"}
-            title={marqueePaused ? "Запустить бегущую строку" : "Остановить бегущую строку"}
-            className="absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 z-20 w-9 h-9 rounded-full border border-border/70 bg-card/85 backdrop-blur-sm text-muted-foreground hover:text-brand-warm hover:border-brand-warm/70 transition-colors flex items-center justify-center"
-          >
-            {marqueePaused ? (
-              <Play className="w-3.5 h-3.5 fill-current ml-0.5" />
-            ) : (
-              <Pause className="w-4 h-4" />
-            )}
-          </button>
         </div>
+
+        {/* Пауза/пуск. WCAG 2.2.2: у бесконечной ленты обязан быть выключатель,
+            поэтому кнопку оставляем — но без рамок и подложек-полос. */}
+        <button
+          type="button"
+          onClick={() => setMarqueePaused((v) => !v)}
+          aria-pressed={marqueePaused}
+          aria-label={marqueePaused ? "Запустить бегущую строку" : "Остановить бегущую строку"}
+          title={marqueePaused ? "Запустить бегущую строку" : "Остановить бегущую строку"}
+          className="glass absolute right-3 sm:right-6 top-1/2 -translate-y-1/2 z-20 w-9 h-9 rounded-full text-muted-foreground hover:text-brand-warm-ink transition-colors flex items-center justify-center"
+        >
+          {marqueePaused ? (
+            <Play className="w-3.5 h-3.5 fill-current ml-0.5" />
+          ) : (
+            <Pause className="w-4 h-4" />
+          )}
+        </button>
       </div>
     </section>
   );

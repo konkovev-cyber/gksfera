@@ -24,7 +24,7 @@ export function About() {
 
       <div className="container-max relative z-10">
         <Reveal>
-          <p className="text-sm font-semibold uppercase tracking-widest text-brand-warm mb-3">
+          <p className="text-sm font-semibold uppercase tracking-widest text-brand-warm-ink mb-3">
             {content.aboutContent.subtitle}
           </p>
           <h2 className="font-display font-extrabold text-3xl sm:text-4xl md:text-5xl text-foreground text-balance max-w-3xl leading-[1.15]">
@@ -40,9 +40,9 @@ export function About() {
             const Icon = iconMap[principle.icon] ?? Sparkles;
             return (
               <StaggerItem key={principle.title}>
-                <div className="card-hover bg-card rounded-2xl p-6 border border-border/60 h-full">
+                <div className="card-hover glass rounded-2xl p-6 h-full">
                   <div className="w-12 h-12 rounded-xl bg-brand-warm/10 flex items-center justify-center mb-4">
-                    <Icon className="w-6 h-6 text-brand-warm" />
+                    <Icon className="w-6 h-6 text-brand-warm-ink" />
                   </div>
                   <h3 className="font-display font-bold text-lg text-foreground mb-2">
                     {principle.title}

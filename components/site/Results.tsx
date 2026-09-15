@@ -17,7 +17,7 @@ export function Results() {
         <div className="grid lg:grid-cols-5 gap-8 lg:gap-12 items-start">
           <div className="lg:col-span-2">
             <Reveal>
-              <p className="text-sm font-semibold uppercase tracking-widest text-brand-teal mb-3">
+              <p className="text-sm font-semibold uppercase tracking-widest text-brand-teal-ink mb-3">
                 Результат
               </p>
               <h2 className="font-display font-extrabold text-3xl sm:text-4xl text-foreground text-balance leading-[1.15]">
@@ -41,7 +41,7 @@ export function Results() {
               {results.map((r) => (
                 <StaggerItem key={r}>
                   <div className="flex items-start gap-3 p-4 rounded-2xl bg-brand-cream/60 dark:bg-white/5 border border-border/40">
-                    <CheckCircle2 className="w-5 h-5 text-brand-teal flex-shrink-0 mt-0.5" />
+                    <CheckCircle2 className="w-5 h-5 text-brand-teal-ink flex-shrink-0 mt-0.5" />
                     <p className="text-sm sm:text-base text-foreground leading-relaxed">{r}</p>
                   </div>
                 </StaggerItem>

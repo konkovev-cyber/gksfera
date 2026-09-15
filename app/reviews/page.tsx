@@ -53,7 +53,7 @@ export default async function ReviewsPage() {
           dangerouslySetInnerHTML={{ __html: ldScript(jsonLd) }}
         />
         <div className="container-max">
-          <p className="text-sm font-semibold uppercase tracking-widest text-brand-warm mb-2">
+          <p className="text-sm font-semibold uppercase tracking-widest text-brand-warm-ink mb-2">
             Отзывы
           </p>
           <h1 className="font-display font-extrabold text-3xl sm:text-4xl md:text-5xl text-foreground text-balance">
@@ -66,7 +66,7 @@ export default async function ReviewsPage() {
 
         {reviews.length === 0 ? (
           <div className="container-max mt-12">
-            <div className="bg-card rounded-2xl border border-border/60 p-8 text-center max-w-lg">
+            <div className="glass rounded-2xl p-8 text-center max-w-lg">
               <p className="text-muted-foreground">Отзывов пока нет. Загляните в нашу группу VK — там живые отзывы от родителей.</p>
               {data.siteConfig.vkUrl && (
                 <a
@@ -83,8 +83,8 @@ export default async function ReviewsPage() {
         ) : (
           <div className="container-max mt-10 grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
             {reviews.map((r) => (
-              <div key={r.id} className="bg-card rounded-2xl border border-border/60 p-5 sm:p-6 flex flex-col">
-                <Quote className="w-8 h-8 text-brand-warm/20 mb-3" />
+              <div key={r.id} className="glass rounded-2xl p-5 sm:p-6 flex flex-col">
+                <Quote className="w-8 h-8 text-brand-warm-ink/20 mb-3" />
                 <p className="text-sm text-foreground leading-relaxed flex-1 whitespace-pre-line">{r.text}</p>
                 <div className="mt-4 pt-4 border-t border-border/60">
                   <p className="font-display font-semibold text-sm text-foreground">{r.author}</p>
@@ -100,7 +100,7 @@ export default async function ReviewsPage() {
                         href={r.sourceUrl}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1 min-h-[44px] -my-2 px-1 text-xs text-brand-warm hover:underline"
+                        className="inline-flex items-center gap-1 min-h-[44px] -my-2 px-1 text-xs text-brand-warm-ink hover:underline"
                       >
                         ссылка <ExternalLink className="w-3 h-3" />
                       </a>
@@ -113,7 +113,7 @@ export default async function ReviewsPage() {
         )}
 
         <div className="container-max mt-12">
-          <Link href="/" className="inline-flex items-center gap-1.5 min-h-[44px] -my-2 text-sm text-muted-foreground hover:text-brand-warm transition-colors">
+          <Link href="/" className="inline-flex items-center gap-1.5 min-h-[44px] -my-2 text-sm text-muted-foreground hover:text-brand-warm-ink transition-colors">
             ← На главную
           </Link>
         </div>

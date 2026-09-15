@@ -5,15 +5,38 @@ import { ArrowRight, HelpCircle, Sparkles } from "lucide-react";
 import { useContent } from "./ContentContext";
 import { iconMap } from "./program-icons";
 import { Reveal, Stagger, StaggerItem } from "./Reveal";
+import { cn } from "@/lib/utils";
 
-const colorMap: Record<string, { bg: string; icon: string; border: string; hoverBg: string }> = {
-  amber:   { bg: "bg-amber-50 dark:bg-amber-500/5",   icon: "bg-amber-100 dark:bg-amber-500/10",   border: "border-amber-200/60 dark:border-amber-500/20",   hoverBg: "group-hover:bg-amber-100 dark:group-hover:bg-amber-500/10" },
-  blue:    { bg: "bg-blue-50 dark:bg-blue-500/5",     icon: "bg-blue-100 dark:bg-blue-500/10",     border: "border-blue-200/60 dark:border-blue-500/20",     hoverBg: "group-hover:bg-blue-100 dark:group-hover:bg-blue-500/10" },
-  emerald: { bg: "bg-emerald-50 dark:bg-emerald-500/5",icon: "bg-emerald-100 dark:bg-emerald-500/10", border: "border-emerald-200/60 dark:border-emerald-500/20", hoverBg: "group-hover:bg-emerald-100 dark:group-hover:bg-emerald-500/10" },
-  purple:  { bg: "bg-violet-50 dark:bg-violet-500/5", icon: "bg-violet-100 dark:bg-violet-500/10",  border: "border-violet-200/60 dark:border-violet-500/20", hoverBg: "group-hover:bg-violet-100 dark:group-hover:bg-violet-500/10" },
-  rose:    { bg: "bg-rose-50 dark:bg-rose-500/5",     icon: "bg-rose-100 dark:bg-rose-500/10",     border: "border-rose-200/60 dark:border-rose-500/20",     hoverBg: "group-hover:bg-rose-100 dark:group-hover:bg-rose-500/10" },
-  orange:  { bg: "bg-orange-50 dark:bg-orange-500/5", icon: "bg-orange-100 dark:bg-orange-500/10", border: "border-orange-200/60 dark:border-orange-500/20", hoverBg: "group-hover:bg-orange-100 dark:group-hover:bg-orange-500/10" },
+/**
+ * Цвета болей лежат в БД шестью именами (amber/blue/emerald/purple/rose/
+ * orange). В палитре сайта два акцента — янтарь и тил, — поэтому старые имена
+ * сводятся к ним по температуре: тёплая половина → warm, холодная → teal.
+ * Данные править не нужно, а ряд перестаёт выглядеть набором стикеров.
+ */
+const TONE_BY_COLOR: Record<string, "warm" | "teal"> = {
+  amber: "warm",
+  orange: "warm",
+  rose: "warm",
+  yellow: "warm",
+  red: "warm",
+  blue: "teal",
+  emerald: "teal",
+  teal: "teal",
+  purple: "teal",
+  violet: "teal",
+  cyan: "teal",
 };
+
+const TONE = {
+  warm: {
+    icon: "bg-brand-warm/12 text-brand-warm-ink ring-brand-warm/25 group-hover:shadow-[0_0_26px_-6px_hsl(var(--brand-warm)/0.7)]",
+    hover: "hover:border-brand-warm/45",
+  },
+  teal: {
+    icon: "bg-brand-teal/12 text-brand-teal-ink ring-brand-teal/25 group-hover:shadow-[0_0_26px_-6px_hsl(var(--brand-teal)/0.7)]",
+    hover: "hover:border-brand-teal/45",
+  },
+} as const;
 
 export function TaskPicker() {
   const content = useContent();
@@ -24,7 +47,7 @@ export function TaskPicker() {
     <section id="tasks" className="section-padding relative bg-background overflow-hidden">
       <div className="container-max relative z-10">
         <Reveal>
-          <p className="text-sm font-semibold uppercase tracking-widest text-brand-warm mb-3">
+          <p className="text-sm font-semibold uppercase tracking-widest text-brand-warm-ink mb-3">
             С чего начать
           </p>
           <h2 className="font-display font-extrabold text-3xl sm:text-4xl md:text-5xl text-foreground text-balance leading-[1.15] max-w-3xl">
@@ -37,24 +60,35 @@ export function TaskPicker() {
 
         <Stagger className="mt-10 grid sm:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-5">
           {pains.map((pain) => {
-            const color = colorMap[pain.color] ?? colorMap.amber;
+            const tone = TONE_BY_COLOR[pain.color] ?? "warm";
             const Icon = iconMap[pain.icon] ?? Sparkles;
             return (
               <StaggerItem key={pain.href}>
                 <Link
                   href={pain.href}
-                  className={`group block bg-card rounded-2xl border ${color.border} p-5 sm:p-6 h-full hover:shadow-lg hover:-translate-y-1 transition-all duration-300`}
+                  className={cn(
+                    "glass group block h-full rounded-2xl p-5 sm:p-6",
+                    "transition-[transform,box-shadow,border-color] duration-300 ease-out",
+                    "hover:-translate-y-[5px] hover:shadow-[0_30px_56px_-28px_hsl(var(--shadow-hue)/0.4)]",
+                    TONE[tone].hover,
+                  )}
                 >
-                  <div className={`w-12 h-12 rounded-xl ${color.icon} flex items-center justify-center mb-4 transition-colors ${color.hoverBg}`}>
-                    <Icon className="w-6 h-6 text-foreground" />
+                  <div
+                    className={cn(
+                      "mb-4 grid h-12 w-12 place-items-center rounded-full ring-1",
+                      "transition-[transform,box-shadow] duration-300 group-hover:scale-[1.07]",
+                      TONE[tone].icon,
+                    )}
+                  >
+                    <Icon className="w-6 h-6" />
                   </div>
                   <h3 className="font-display font-bold text-lg text-foreground leading-snug mb-1">
                     {pain.title}
                   </h3>
-                  <p className="text-sm text-muted-foreground leading-relaxed mb-4">
+                  <p className="text-sm text-foreground/70 leading-relaxed mb-4">
                     {pain.subtitle}
                   </p>
-                  <span className="inline-flex items-center gap-1.5 text-sm font-semibold text-brand-warm group-hover:gap-2.5 transition-all">
+                  <span className="inline-flex items-center gap-1.5 text-sm font-semibold text-brand-warm-ink group-hover:gap-2.5 transition-all">
                     Смотреть направление
                     <ArrowRight className="w-4 h-4" />
                   </span>
@@ -65,17 +99,21 @@ export function TaskPicker() {
         </Stagger>
 
         <Reveal delay={0.15}>
-          <div className="mt-8 rounded-2xl border border-dashed border-brand-warm/40 bg-brand-warm/5 p-6 flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-6">
-            <div className="w-12 h-12 rounded-xl bg-brand-warm/15 flex items-center justify-center flex-shrink-0">
-              <HelpCircle className="w-6 h-6 text-brand-warm" />
+          <div className="glass relative mt-8 overflow-hidden rounded-2xl p-6 flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-6">
+            <span
+              aria-hidden
+              className="blob-drift pointer-events-none absolute -top-16 -right-10 h-40 w-40 rounded-full bg-brand-warm/20 blur-3xl"
+            />
+            <div className="grid h-12 w-12 flex-shrink-0 place-items-center rounded-full bg-brand-warm/12 text-brand-warm-ink ring-1 ring-brand-warm/25">
+              <HelpCircle className="w-6 h-6" />
             </div>
             <div className="flex-1">
               <p className="font-display font-bold text-base text-foreground">Не знаете, что выбрать?</p>
-              <p className="text-sm text-muted-foreground mt-0.5">Оставьте заявку — поговорим 10 минут и подберём направление под вашего ребёнка.</p>
+              <p className="text-sm text-foreground/70 mt-0.5">Оставьте заявку — поговорим 10 минут и подберём направление под вашего ребёнка.</p>
             </div>
             <button
               onClick={() => document.querySelector("#enrollment")?.scrollIntoView({ behavior: "smooth", block: "start" })}
-              className="inline-flex items-center justify-center min-h-[48px] px-6 rounded-full bg-primary text-primary-foreground text-sm font-semibold hover:bg-primary/90 transition-colors whitespace-nowrap"
+              className="btn-cta min-h-[48px] px-6 text-sm font-semibold whitespace-nowrap"
             >
               Помогите подобрать
             </button>

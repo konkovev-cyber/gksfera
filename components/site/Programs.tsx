@@ -72,7 +72,7 @@ function ProgramsSection({
 }) {
   const isEducational = accent === "educational";
   const IconBadge = isEducational ? BookOpen : Sparkles;
-  const badgeColor = isEducational ? "text-brand-warm" : "text-brand-teal";
+  const badgeColor = isEducational ? "text-brand-warm-ink" : "text-brand-teal-ink";
   const dotColor = isEducational ? "bg-brand-warm" : "bg-brand-teal";
 
   return (
@@ -120,7 +120,7 @@ function ProgramCard({ program, dotColor = "bg-brand-warm" }: { program: Program
       data-program-id={program.id}
       whileHover={reduced ? {} : { y: -6 }}
       transition={{ duration: 0.3 }}
-      className="group bg-card rounded-2xl overflow-hidden border border-border/60 shadow-sm hover:shadow-xl transition-shadow h-full flex flex-col"
+      className="group glass rounded-2xl overflow-hidden hover:shadow-xl transition-shadow h-full flex flex-col"
     >
       {/* Изображение */}
       <div className="relative aspect-[16/10] overflow-hidden">
@@ -134,7 +134,7 @@ function ProgramCard({ program, dotColor = "bg-brand-warm" }: { program: Program
         />
         <div className="absolute inset-0 bg-gradient-to-t from-foreground/40 via-transparent to-transparent" />
         <div className="absolute top-3 left-3 flex items-center gap-2 px-3 py-1.5 rounded-full bg-card/90 backdrop-blur-sm text-xs font-semibold text-foreground shadow-sm">
-          <Icon className="w-3.5 h-3.5 text-brand-warm" />
+          <Icon className="w-3.5 h-3.5 text-brand-warm-ink" />
           {program.ageRange}
         </div>
       </div>
@@ -156,7 +156,7 @@ function ProgramCard({ program, dotColor = "bg-brand-warm" }: { program: Program
           </button>
           <Link
             href={`/programs/${slugify(program.title)}`}
-            className="inline-flex items-center gap-1.5 min-h-[44px] px-2 text-sm font-medium text-foreground/60 hover:text-brand-warm transition-colors"
+            className="inline-flex items-center gap-1.5 min-h-[44px] px-2 text-sm font-medium text-foreground/60 hover:text-brand-warm-ink transition-colors"
           >
             Подробнее
             <ArrowRight className="w-4 h-4" />

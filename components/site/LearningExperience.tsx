@@ -46,7 +46,7 @@ export function LearningExperience() {
           {/* Контент справа */}
           <div>
             <Reveal>
-              <p className="text-sm font-semibold uppercase tracking-widest text-brand-warm mb-3">
+              <p className="text-sm font-semibold uppercase tracking-widest text-brand-warm-ink mb-3">
                 {content.learningExperience.subtitle}
               </p>
               <h2 className="font-display font-extrabold text-3xl sm:text-4xl md:text-5xl text-foreground text-balance leading-[1.15]">
@@ -64,7 +64,7 @@ export function LearningExperience() {
                   <StaggerItem key={item.title}>
                     <div className="flex gap-3 p-4 rounded-xl bg-muted/40 hover:bg-muted/60 transition-colors">
                       <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-brand-warm/10 flex items-center justify-center">
-                        <Icon className="w-5 h-5 text-brand-warm" />
+                        <Icon className="w-5 h-5 text-brand-warm-ink" />
                       </div>
                       <div>
                         <h3 className="font-display font-semibold text-sm text-foreground">

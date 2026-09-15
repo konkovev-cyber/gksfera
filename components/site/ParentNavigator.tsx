@@ -34,7 +34,7 @@ export function ParentNavigator() {
       <div className="container-max relative z-10">
         <Reveal>
           <div className="text-center max-w-2xl mx-auto">
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-brand-teal/10 border border-brand-teal/20 text-brand-teal text-sm font-semibold mb-5">
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-brand-teal/10 border border-brand-teal/20 text-brand-teal-ink text-sm font-semibold mb-5">
               <Compass className="w-4 h-4" />
               Поможем выбрать
             </div>
@@ -52,7 +52,7 @@ export function ParentNavigator() {
             <StaggerItem key={option.id}>
               <button
                 onClick={() => scrollToProgram(option.targetProgramId)}
-                className="w-full px-4 py-4 sm:py-5 rounded-2xl bg-card border border-border/60 hover:border-primary hover:bg-brand-warm/5 transition-all text-left group"
+                className="w-full px-4 py-4 sm:py-5 rounded-2xl glass hover:border-primary hover:bg-brand-warm/5 transition-all text-left group"
               >
                 <span className="text-sm sm:text-base font-medium text-foreground group-hover:text-primary transition-colors">
                   {option.label}
@@ -70,7 +70,7 @@ export function ParentNavigator() {
                 const el = document.querySelector("#enrollment");
                 if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
               }}
-              className="inline-flex items-center min-h-[44px] -my-2 font-semibold text-brand-warm hover:text-primary transition-colors underline-offset-4 hover:underline"
+              className="inline-flex items-center min-h-[44px] -my-2 font-semibold text-brand-warm-ink hover:text-primary transition-colors underline-offset-4 hover:underline"
             >
               Запишитесь на консультацию
             </button>

@@ -36,10 +36,17 @@ const config: Config = {
         'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
         'gradient-conic':
           'conic-gradient(from 180deg at 50% 50%, var(--tw-gradient-stops))',
-        'brand-warm':
-          'linear-gradient(135deg, hsl(32 85% 52%), hsl(22 80% 48%))',
-        'brand-teal':
-          'linear-gradient(135deg, hsl(178 45% 28%), hsl(195 50% 32%))',
+        /**
+         * Прежние ключи назывались brand-warm/brand-teal — так же, как цвета
+         * из theme.colors, и Tailwind выдавал на класс `bg-brand-warm` то
+         * заливку, то градиент (победитель зависел от порядка генерации).
+         * Переименовываем: градиент теперь вызывается явно —
+         * `bg-brand-gradient-warm`, а `bg-brand-warm` — всегда сплошной цвет.
+         */
+        'brand-gradient-warm':
+          'linear-gradient(135deg, hsl(var(--grad-warm-1)), hsl(var(--grad-warm-2)))',
+        'brand-gradient-teal':
+          'linear-gradient(135deg, hsl(var(--grad-teal-1)), hsl(var(--grad-teal-2)))',
       },
       borderRadius: {
         lg: 'var(--radius)',
@@ -90,8 +97,24 @@ const config: Config = {
           '4': 'hsl(var(--chart-4))',
           '5': 'hsl(var(--chart-5))',
         },
+        surface: {
+          DEFAULT: 'hsl(var(--surface))',
+          2: 'hsl(var(--surface-2))',
+        },
+        hairline: 'hsl(var(--hairline))',
+        scrim: 'hsl(var(--scrim))',
+        'on-scrim': 'hsl(var(--on-scrim))',
+        panel: {
+          DEFAULT: 'hsl(var(--panel))',
+          2: 'hsl(var(--panel-2))',
+          foreground: 'hsl(var(--on-panel))',
+        },
         brand: {
           warm: 'hsl(var(--brand-warm))',
+          // «Чернильные» тона — те же акценты, но годные для мелкого текста:
+          // brand-warm на белом даёт 2.46:1, brand-warm-ink — 5.9:1.
+          'warm-ink': 'hsl(var(--brand-warm-ink))',
+          'teal-ink': 'hsl(var(--brand-teal-ink))',
           'warm-light': 'hsl(var(--brand-warm-light))',
           teal: 'hsl(var(--brand-teal))',
           'teal-light': 'hsl(var(--brand-teal-light))',

@@ -11,6 +11,10 @@ import {
   Phone,
   MessageCircle,
   Clock,
+  User,
+  Baby,
+  Compass,
+  MessageSquare,
 } from "lucide-react";
 import { useContent } from "./ContentContext";
 import { Reveal } from "./Reveal";
@@ -36,8 +40,66 @@ const initialState: FormState = {
 
 type SubmitStatus = "idle" | "loading" | "success" | "error";
 
-const inputClass =
-  "w-full h-11 px-3.5 text-sm rounded-xl border border-input bg-background text-foreground placeholder:text-muted-foreground/70 focus:outline-none focus:ring-2 focus:ring-ring/60 focus:border-transparent transition-all";
+/* Поля больше не «белые с рамкой»: заливка --surface, плавающий лейбл и
+   иконка внутри — вся механика в .field/.field-input/.field-label из
+   globals.css. Placeholder обязан быть одним пробелом: на :placeholder-shown
+   держится весь трюк с всплытием лейбла. */
+function Field({
+  id,
+  label,
+  icon: Icon,
+  required,
+  as = "input",
+  type = "text",
+  value,
+  onChange,
+  autoComplete,
+  rows,
+}: {
+  id: string;
+  label: string;
+  icon: React.ComponentType<{ className?: string; "aria-hidden"?: boolean | "true" | "false" }>;
+  required?: boolean;
+  as?: "input" | "textarea";
+  type?: string;
+  value: string;
+  onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
+  autoComplete?: string;
+  rows?: number;
+}) {
+  return (
+    <div className="field">
+      {as === "textarea" ? (
+        <textarea
+          id={id}
+          name={id}
+          rows={rows ?? 3}
+          value={value}
+          onChange={onChange}
+          placeholder=" "
+          className="field-input peer resize-none"
+        />
+      ) : (
+        <input
+          id={id}
+          name={id}
+          type={type}
+          required={required}
+          value={value}
+          onChange={onChange}
+          autoComplete={autoComplete}
+          placeholder=" "
+          className="field-input"
+        />
+      )}
+      <Icon className="field-icon" aria-hidden />
+      <label htmlFor={id} className="field-label">
+        {label}
+        {required && <span className="text-destructive"> *</span>}
+      </label>
+    </div>
+  );
+}
 
 export function EnrollmentForm() {
   const content = useContent();
@@ -123,22 +185,24 @@ export function EnrollmentForm() {
 
   if (status === "success") {
     return (
-      <section id="enrollment" className="relative py-16 md:py-20 overflow-hidden">
+      <section id="enrollment" className="section-padding relative overflow-hidden">
         <div className="container-max relative z-10">
           <Reveal>
-            <div className="max-w-md mx-auto text-center bg-card rounded-2xl p-7 sm:p-9 border border-border/60 shadow-lg">
-              <div className="w-14 h-14 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-5">
-                <CheckCircle2 className="w-7 h-7 text-green-600" />
+            <div className="glass max-w-md mx-auto text-center rounded-2xl p-7 sm:p-9">
+              {/* Чип успеха был green-100/600 — единственный «несайтовый» цвет
+                  на странице; в палитре из двух акцентов роль успеха играет тил. */}
+              <div className="mx-auto mb-5 grid h-14 w-14 place-items-center rounded-full bg-brand-teal/12 ring-1 ring-brand-teal/30">
+                <CheckCircle2 className="w-7 h-7 text-brand-teal-ink" />
               </div>
               <h2 className="font-display font-extrabold text-2xl text-foreground mb-3">
                 Спасибо! Заявка отправлена.
               </h2>
-              <p className="text-muted-foreground leading-relaxed">
+              <p className="text-foreground/70 leading-relaxed">
                 Мы свяжемся с вами в ближайшее время.
               </p>
               <button
                 onClick={() => setStatus("idle")}
-                className="mt-6 inline-flex items-center justify-center h-10 px-5 rounded-full border-2 border-border text-foreground font-semibold text-sm hover:border-primary hover:text-primary transition-colors"
+                className="btn-outline mt-6 h-10 px-5 font-semibold text-sm"
               >
                 Отправить ещё одну заявку
               </button>
@@ -150,7 +214,7 @@ export function EnrollmentForm() {
   }
 
   return (
-    <section id="enrollment" className="relative py-16 md:py-20 overflow-hidden">
+    <section id="enrollment" className="section-padding relative overflow-hidden">
       <div
         className="absolute top-1/4 -left-32 w-80 h-80 rounded-full bg-brand-warm/8 blur-3xl pointer-events-none"
         aria-hidden="true"
@@ -160,55 +224,59 @@ export function EnrollmentForm() {
           {/* Левая колонка — заголовок и быстрые контакты */}
           <Reveal>
             <div className="lg:sticky lg:top-24">
-              <p className="text-sm font-semibold uppercase tracking-widest text-brand-warm mb-3">
+              <p className="text-sm font-semibold uppercase tracking-widest text-brand-warm-ink mb-3">
                 Запись
               </p>
               <h2 className="font-display font-extrabold text-3xl sm:text-4xl text-foreground text-balance leading-[1.15]">
                 Записаться или задать вопрос
               </h2>
-              <p className="mt-4 text-base text-muted-foreground leading-relaxed max-w-md">
+              <p className="mt-4 text-base text-foreground/70 leading-relaxed max-w-md">
                 Оставьте имя и контакт — перезвоним или напишем в течение рабочего дня,
                 ответим на вопросы и подберём направление. Никакого спама.
               </p>
 
-              <div className="mt-6 flex flex-col sm:flex-row lg:flex-col gap-3 max-w-md">
+              {/* Быстрые контакты — пилюли: иконка в цветном круге, при наведении
+                  пилюля приподнимается, рамка теплеет и появляется свечение. */}
+              <div className="mt-7 flex flex-col sm:flex-row lg:flex-col gap-3 max-w-md">
                 <a
                   href={content.siteConfig.phoneHref}
-                  className="inline-flex items-center gap-3 h-12 px-5 rounded-xl bg-card border border-border/60 font-medium text-sm text-foreground hover:bg-accent transition-colors flex-1"
+                  className="pill-contact flex-1 justify-center lg:justify-start"
                 >
-                  <span className="w-8 h-8 rounded-lg bg-brand-warm/10 flex items-center justify-center flex-shrink-0">
-                    <Phone className="w-4 h-4 text-brand-warm" />
+                  <span className="grid place-items-center w-9 h-9 rounded-full bg-brand-warm/12 ring-1 ring-brand-warm/25 flex-shrink-0">
+                    <Phone className="w-4 h-4 text-brand-warm-ink" />
                   </span>
-                  {content.siteConfig.phone}
+                  <span className="font-semibold text-sm text-foreground tabular-nums">
+                    {content.siteConfig.phone}
+                  </span>
                 </a>
                 <a
                   href={content.siteConfig.vkUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-3 h-12 px-5 rounded-xl bg-card border border-border/60 font-medium text-sm text-foreground hover:bg-accent transition-colors flex-1"
+                  className="pill-contact flex-1 justify-center lg:justify-start"
                 >
-                  <span className="w-8 h-8 rounded-lg bg-brand-teal/10 flex items-center justify-center flex-shrink-0">
-                    <MessageCircle className="w-4 h-4 text-brand-teal" />
+                  <span className="grid place-items-center w-9 h-9 rounded-full bg-brand-teal/12 ring-1 ring-brand-teal/25 flex-shrink-0">
+                    <MessageCircle className="w-4 h-4 text-brand-teal-ink" />
                   </span>
-                  Написать в VK
+                  <span className="font-semibold text-sm text-foreground">Написать в VK</span>
                 </a>
                 {content.siteConfig.maxUrl && (
                   <a
                     href={content.siteConfig.maxUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-3 h-12 px-5 rounded-xl bg-card border border-border/60 font-medium text-sm text-foreground hover:bg-accent transition-colors flex-1"
+                    className="pill-contact flex-1 justify-center lg:justify-start"
                   >
-                    <span className="w-8 h-8 rounded-lg bg-brand-warm/10 flex items-center justify-center flex-shrink-0">
-                      <MessageCircle className="w-4 h-4 text-brand-warm" />
+                    <span className="grid place-items-center w-9 h-9 rounded-full bg-brand-warm/12 ring-1 ring-brand-warm/25 flex-shrink-0">
+                      <MessageCircle className="w-4 h-4 text-brand-warm-ink" />
                     </span>
-                    Написать в MAX
+                    <span className="font-semibold text-sm text-foreground">Написать в MAX</span>
                   </a>
                 )}
               </div>
 
-              <p className="mt-4 flex items-center gap-2 text-sm text-muted-foreground">
-                <Clock className="w-4 h-4 text-brand-warm flex-shrink-0" />
+              <p className="mt-4 flex items-center gap-2 text-sm text-foreground/70">
+                <Clock className="w-4 h-4 text-brand-warm-ink flex-shrink-0" />
                 {content.siteConfig.workingHoursShort} · по предварительной записи
               </p>
             </div>
@@ -218,7 +286,7 @@ export function EnrollmentForm() {
           <Reveal delay={0.1}>
             <form
               onSubmit={handleSubmit}
-              className="bg-card rounded-2xl p-5 sm:p-6 border border-border/60 shadow-lg space-y-4"
+              className="glass rounded-2xl p-5 sm:p-7 space-y-4"
             >
               {/* Honeypot: скрыт от людей, приманка для ботов. Не трогать. */}
               <div aria-hidden="true" className="absolute w-0 h-0 overflow-hidden opacity-0 pointer-events-none select-none" tabIndex={-1}>
@@ -234,95 +302,76 @@ export function EnrollmentForm() {
                 />
               </div>
               <div className="grid sm:grid-cols-2 gap-4">
-                <div>
-                  <label htmlFor="parentName" className="block text-xs font-medium text-foreground mb-1.5">
-                    Ваше имя <span className="text-destructive">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    id="parentName"
-                    name="parentName"
-                    required
-                    value={form.parentName}
-                    onChange={handleChange}
-                    className={inputClass}
-                    placeholder="Как вас зовут?"
-                  />
-                </div>
-                <div>
-                  <label htmlFor="childAge" className="block text-xs font-medium text-foreground mb-1.5">
-                    Возраст ребёнка <span className="text-destructive">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    id="childAge"
-                    name="childAge"
-                    required
-                    value={form.childAge}
-                    onChange={handleChange}
-                    className={inputClass}
-                    placeholder="Например: 7 лет"
-                  />
-                </div>
+                <Field
+                  id="parentName"
+                  label="Ваше имя"
+                  icon={User}
+                  autoComplete="name"
+                  required
+                  value={form.parentName}
+                  onChange={handleChange}
+                />
+                <Field
+                  id="childAge"
+                  label="Возраст ребёнка"
+                  icon={Baby}
+                  required
+                  value={form.childAge}
+                  onChange={handleChange}
+                />
               </div>
 
-              <div>
-                <label htmlFor="interest" className="block text-xs font-medium text-foreground mb-1.5">
+              {/* Select: значение всегда либо выбрано, либо пустое — ловить
+                  :placeholder-shown здесь не на что, поэтому лейбл держим
+                  всплывшим всегда (модификатор --filled). */}
+              <div className="field">
+                <select
+                  id="interest"
+                  name="interest"
+                  required
+                  value={form.interest}
+                  onChange={handleChange}
+                  className={cn("field-input field-input--filled appearance-none pr-10 cursor-pointer")}
+                >
+                  <option value="" disabled>
+                    Выберите направление
+                  </option>
+                  {content.enrollmentInterests.map((interest) => (
+                    <option key={interest} value={interest}>
+                      {interest}
+                    </option>
+                  ))}
+                </select>
+                <Compass className="field-icon" aria-hidden />
+                <label htmlFor="interest" className="field-label">
                   Что вас интересует? <span className="text-destructive">*</span>
                 </label>
-                <div className="relative">
-                  <select
-                    id="interest"
-                    name="interest"
-                    required
-                    value={form.interest}
-                    onChange={handleChange}
-                    className={cn(inputClass, "appearance-none pr-10 cursor-pointer")}
-                  >
-                    <option value="" disabled>
-                      Выберите направление
-                    </option>
-                    {content.enrollmentInterests.map((interest) => (
-                      <option key={interest} value={interest}>
-                        {interest}
-                      </option>
-                    ))}
-                  </select>
-                  <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
-                </div>
+                <ChevronDown className="absolute right-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
               </div>
 
-              <div>
-                <label htmlFor="contact" className="block text-xs font-medium text-foreground mb-1.5">
-                  Телефон или способ связи <span className="text-destructive">*</span>
-                </label>
-                <input
-                  type="text"
-                  id="contact"
-                  name="contact"
-                  required
-                  value={form.contact}
-                  onChange={handleChange}
-                  className={inputClass}
-                  placeholder="Телефон, WhatsApp, Telegram или VK"
-                />
-              </div>
+              <Field
+                id="contact"
+                label="Телефон или способ связи"
+                icon={Phone}
+                autoComplete="tel"
+                required
+                value={form.contact}
+                onChange={handleChange}
+              />
 
-              <div>
-                <label htmlFor="comment" className="block text-xs font-medium text-foreground mb-1.5">
-                  Комментарий <span className="text-muted-foreground font-normal">(необязательно)</span>
-                </label>
-                <textarea
-                  id="comment"
-                  name="comment"
-                  rows={2}
-                  value={form.comment}
-                  onChange={handleChange}
-                  className={cn(inputClass, "h-auto py-2.5 resize-none")}
-                  placeholder="Дополнительные вопросы или пожелания"
-                />
-              </div>
+              <Field
+                id="comment"
+                label="Комментарий (необязательно)"
+                icon={MessageSquare}
+                as="textarea"
+                rows={3}
+                value={form.comment}
+                onChange={handleChange}
+              />
 
+              {/* Согласие: accent-color красит нативный чекбокс брендом, а
+                  color-scheme: dark в тёмной теме делает его тёмным — раньше
+                  галочка оставалась системно-синей на графите. */}
               <label htmlFor="consent" className="flex items-start gap-2.5 cursor-pointer py-2.5 -my-2.5">
                 <input
                   type="checkbox"
@@ -330,33 +379,24 @@ export function EnrollmentForm() {
                   name="consent"
                   checked={form.consent}
                   onChange={handleChange}
-                  className="mt-1 w-4 h-4 rounded border-input text-primary focus:ring-ring cursor-pointer flex-shrink-0"
+                  className="mt-0.5 w-[18px] h-[18px] rounded-md border-border cursor-pointer flex-shrink-0 accent-[hsl(var(--brand-warm))]"
                 />
-                <span className="text-xs text-muted-foreground leading-relaxed">
+                <span className="text-xs text-foreground/70 leading-relaxed">
                   Согласен(на) на обработку персональных данных согласно{" "}
-                  <a href="/privacy" className="text-brand-warm hover:text-primary underline-offset-4 hover:underline">
+                  <a href="/privacy" className="text-brand-warm-ink underline decoration-brand-warm/40 decoration-1 underline-offset-2 hover:decoration-brand-warm">
                     политике конфиденциальности
                   </a>
                 </span>
               </label>
 
               {status === "error" && (
-                <div className="flex items-start gap-2.5 p-3 rounded-xl bg-destructive/10 border border-destructive/20">
+                <div className="flex items-start gap-2.5 p-3 rounded-xl bg-destructive/10 border border-destructive/25">
                   <AlertCircle className="w-4 h-4 text-destructive flex-shrink-0 mt-0.5" />
                   <p className="text-sm text-destructive">{errorMsg}</p>
                 </div>
               )}
 
-              <button
-                type="submit"
-                disabled={status === "loading"}
-                className={cn(
-                  "w-full h-12 rounded-full bg-primary text-primary-foreground font-semibold text-sm",
-                  "hover:bg-primary/90 transition-all shadow-lg hover:shadow-xl hover:scale-[1.01] active:scale-[0.99]",
-                  "disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:scale-100",
-                  "inline-flex items-center justify-center gap-2"
-                )}
-              >
+              <button type="submit" disabled={status === "loading"} className="btn-cta w-full h-12 font-semibold text-sm">
                 {status === "loading" ? (
                   <>
                     <Loader2 className="w-4 h-4 animate-spin" />
@@ -364,7 +404,7 @@ export function EnrollmentForm() {
                   </>
                 ) : (
                   <>
-                    <Send className="w-4 h-4" />
+                    <Send className="btn-arrow w-4 h-4" />
                     Отправить заявку
                   </>
                 )}

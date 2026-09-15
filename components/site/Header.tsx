@@ -370,7 +370,7 @@ export function Header() {
                     href={content.siteConfig.maxUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex items-center justify-center gap-2 w-full h-12 rounded-xl border-2 border-brand-teal/30 text-brand-teal font-semibold hover:bg-brand-teal/10 transition-colors"
+                    className="flex items-center justify-center gap-2 w-full h-12 rounded-xl border-2 border-brand-teal/30 text-brand-teal-ink font-semibold hover:bg-brand-teal/10 transition-colors"
                   >
                     <MessageCircle className="w-5 h-5" />
                     Написать в MAX

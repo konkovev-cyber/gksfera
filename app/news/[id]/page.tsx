@@ -82,7 +82,7 @@ export default async function NewsDetailPage({ params }: Props) {
 
           <Link
             href="/news"
-            className="inline-flex items-center gap-1.5 min-h-[44px] -my-2 text-sm text-muted-foreground hover:text-brand-warm transition-colors mb-6"
+            className="inline-flex items-center gap-1.5 min-h-[44px] -my-2 text-sm text-muted-foreground hover:text-brand-warm-ink transition-colors mb-6"
           >
             <ArrowLeft className="w-4 h-4" /> Все новости
           </Link>
@@ -117,7 +117,7 @@ export default async function NewsDetailPage({ params }: Props) {
               href={news.source_url}
               target="_blank"
               rel="noopener noreferrer"
-              className="mt-10 inline-flex items-center gap-2 h-11 px-6 rounded-full border-2 border-border bg-card text-sm font-semibold hover:border-brand-warm hover:text-brand-warm transition-colors"
+              className="mt-10 inline-flex items-center gap-2 h-11 px-6 rounded-full border-2 border-border bg-card text-sm font-semibold hover:border-brand-warm hover:text-brand-warm-ink transition-colors"
             >
               Обсудить в VK <ExternalLink className="w-4 h-4" />
             </a>

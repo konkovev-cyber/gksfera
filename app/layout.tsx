@@ -69,7 +69,10 @@ export async function generateViewport(): Promise<Viewport> {
   const { data } = await getContent();
   const cfg = data.siteConfig as Record<string, unknown>;
   return {
-    themeColor: String(cfg.seoThemeColor || 'hsl(32 85% 52%)'),
+    // Один theme-color на обе темы: переключатель темы сайта — ручной тумблер в
+    // localStorage, а не prefers-color-scheme, поэтому media-вариант попадал бы
+    // мимо. Значение — бренд, а не фон: подкрашивает адресную строку мобильных.
+    themeColor: String(cfg.seoThemeColor || '#F28C28'),
     width: 'device-width',
     initialScale: 1,
   };

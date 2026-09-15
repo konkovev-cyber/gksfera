@@ -22,7 +22,7 @@ export function Footer() {
   };
 
   return (
-    <footer className="bg-foreground text-background pt-12 pb-6 px-4 sm:px-6 lg:px-8 relative overflow-hidden max-w-full">
+    <footer className="bg-scrim text-on-scrim pt-12 pb-6 px-4 sm:px-6 lg:px-8 relative overflow-hidden max-w-full">
       {/* Декоративная сфера */}
       <div
         className="absolute -top-20 -right-20 w-80 h-80 rounded-full bg-white/3 blur-3xl pointer-events-none"
@@ -48,7 +48,7 @@ export function Footer() {
             <div className="mb-3">
               <LogoLockup onDark />
             </div>
-            <p className="text-sm text-background/70 leading-relaxed max-w-xs">
+            <p className="text-sm text-on-scrim/70 leading-relaxed max-w-xs">
               {content.siteConfig.fullName}
             </p>
             <p className="mt-3 font-display font-semibold text-base text-brand-warm/90">
@@ -58,7 +58,7 @@ export function Footer() {
 
           {/* Навигация */}
           <nav aria-label="Навигация в подвале" className="col-span-2 lg:col-span-1">
-            <h3 className="font-display font-semibold text-sm text-background/90 uppercase tracking-wider mb-3">
+            <h3 className="font-display font-semibold text-sm text-on-scrim/90 uppercase tracking-wider mb-3">
               Разделы
             </h3>
             {/* Две колонки на узких экранах, одна — на десктопе. */}
@@ -68,7 +68,7 @@ export function Footer() {
                   <Link
                     href={item.href ?? "#"}
                     onClick={(e) => handleNavClick(e, item.href ?? "#")}
-                    className="inline-flex items-center min-h-[40px] lg:min-h-[28px] text-sm text-background/60 hover:text-brand-warm transition-colors"
+                    className="inline-flex items-center min-h-[40px] lg:min-h-[28px] text-sm text-on-scrim/60 hover:text-brand-warm transition-colors"
                   >
                     {item.label}
                   </Link>
@@ -79,20 +79,20 @@ export function Footer() {
 
           {/* Контакты */}
           <div>
-            <h3 className="font-display font-semibold text-sm text-background/90 uppercase tracking-wider mb-3">
+            <h3 className="font-display font-semibold text-sm text-on-scrim/90 uppercase tracking-wider mb-3">
               Контакты
             </h3>
             <ul className="space-y-0.5">
               <li className="flex items-start gap-2.5">
                 <MapPin className="w-4 h-4 text-brand-warm flex-shrink-0 mt-[9px]" />
-                <span className="text-sm text-background/60 leading-relaxed min-h-[40px] lg:min-h-[28px] flex items-center">
+                <span className="text-sm text-on-scrim/60 leading-relaxed min-h-[40px] lg:min-h-[28px] flex items-center">
                   {content.siteConfig.city}, {content.siteConfig.address}
                 </span>
               </li>
               <li>
                 <a
                   href={content.siteConfig.phoneHref}
-                  className="inline-flex items-center gap-2.5 min-h-[40px] lg:min-h-[28px] text-sm text-background/60 hover:text-brand-warm transition-colors"
+                  className="inline-flex items-center gap-2.5 min-h-[40px] lg:min-h-[28px] text-sm text-on-scrim/60 hover:text-brand-warm transition-colors"
                 >
                   <Phone className="w-4 h-4 text-brand-warm flex-shrink-0" />
                   {content.siteConfig.phone}
@@ -103,7 +103,7 @@ export function Footer() {
                   href={content.siteConfig.vkUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2.5 min-h-[40px] lg:min-h-[28px] text-sm text-background/60 hover:text-brand-warm transition-colors"
+                  className="inline-flex items-center gap-2.5 min-h-[40px] lg:min-h-[28px] text-sm text-on-scrim/60 hover:text-brand-warm transition-colors"
                 >
                   <MessageCircle className="w-4 h-4 text-brand-warm flex-shrink-0" />
                   {content.siteConfig.vkDisplay}
@@ -115,7 +115,7 @@ export function Footer() {
                     href={content.siteConfig.maxUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2.5 min-h-[40px] lg:min-h-[28px] text-sm text-background/60 hover:text-brand-warm transition-colors"
+                    className="inline-flex items-center gap-2.5 min-h-[40px] lg:min-h-[28px] text-sm text-on-scrim/60 hover:text-brand-warm transition-colors"
                   >
                     <MessageCircle className="w-4 h-4 text-brand-teal flex-shrink-0" />
                     MAX Messenger
@@ -127,7 +127,7 @@ export function Footer() {
 
           {/* Юридические ссылки */}
           <div>
-            <h3 className="font-display font-semibold text-sm text-background/90 uppercase tracking-wider mb-3">
+            <h3 className="font-display font-semibold text-sm text-on-scrim/90 uppercase tracking-wider mb-3">
               Документы
             </h3>
             <ul>
@@ -135,7 +135,7 @@ export function Footer() {
                 <li key={item.href}>
                   <Link
                     href={item.href}
-                    className="inline-flex items-center min-h-[40px] lg:min-h-[28px] text-sm text-background/60 hover:text-brand-warm transition-colors break-words max-w-full"
+                    className="inline-flex items-center min-h-[40px] lg:min-h-[28px] text-sm text-on-scrim/60 hover:text-brand-warm transition-colors break-words max-w-full"
                   >
                     {item.label}
                   </Link>
@@ -146,8 +146,8 @@ export function Footer() {
         </div>
 
         {/* Нижняя полоса */}
-        <div className="mt-8 pt-5 border-t border-background/10">
-          <p className="text-xs text-background/50 text-center break-words">
+        <div className="mt-8 pt-5 border-t border-on-scrim/10">
+          <p className="text-xs text-on-scrim/50 text-center break-words">
             © {new Date().getFullYear()} {content.siteConfig.fullName}. Все права защищены.
           </p>
         </div>

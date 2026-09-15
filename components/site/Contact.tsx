@@ -6,6 +6,14 @@ import { useContent } from "./ContentContext";
 
 import { Reveal } from "./Reveal";
 
+/**
+ * «Где нас найти» — та же стеклоткань, что и в форме записи: слева стеклянная
+ * карточка с волосяными разделителями, справа карта в такой же рамке. Секция
+ * больше не лежит на кремовой полосе: поверх mesh-фона полосы читались
+ * инородными, а стеклу нужен прозрачный задник, чтобы blur было видно.
+ * Иконки в кружках — brand-warm на 12% и «чернильный» знак: сам янтарь как
+ * мелкий текст на белом даёт 2.46:1.
+ */
 export function Contact() {
   const content = useContent();
   const mapsLink = `https://yandex.ru/maps/?text=${encodeURIComponent(content.siteConfig.mapQuery)}`;
@@ -30,11 +38,49 @@ export function Contact() {
     };
   }, []);
 
+  const rows = [
+    {
+      icon: MapPin,
+      tone: "warm" as const,
+      label: "Адрес",
+      value: `${content.siteConfig.city}, ${content.siteConfig.address}`,
+      note: content.siteConfig.addressDetails,
+    },
+    {
+      icon: Phone,
+      tone: "warm" as const,
+      label: "Телефон",
+      value: content.siteConfig.phone,
+      href: content.siteConfig.phoneHref,
+    },
+    {
+      icon: MessageCircle,
+      tone: "teal" as const,
+      label: "Социальная сеть",
+      value: content.siteConfig.vkDisplay,
+      href: content.siteConfig.vkUrl,
+      external: true,
+    },
+    {
+      icon: Clock,
+      tone: "teal" as const,
+      label: "Режим работы",
+      value: content.siteConfig.workingHoursShort,
+      note: "По предварительной записи",
+    },
+  ];
+
   return (
-    <section id="contacts" className="section-padding bg-brand-cream/50 relative overflow-hidden">
+    <section id="contacts" className="section-padding relative overflow-hidden">
+      {/* Световые пятна задника — те же, что в блоке доверия */}
+      <div aria-hidden className="pointer-events-none absolute inset-0">
+        <div className="absolute -right-20 -top-10 h-72 w-72 rounded-full bg-brand-warm/12 blur-3xl" />
+        <div className="absolute -left-24 bottom-0 h-72 w-72 rounded-full bg-brand-teal/12 blur-3xl" />
+      </div>
+
       <div className="container-max relative z-10">
         <Reveal>
-          <p className="text-sm font-semibold uppercase tracking-widest text-brand-warm mb-3">
+          <p className="text-sm font-semibold uppercase tracking-widest text-brand-warm-ink mb-3">
             Контакты
           </p>
           <h2 className="font-display font-extrabold text-3xl sm:text-4xl md:text-5xl text-foreground text-balance leading-[1.15]">
@@ -46,75 +92,47 @@ export function Contact() {
           {/* Контактная информация */}
           <Reveal>
             <div className="flex flex-col gap-5">
-              <div className="bg-card rounded-2xl p-6 border border-border/60">
-                <h3 className="font-display font-bold text-lg text-foreground mb-4">
+              <div className="glass rounded-2xl p-6 sm:p-7">
+                <h3 className="font-display font-bold text-lg text-foreground mb-2">
                   {content.siteConfig.fullName}
                 </h3>
 
-                <div className="space-y-4">
-                  <div className="flex items-start gap-3">
-                    <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-brand-warm/10 flex items-center justify-center">
-                      <MapPin className="w-5 h-5 text-brand-warm" />
-                    </div>
-                    <div className="min-h-[44px] flex flex-col justify-center">
-                      <p className="text-sm text-muted-foreground">Адрес</p>
-                      <p className="text-base font-medium text-foreground">
-                        {content.siteConfig.city}, {content.siteConfig.address}
-                      </p>
-                      <p className="text-xs text-muted-foreground mt-0.5">{content.siteConfig.addressDetails}</p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-start gap-3">
-                    <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-brand-warm/10 flex items-center justify-center">
-                      <Phone className="w-5 h-5 text-brand-warm" />
-                    </div>
-                    <div className="min-h-[44px] flex flex-col justify-center">
-                      <p className="text-sm text-muted-foreground">Телефон</p>
-                      <a
-                        href={content.siteConfig.phoneHref}
-                        className="text-base font-medium text-foreground hover:text-brand-warm transition-colors inline-flex items-center min-h-[28px]"
+                <div className="divide-y divide-hairline/60">
+                  {rows.map(({ icon: Icon, tone, label, value, note, href, external }) => (
+                    <div key={label} className="flex items-start gap-3.5 py-4 first:pt-2 last:pb-0">
+                      <div
+                        className={cnIcon(tone)}
+                        aria-hidden
                       >
-                        {content.siteConfig.phone}
-                      </a>
+                        <Icon className="w-5 h-5" />
+                      </div>
+                      <div className="min-h-[44px] flex flex-col justify-center">
+                        <p className="text-xs uppercase tracking-wider font-semibold text-foreground/60">
+                          {label}
+                        </p>
+                        {href ? (
+                          <a
+                            href={href}
+                            {...(external ? { target: "_blank", rel: "noopener noreferrer" } : {})}
+                            className="text-base font-medium text-foreground hover:text-brand-warm-ink dark:hover:text-brand-warm-ink transition-colors inline-flex items-center min-h-[28px]"
+                          >
+                            {value}
+                          </a>
+                        ) : (
+                          <p className="text-base font-medium text-foreground">{value}</p>
+                        )}
+                        {note && (
+                          <p className="text-xs text-foreground/60 mt-0.5">{note}</p>
+                        )}
+                      </div>
                     </div>
-                  </div>
-
-                  <div className="flex items-start gap-3">
-                    <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-brand-warm/10 flex items-center justify-center">
-                      <MessageCircle className="w-5 h-5 text-brand-warm" />
-                    </div>
-                    <div className="min-h-[44px] flex flex-col justify-center">
-                      <p className="text-sm text-muted-foreground">Социальная сеть</p>
-                      <a
-                        href={content.siteConfig.vkUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-base font-medium text-foreground hover:text-brand-warm transition-colors inline-flex items-center min-h-[28px]"
-                      >
-                        {content.siteConfig.vkDisplay}
-                      </a>
-                    </div>
-                  </div>
-
-                  <div className="flex items-start gap-3">
-                    <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-brand-warm/10 flex items-center justify-center">
-                      <Clock className="w-5 h-5 text-brand-warm" />
-                    </div>
-                    <div className="min-h-[44px] flex flex-col justify-center">
-                      <p className="text-sm text-muted-foreground">Режим работы</p>
-                      <p className="text-base font-medium text-foreground">
-                        {content.siteConfig.workingHoursShort}
-                      </p>
-                      <p className="text-xs text-muted-foreground mt-0.5">По предварительной записи</p>
-                    </div>
-                  </div>
+                  ))}
                 </div>
 
                 <div className="mt-6 flex flex-col sm:flex-row gap-3">
                   <a
                     href={content.siteConfig.phoneHref}
-                    className="inline-flex items-center justify-center gap-2 h-11 px-5 rounded-full bg-primary text-primary-foreground font-semibold text-sm hover:bg-primary/90 transition-colors flex-1"
+                    className="btn-cta h-12 px-5 font-semibold text-sm flex-1"
                   >
                     <Phone className="w-4 h-4" />
                     Позвонить
@@ -123,7 +141,7 @@ export function Contact() {
                     href={content.siteConfig.vkUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center justify-center gap-2 h-11 px-5 rounded-full border-2 border-border text-foreground font-semibold text-sm hover:border-primary hover:text-primary transition-colors flex-1"
+                    className="btn-outline h-12 px-5 font-semibold text-sm flex-1"
                   >
                     <MessageCircle className="w-4 h-4" />
                     Написать
@@ -137,18 +155,22 @@ export function Contact() {
                   href={mapsLink}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center justify-center gap-2 h-11 px-5 rounded-xl bg-card border border-border/60 text-foreground font-medium text-sm hover:bg-accent transition-colors flex-1"
+                  className="pill-contact flex-1 justify-center text-sm font-semibold text-foreground"
                 >
-                  <MapPin className="w-4 h-4 text-brand-warm" />
+                  <span className="grid place-items-center w-9 h-9 rounded-full bg-brand-warm/12 ring-1 ring-brand-warm/25 flex-shrink-0">
+                    <MapPin className="w-4 h-4 text-brand-warm-ink" />
+                  </span>
                   Открыть на карте
                 </a>
                 <a
                   href={routeLink}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center justify-center gap-2 h-11 px-5 rounded-xl bg-card border border-border/60 text-foreground font-medium text-sm hover:bg-accent transition-colors flex-1"
+                  className="pill-contact flex-1 justify-center text-sm font-semibold text-foreground"
                 >
-                  <Navigation className="w-4 h-4 text-brand-warm" />
+                  <span className="grid place-items-center w-9 h-9 rounded-full bg-brand-teal/12 ring-1 ring-brand-teal/25 flex-shrink-0">
+                    <Navigation className="w-4 h-4 text-brand-teal-ink" />
+                  </span>
                   Построить маршрут
                 </a>
               </div>
@@ -157,18 +179,28 @@ export function Contact() {
 
           {/* Карта — конструктор Яндекса */}
           <Reveal delay={0.1}>
-            <div className="relative w-full h-full min-h-[420px] lg:min-h-0 rounded-3xl overflow-hidden border border-border/60 shadow-lg">
+            <div className="relative w-full h-full min-h-[420px] lg:min-h-0 rounded-2xl overflow-hidden glass p-1.5">
               <style
                 dangerouslySetInnerHTML={{
                   __html:
                     ".ymaps-constructor>iframe{position:absolute!important;inset:0!important;width:100%!important;height:100%!important;border:0!important;}",
                 }}
               />
-              <div ref={mapRef} className="ymaps-constructor absolute inset-0" />
+              <div
+                ref={mapRef}
+                className="ymaps-constructor absolute inset-1.5 overflow-hidden rounded-xl bg-surface"
+              />
             </div>
           </Reveal>
         </div>
       </div>
     </section>
   );
+}
+
+/** Кружок иконки: тёплый/холодный акцент, знак — «чернильным» тоном. */
+function cnIcon(tone: "warm" | "teal") {
+  return tone === "warm"
+    ? "flex-shrink-0 grid place-items-center w-10 h-10 rounded-full bg-brand-warm/12 text-brand-warm-ink ring-1 ring-brand-warm/25"
+    : "flex-shrink-0 grid place-items-center w-10 h-10 rounded-full bg-brand-teal/12 text-brand-teal-ink ring-1 ring-brand-teal/25";
 }

@@ -10,8 +10,8 @@ import { cn } from "@/lib/utils";
 
 /** Мягкие брендовые тона для иконок — те же, что в карточках направлений. */
 const ACCENT: Record<string, string> = {
-  warm: "bg-brand-warm/10 text-brand-warm ring-brand-warm/20",
-  teal: "bg-brand-teal/10 text-brand-teal ring-brand-teal/20",
+  warm: "bg-brand-warm/10 text-brand-warm-ink ring-brand-warm/20",
+  teal: "bg-brand-teal/10 text-brand-teal-ink ring-brand-teal/20",
   violet: "bg-violet-500/10 text-violet-600 dark:text-violet-300 ring-violet-500/20",
 };
 
@@ -54,9 +54,9 @@ export function HeroBanners() {
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.85, duration: 0.5 }}
-      className="mt-7 overflow-hidden rounded-2xl border border-border/60 bg-border/45 shadow-[0_16px_32px_-26px_rgba(31,41,55,0.45),0_2px_6px_-3px_rgba(31,41,55,0.10)]"
+      className="glass mt-7 overflow-hidden rounded-2xl"
     >
-      <div className={cn("grid gap-px", gridFor(banners.length))}>
+      <div className={cn("grid gap-px bg-hairline/35", gridFor(banners.length))}>
         {banners.map((b, i) => (
           <BannerCell key={b.id ?? i} b={b} index={i} />
         ))}
@@ -96,9 +96,12 @@ function BannerCell({ b, index }: { b: HeroBanner; index: number }) {
     </>
   );
 
+  // Ячейки прозрачные: под ними стекло ленты, а не сплошной card — иначе
+  // blur и кромка не было бы видно. Ховер подсвечивает ячейку изнутри.
   const shell = cn(
-    "group flex items-center gap-2.5 px-3 py-3 text-left bg-card",
-    "transition-colors duration-200 hover:bg-brand-cream/70 focus-visible:bg-brand-cream/70",
+    "group flex items-center gap-2.5 px-3 py-3 text-left",
+    "transition-colors duration-200 hover:bg-white/55 focus-visible:bg-white/55",
+    "dark:hover:bg-white/6 dark:focus-visible:bg-white/6",
   );
 
   const href = b.href;

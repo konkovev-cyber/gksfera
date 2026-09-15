@@ -9,7 +9,7 @@ function LessonRow({ lesson }: { lesson: ScheduleLesson }) {
   return (
     <li className="flex items-baseline gap-3 py-1.5 border-b border-border/40 last:border-0">
       <span
-        className="shrink-0 tabular-nums text-sm font-bold text-brand-warm min-w-[52px]"
+        className="shrink-0 tabular-nums text-sm font-bold text-brand-warm-ink min-w-[52px]"
         title={lesson.end ? `${lesson.time} — до ${lesson.end}` : lesson.time}
       >
         {lesson.time}
@@ -41,7 +41,7 @@ function PickupLine({ time }: { time?: string }) {
 function GroupCard({ group }: { group: ScheduleGroup }) {
   const days = group.days ?? [];
   return (
-    <section className="bg-card rounded-3xl border border-border/60 p-5 sm:p-8 shadow-sm">
+    <section className="glass rounded-3xl p-5 sm:p-8 ">
       <div className="flex flex-wrap items-end justify-between gap-x-4 gap-y-1 mb-5">
         <div>
           <h2 className="font-display font-extrabold text-xl sm:text-2xl text-foreground">

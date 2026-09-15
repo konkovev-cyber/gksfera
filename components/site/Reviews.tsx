@@ -21,7 +21,7 @@ export function Reviews() {
       />
       <div className="container-max relative z-10">
         <Reveal>
-          <p className="text-sm font-semibold uppercase tracking-widest text-brand-warm mb-3">
+          <p className="text-sm font-semibold uppercase tracking-widest text-brand-warm-ink mb-3">
             Отзывы
           </p>
           <h2 className="font-display font-extrabold text-3xl sm:text-4xl md:text-5xl text-foreground text-balance leading-[1.15]">
@@ -69,10 +69,10 @@ function ReviewCard({
 
   return (
     <div className={cn(
-      "bg-card rounded-2xl p-6 border border-border/60 shadow-sm h-full flex flex-col",
+      "glass rounded-2xl p-6 h-full flex flex-col",
       "relative"
     )}>
-      <Quote className="w-8 h-8 text-brand-warm/20 mb-3 flex-shrink-0" />
+      <Quote className="w-8 h-8 text-brand-warm-ink/20 mb-3 flex-shrink-0" />
 
       <p className="text-sm sm:text-base text-foreground/80 leading-relaxed flex-1">
         {displayText}
@@ -81,7 +81,7 @@ function ReviewCard({
       {isLong && (
         <button
           onClick={() => setExpanded(!expanded)}
-          className="mt-3 inline-flex items-center gap-1 min-h-[44px] -my-2 px-1 text-sm font-medium text-brand-warm hover:text-primary transition-colors"
+          className="mt-3 inline-flex items-center gap-1 min-h-[44px] -my-2 px-1 text-sm font-medium text-brand-warm-ink hover:text-primary transition-colors"
         >
           {expanded ? "Свернуть" : "Читать полностью"}
           <ChevronDown className={cn("w-4 h-4 transition-transform", expanded && "rotate-180")} />
@@ -101,7 +101,7 @@ function ReviewCard({
               href={sourceUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-1 min-h-[44px] -my-2 px-1 text-xs text-muted-foreground hover:text-brand-warm transition-colors"
+              className="inline-flex items-center gap-1 min-h-[44px] -my-2 px-1 text-xs text-muted-foreground hover:text-brand-warm-ink transition-colors"
             >
               {source}
               <ExternalLink className="w-3 h-3" />

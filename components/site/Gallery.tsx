@@ -127,7 +127,7 @@ export function Gallery() {
         <Reveal>
           <div className="flex flex-wrap items-end justify-between gap-4">
             <div>
-              <p className="text-sm font-semibold uppercase tracking-widest text-brand-warm mb-3">
+              <p className="text-sm font-semibold uppercase tracking-widest text-brand-warm-ink mb-3">
                 Галерея
               </p>
               <h2 className="font-display font-extrabold text-3xl sm:text-4xl md:text-5xl text-foreground text-balance leading-[1.15]">
@@ -191,7 +191,7 @@ export function Gallery() {
           <div className="text-center mt-6">
             <Link
               href="/gallery"
-              className="inline-flex items-center gap-2 h-11 px-6 rounded-full border-2 border-border bg-card text-sm font-semibold hover:border-brand-warm hover:text-brand-warm transition-colors group"
+              className="inline-flex items-center gap-2 h-11 px-6 rounded-full border-2 border-border bg-card text-sm font-semibold hover:border-brand-warm hover:text-brand-warm-ink transition-colors group"
             >
               <Images className="w-4 h-4" />
               Вся галерея

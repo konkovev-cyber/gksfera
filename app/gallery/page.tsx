@@ -61,7 +61,7 @@ export default async function GalleryPage() {
 
           <div className="flex flex-wrap items-end justify-between gap-x-6 gap-y-3">
             <div>
-              <p className="text-sm font-semibold uppercase tracking-widest text-brand-warm mb-2">
+              <p className="text-sm font-semibold uppercase tracking-widest text-brand-warm-ink mb-2">
                 Галерея
               </p>
               <h1 className="font-display font-extrabold text-3xl sm:text-4xl md:text-5xl text-foreground text-balance leading-[1.15]">
@@ -73,8 +73,8 @@ export default async function GalleryPage() {
               </p>
             </div>
             {items.length > 0 && (
-              <div className="flex items-center gap-2.5 rounded-2xl border border-border/60 bg-card px-4 py-3">
-                <Images className="w-5 h-5 text-brand-teal shrink-0" aria-hidden="true" />
+              <div className="flex items-center gap-2.5 rounded-2xl glass px-4 py-3">
+                <Images className="w-5 h-5 text-brand-teal-ink shrink-0" aria-hidden="true" />
                 <span className="font-display font-extrabold text-2xl text-foreground leading-none tabular-nums">
                   {items.length}
                 </span>
@@ -89,7 +89,7 @@ export default async function GalleryPage() {
           <GalleryPageView items={items} />
 
           {items.length > 0 && (
-            <div className="mt-14 rounded-3xl border border-border/60 bg-card p-6 sm:p-8 flex flex-wrap items-center justify-between gap-5">
+            <div className="mt-14 rounded-3xl glass p-6 sm:p-8 flex flex-wrap items-center justify-between gap-5">
               <div>
                 <h2 className="font-display font-extrabold text-xl sm:text-2xl text-foreground">
                   Хотите так же?

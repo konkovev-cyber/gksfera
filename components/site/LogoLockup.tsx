@@ -50,7 +50,7 @@ export function LogoLockup({ size = "md", onDark = false, priority = false, capt
           className={cn(
             "font-display font-extrabold tracking-tight whitespace-nowrap",
             title,
-            onDark ? "text-background" : "text-foreground",
+            onDark ? "text-on-scrim" : "text-foreground",
           )}
         >
           СФЕРА
@@ -58,7 +58,7 @@ export function LogoLockup({ size = "md", onDark = false, priority = false, capt
         <span
           className={cn(
             "text-[10px] sm:text-[11px] font-medium whitespace-nowrap mt-0.5",
-            onDark ? "text-background/60" : "text-muted-foreground",
+            onDark ? "text-on-scrim/65" : "text-muted-foreground",
           )}
         >
           {caption}

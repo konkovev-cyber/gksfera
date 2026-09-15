@@ -54,7 +54,7 @@ export function FAQ() {
         />
         <Reveal>
           <div className="text-center mb-10">
-            <p className="text-sm font-semibold uppercase tracking-widest text-brand-warm mb-2">
+            <p className="text-sm font-semibold uppercase tracking-widest text-brand-warm-ink mb-2">
               Вопросы
             </p>
             <h2 className="font-display font-extrabold text-3xl sm:text-4xl md:text-5xl text-foreground">

@@ -7,8 +7,8 @@ export default function manifest(): MetadataRoute.Manifest {
     description: 'Занятия для детей в Горячем Ключе — подготовка к школе, помощь школьникам, английский, театр и другие развивающие направления.',
     start_url: '/',
     display: 'standalone',
-    background_color: '#faf8f4',
-    theme_color: '#e8821e',
+    background_color: '#f8f9fa',   // --background светлой темы
+    theme_color: '#f28c28',        // --brand-warm
     icons: [
       {
         src: '/icon-192.png',

@@ -895,7 +895,7 @@ export default function AdminPage() {
     </button>
   );
 
-  if (authed === null) return <div className="min-h-screen flex items-center justify-center"><Loader2 className="w-6 h-6 animate-spin text-brand-warm" /></div>;
+  if (authed === null) return <div className="min-h-screen flex items-center justify-center"><Loader2 className="w-6 h-6 animate-spin text-brand-warm-ink" /></div>;
 
   if (!authed) return (
     <div className="min-h-screen flex items-center justify-center bg-background px-4">
@@ -1315,7 +1315,7 @@ export default function AdminPage() {
                       <p className="text-xs text-muted-foreground mb-1">{post.date}</p>
                       <p className="text-sm text-foreground line-clamp-3">{post.text}</p>
                     </div>
-                    <button onClick={() => importVkReview(post)} className="shrink-0 h-8 px-3 rounded-full bg-brand-warm/10 text-brand-warm text-xs font-semibold hover:bg-brand-warm/20 transition-colors">
+                    <button onClick={() => importVkReview(post)} className="shrink-0 h-8 px-3 rounded-full bg-brand-warm/10 text-brand-warm-ink text-xs font-semibold hover:bg-brand-warm/20 transition-colors">
                       Добавить
                     </button>
                   </div>
@@ -1457,7 +1457,7 @@ export default function AdminPage() {
                       <button onClick={() => setProgramOutcomes((p) => ({ ...p, [title]: p[title].filter((_, k) => k !== j) }))} className="p-2 rounded-lg hover:bg-destructive/10 text-destructive shrink-0"><Trash2 className="w-4 h-4" /></button>
                     </div>
                   ))}
-                  <button onClick={() => setProgramOutcomes((p) => ({ ...p, [title]: [...(p[title] ?? []), ""] }))} className="text-xs text-brand-warm hover:underline mt-1">+ Добавить пункт</button>
+                  <button onClick={() => setProgramOutcomes((p) => ({ ...p, [title]: [...(p[title] ?? []), ""] }))} className="text-xs text-brand-warm-ink hover:underline mt-1">+ Добавить пункт</button>
                 </div>
               ))}
             </Section>
@@ -1610,7 +1610,7 @@ export default function AdminPage() {
                                 </div>
                               </div>
                             ))}
-                            <button type="button" onClick={() => addLesson(gi, di)} className="inline-flex items-center gap-1 text-xs font-semibold text-brand-warm hover:underline mt-0.5"><Plus className="w-3.5 h-3.5" /> Добавить урок</button>
+                            <button type="button" onClick={() => addLesson(gi, di)} className="inline-flex items-center gap-1 text-xs font-semibold text-brand-warm-ink hover:underline mt-0.5"><Plus className="w-3.5 h-3.5" /> Добавить урок</button>
                           </div>
                           {lessons.length > 0 && (
                             <p className="pt-1.5 border-t border-border/50 flex items-baseline justify-between gap-2 text-[11px] text-muted-foreground">
@@ -1659,7 +1659,7 @@ export default function AdminPage() {
                 <div className="min-w-0 flex-1">
                   <p className="text-sm font-semibold text-foreground leading-tight">
                     {newsDraft.id ? "Редактирование новости" : "Новая новость"}
-                    {newsDirty && <span className="ml-2 text-[11px] font-normal text-brand-warm">● не сохранено</span>}
+                    {newsDirty && <span className="ml-2 text-[11px] font-normal text-brand-warm-ink">● не сохранено</span>}
                   </p>
                   <p className="text-[11px] text-muted-foreground truncate">
                     {newsUrl({ vk_post_id: newsDraft.vk_post_id || slugifyRu(newsDraft.title || "novost") })}
@@ -2037,7 +2037,7 @@ export default function AdminPage() {
                         </span>
                         <NewsSourceBadge item={n} />
                         {newsPinned.includes(String(n.vk_post_id ?? "")) && (
-                          <span className="text-brand-warm font-semibold" title="Закреплена: синхронизация VK её не перезапишет">
+                          <span className="text-brand-warm-ink font-semibold" title="Закреплена: синхронизация VK её не перезапишет">
                             закреплена
                           </span>
                         )}

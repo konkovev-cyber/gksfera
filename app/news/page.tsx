@@ -33,7 +33,7 @@ function NewsCard({ item }: { item: NewsItem }) {
   return (
     <Link
       href={newsUrl(item)}
-      className="group block bg-card rounded-2xl border border-border/60 overflow-hidden hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300 h-full"
+      className="group block glass rounded-2xl overflow-hidden hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300 h-full"
     >
       <div className="relative aspect-[4/3] overflow-hidden bg-brand-cream/50">
         {item.image_url ? (
@@ -56,13 +56,13 @@ function NewsCard({ item }: { item: NewsItem }) {
           <Calendar className="w-3.5 h-3.5" />
           <time dateTime={item.published_at.slice(0, 10)}>{fmtDate(item.published_at)}</time>
         </div>
-        <h2 className="font-display font-bold text-foreground text-base leading-snug mb-2 group-hover:text-brand-warm transition-colors line-clamp-2">
+        <h2 className="font-display font-bold text-foreground text-base leading-snug mb-2 group-hover:text-brand-warm-ink transition-colors line-clamp-2">
           {item.title}
         </h2>
         {item.excerpt && (
           <p className="text-sm text-muted-foreground leading-relaxed line-clamp-3">{item.excerpt}</p>
         )}
-        <div className="mt-3 inline-flex items-center gap-1.5 text-xs font-medium text-brand-warm">
+        <div className="mt-3 inline-flex items-center gap-1.5 text-xs font-medium text-brand-warm-ink">
           Читать полностью <ArrowRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-1" />
         </div>
       </div>
@@ -78,7 +78,7 @@ export default async function NewsArchivePage() {
       <Header />
       <main className="min-h-screen pt-28 md:pt-36 pb-20">
         <div className="container-max">
-          <p className="text-sm font-semibold uppercase tracking-widest text-brand-warm mb-2">
+          <p className="text-sm font-semibold uppercase tracking-widest text-brand-warm-ink mb-2">
             Новости
           </p>
           <h1 className="font-display font-extrabold text-3xl sm:text-4xl md:text-5xl text-foreground text-balance">
@@ -86,7 +86,7 @@ export default async function NewsArchivePage() {
           </h1>
 
           {news.length === 0 ? (
-            <div className="mt-12 bg-card rounded-2xl border border-border/60 p-10 text-center max-w-lg">
+            <div className="mt-12 glass rounded-2xl p-10 text-center max-w-lg">
               <p className="text-muted-foreground">
                 Новостей пока нет. Загляните позже или читайте нашу группу ВКонтакте — там всё
                 публикуется сразу.

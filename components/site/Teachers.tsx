@@ -14,7 +14,7 @@ export function Teachers() {
     <section id="teachers" className="section-padding relative overflow-hidden">
       <div className="container-max relative z-10">
         <Reveal>
-          <p className="text-sm font-semibold uppercase tracking-widest text-brand-warm mb-3">
+          <p className="text-sm font-semibold uppercase tracking-widest text-brand-warm-ink mb-3">
             Педагоги
           </p>
           <h2 className="font-display font-extrabold text-3xl sm:text-4xl md:text-5xl text-foreground text-balance leading-[1.15]">
@@ -28,7 +28,7 @@ export function Teachers() {
         <Stagger className="mt-12 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 lg:gap-6">
           {content.teachers.map((teacher) => (
             <StaggerItem key={teacher.id}>
-              <div className="card-hover bg-card rounded-2xl overflow-hidden border border-border/60 h-full">
+              <div className="card-hover glass rounded-2xl overflow-hidden h-full">
                 <div className="relative aspect-[4/5] bg-muted overflow-hidden">
                   {teacher.photo ? (
                     <Image
@@ -40,7 +40,7 @@ export function Teachers() {
                     />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center bg-brand-warm/10">
-                      <GraduationCap className="w-16 h-16 text-brand-warm/30" />
+                      <GraduationCap className="w-16 h-16 text-brand-warm-ink/30" />
                     </div>
                   )}
                 </div>
@@ -48,7 +48,7 @@ export function Teachers() {
                   <h3 className="font-display font-bold text-lg text-foreground">
                     {teacher.name}
                   </h3>
-                  <p className="text-sm font-medium text-brand-warm mt-1">
+                  <p className="text-sm font-medium text-brand-warm-ink mt-1">
                     {teacher.role}
                   </p>
                   <p className="text-sm text-muted-foreground mt-3 leading-relaxed">

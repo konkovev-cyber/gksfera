@@ -96,9 +96,9 @@ export default async function ProgramPage({ params }: Props) {
 
           {/* Хлебные крошки */}
           <nav aria-label="Хлебные крошки" className="flex items-center gap-1.5 text-xs sm:text-sm text-muted-foreground mb-6 flex-wrap">
-            <Link href="/" className="min-h-[44px] -my-2 px-1 flex items-center hover:text-brand-warm transition-colors">Главная</Link>
+            <Link href="/" className="min-h-[44px] -my-2 px-1 flex items-center hover:text-brand-warm-ink transition-colors">Главная</Link>
             <ChevronRight className="w-3.5 h-3.5" />
-            <Link href="/#programs" className="min-h-[44px] -my-2 px-1 flex items-center hover:text-brand-warm transition-colors">Направления</Link>
+            <Link href="/#programs" className="min-h-[44px] -my-2 px-1 flex items-center hover:text-brand-warm-ink transition-colors">Направления</Link>
             <ChevronRight className="w-3.5 h-3.5" />
             <span className="text-foreground font-medium">{program.title}</span>
           </nav>
@@ -121,7 +121,7 @@ export default async function ProgramPage({ params }: Props) {
 
             {/* Текст */}
             <div className={program.image ? "order-2" : "order-1 lg:col-span-2"}>
-              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-brand-warm/10 text-brand-warm text-sm font-semibold mb-4">
+              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-brand-warm/10 text-brand-warm-ink text-sm font-semibold mb-4">
                 <Icon className="w-4 h-4" />
                 {categoryLabel}
               </div>
@@ -131,29 +131,29 @@ export default async function ProgramPage({ params }: Props) {
 
               {/* Мета карточки */}
               <div className="mt-5 grid grid-cols-2 gap-3">
-                <div className="flex items-center gap-3 p-3 rounded-2xl bg-card border border-border/60">
-                  <CalendarDays className="w-5 h-5 text-brand-warm shrink-0" />
+                <div className="flex items-center gap-3 p-3 rounded-2xl glass">
+                  <CalendarDays className="w-5 h-5 text-brand-warm-ink shrink-0" />
                   <div className="min-w-0">
                     <p className="text-[10px] uppercase tracking-wider text-muted-foreground leading-none">Возраст</p>
                     <p className="text-sm font-semibold text-foreground mt-0.5 truncate">{program.ageRange}</p>
                   </div>
                 </div>
-                <div className="flex items-center gap-3 p-3 rounded-2xl bg-card border border-border/60">
-                  <Users className="w-5 h-5 text-brand-warm shrink-0" />
+                <div className="flex items-center gap-3 p-3 rounded-2xl glass">
+                  <Users className="w-5 h-5 text-brand-warm-ink shrink-0" />
                   <div className="min-w-0">
                     <p className="text-[10px] uppercase tracking-wider text-muted-foreground leading-none">Формат</p>
                     <p className="text-sm font-semibold text-foreground mt-0.5 truncate">Небольшие группы</p>
                   </div>
                 </div>
-                <div className="flex items-center gap-3 p-3 rounded-2xl bg-card border border-border/60">
-                  <Clock className="w-5 h-5 text-brand-warm shrink-0" />
+                <div className="flex items-center gap-3 p-3 rounded-2xl glass">
+                  <Clock className="w-5 h-5 text-brand-warm-ink shrink-0" />
                   <div className="min-w-0">
                     <p className="text-[10px] uppercase tracking-wider text-muted-foreground leading-none">Занятия</p>
                     <p className="text-sm font-semibold text-foreground mt-0.5 truncate">1–2 раза в неделю</p>
                   </div>
                 </div>
-                <div className="flex items-center gap-3 p-3 rounded-2xl bg-card border border-border/60">
-                  <Wallet className="w-5 h-5 text-brand-warm shrink-0" />
+                <div className="flex items-center gap-3 p-3 rounded-2xl glass">
+                  <Wallet className="w-5 h-5 text-brand-warm-ink shrink-0" />
                   <div className="min-w-0">
                     <p className="text-[10px] uppercase tracking-wider text-muted-foreground leading-none">Стоимость</p>
                     <p className="text-sm font-semibold text-foreground mt-0.5 truncate">По запросу</p>
@@ -176,7 +176,7 @@ export default async function ProgramPage({ params }: Props) {
                 </Link>
                 <a
                   href={data.siteConfig.phoneHref}
-                  className="inline-flex items-center justify-center gap-2 h-12 px-7 rounded-full border-2 border-border bg-card/80 font-semibold hover:border-brand-warm hover:text-brand-warm transition-colors"
+                  className="inline-flex items-center justify-center gap-2 h-12 px-7 rounded-full border-2 border-border bg-card/80 font-semibold hover:border-brand-warm hover:text-brand-warm-ink transition-colors"
                 >
                   <Phone className="w-4 h-4" /> {data.siteConfig.phone}
                 </a>
@@ -190,14 +190,14 @@ export default async function ProgramPage({ params }: Props) {
           {/* ЧТО РЕБЁНОК ПОЛУЧИТ */}
           <section className="mt-14 sm:mt-16">
             <div className="rounded-3xl bg-brand-cream/50 border border-border/60 p-6 sm:p-8">
-              <p className="text-xs font-semibold uppercase tracking-widest text-brand-teal mb-2">Результат</p>
+              <p className="text-xs font-semibold uppercase tracking-widest text-brand-teal-ink mb-2">Результат</p>
               <h2 className="font-display font-extrabold text-2xl sm:text-3xl text-foreground text-balance">
                 Что сможет ребёнок через несколько месяцев занятий
               </h2>
               <ul className="mt-6 grid sm:grid-cols-2 gap-x-6 gap-y-3">
                 {outcomes.map((o) => (
                   <li key={o} className="flex items-start gap-3 text-foreground">
-                    <CheckCircle2 className="w-5 h-5 text-brand-teal shrink-0 mt-0.5" />
+                    <CheckCircle2 className="w-5 h-5 text-brand-teal-ink shrink-0 mt-0.5" />
                     <span className="text-sm sm:text-base leading-relaxed">{o}</span>
                   </li>
                 ))}
@@ -207,27 +207,27 @@ export default async function ProgramPage({ params }: Props) {
 
           {/* ПОЧЕМУ У НАС ЭТО ПОЛУЧАЕТСЯ */}
           <section className="mt-10 sm:mt-12">
-            <p className="text-xs font-semibold uppercase tracking-widest text-brand-warm mb-2">Наш подход</p>
+            <p className="text-xs font-semibold uppercase tracking-widest text-brand-warm-ink mb-2">Наш подход</p>
             <h2 className="font-display font-extrabold text-2xl sm:text-3xl text-foreground">
               Почему у нас получается
             </h2>
             <div className="mt-6 grid sm:grid-cols-3 gap-4">
-              <div className="p-5 rounded-2xl bg-card border border-border/60">
-                <Sparkles className="w-6 h-6 text-brand-warm mb-3" />
+              <div className="p-5 rounded-2xl glass">
+                <Sparkles className="w-6 h-6 text-brand-warm-ink mb-3" />
                 <h3 className="font-display font-bold text-base text-foreground">Видим каждого</h3>
                 <p className="text-sm text-muted-foreground mt-1 leading-relaxed">
                   В группе столько детей, сколько нужно педагогу, чтобы уделить время каждому лично.
                 </p>
               </div>
-              <div className="p-5 rounded-2xl bg-card border border-border/60">
-                <MessageCircle className="w-6 h-6 text-brand-warm mb-3" />
+              <div className="p-5 rounded-2xl glass">
+                <MessageCircle className="w-6 h-6 text-brand-warm-ink mb-3" />
                 <h3 className="font-display font-bold text-base text-foreground">Объясняем на языке ребёнка</h3>
                 <p className="text-sm text-muted-foreground mt-1 leading-relaxed">
                   Сложное — простым языком. Без нотаций, крика и давления. Ошибаться — можно и нужно.
                 </p>
               </div>
-              <div className="p-5 rounded-2xl bg-card border border-border/60">
-                <MapPin className="w-6 h-6 text-brand-warm mb-3" />
+              <div className="p-5 rounded-2xl glass">
+                <MapPin className="w-6 h-6 text-brand-warm-ink mb-3" />
                 <h3 className="font-display font-bold text-base text-foreground">Рядом с домом</h3>
                 <p className="text-sm text-muted-foreground mt-1 leading-relaxed">
                   {data.siteConfig.addressFull}. Не нужно везти ребёнка через весь город.
@@ -239,7 +239,7 @@ export default async function ProgramPage({ params }: Props) {
           {/* КАК ПРОХОДИТ ЗАНЯТИЕ — 2 фото + текст */}
           {galleryShots.length > 0 && (
             <section className="mt-10 sm:mt-12">
-              <p className="text-xs font-semibold uppercase tracking-widest text-brand-teal mb-2">Атмосфера</p>
+              <p className="text-xs font-semibold uppercase tracking-widest text-brand-teal-ink mb-2">Атмосфера</p>
               <h2 className="font-display font-extrabold text-2xl sm:text-3xl text-foreground">
                 Как проходит занятие
               </h2>
@@ -268,7 +268,7 @@ export default async function ProgramPage({ params }: Props) {
             <div className="rounded-3xl bg-gradient-to-br from-brand-warm/8 to-brand-teal/8 border border-border/60 p-6 sm:p-8">
               <div className="flex flex-col sm:flex-row sm:items-center gap-6">
                 <div className="flex-1">
-                  <p className="text-xs font-semibold uppercase tracking-widest text-brand-warm mb-2">Стоимость</p>
+                  <p className="text-xs font-semibold uppercase tracking-widest text-brand-warm-ink mb-2">Стоимость</p>
                   <h2 className="font-display font-extrabold text-2xl sm:text-3xl text-foreground leading-tight">
                     Точную цену назовём за 5 минут
                   </h2>
@@ -290,7 +290,7 @@ export default async function ProgramPage({ params }: Props) {
                       href={data.siteConfig.vkUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex items-center justify-center gap-2 h-12 px-5 rounded-full border-2 border-border bg-card font-semibold text-sm hover:border-brand-warm hover:text-brand-warm transition-colors"
+                      className="inline-flex items-center justify-center gap-2 h-12 px-5 rounded-full border-2 border-border bg-card font-semibold text-sm hover:border-brand-warm hover:text-brand-warm-ink transition-colors"
                     >
                       <MessageCircle className="w-4 h-4" /> Написать в VK
                     </a>
@@ -303,7 +303,7 @@ export default async function ProgramPage({ params }: Props) {
           {/* ОТЗЫВЫ (релевантные) */}
           {relevantReviews.length > 0 && (
             <section className="mt-10 sm:mt-12">
-              <p className="text-xs font-semibold uppercase tracking-widest text-brand-teal mb-2">Отзывы</p>
+              <p className="text-xs font-semibold uppercase tracking-widest text-brand-teal-ink mb-2">Отзывы</p>
               <h2 className="font-display font-extrabold text-2xl sm:text-3xl text-foreground">
                 Что говорят родители
               </h2>
@@ -311,11 +311,11 @@ export default async function ProgramPage({ params }: Props) {
                 {relevantReviews.map((r) => (
                   <blockquote
                     key={r.id}
-                    className="rounded-2xl bg-card border border-border/60 p-5 sm:p-6"
+                    className="rounded-2xl glass p-5 sm:p-6"
                   >
                     <div className="flex gap-0.5 mb-3">
                       {Array.from({ length: 5 }).map((_, i) => (
-                        <Star key={i} className="w-4 h-4 fill-brand-warm text-brand-warm" />
+                        <Star key={i} className="w-4 h-4 fill-brand-warm text-brand-warm-ink" />
                       ))}
                     </div>
                     <p className="text-foreground leading-relaxed">«{r.text}»</p>
@@ -335,7 +335,7 @@ export default async function ProgramPage({ params }: Props) {
               </div>
               <Link
                 href="/reviews"
-                className="inline-flex items-center gap-1.5 min-h-[44px] -my-2 mt-5 text-sm font-semibold text-brand-warm hover:underline underline-offset-4"
+                className="inline-flex items-center gap-1.5 min-h-[44px] -my-2 mt-5 text-sm font-semibold text-brand-warm-ink hover:underline underline-offset-4"
               >
                 Все отзывы <ArrowRight className="w-4 h-4" />
               </Link>
@@ -348,7 +348,7 @@ export default async function ProgramPage({ params }: Props) {
               <h2 className="font-display font-extrabold text-2xl sm:text-3xl text-balance">
                 Хотите, чтобы ребёнок занимался «{program.title.toLowerCase()}»?
               </h2>
-              <p className="mt-3 text-primary-foreground/85 text-base">
+              <p className="mt-3 text-primary-foreground/90 text-base">
                 Запишитесь на бесплатное пробное занятие — знакомство без обязательств.
               </p>
               <div className="mt-6 flex flex-col sm:flex-row sm:justify-center gap-3">
@@ -375,7 +375,7 @@ export default async function ProgramPage({ params }: Props) {
             <section className="mt-14 pt-10 border-t border-border/60">
               <div className="flex items-center justify-between mb-6">
                 <h2 className="font-display font-bold text-2xl text-foreground">Другие направления</h2>
-                <Link href="/#programs" className="inline-flex items-center gap-1.5 min-h-[44px] -my-2 px-1 text-sm text-brand-warm hover:underline underline-offset-4">
+                <Link href="/#programs" className="inline-flex items-center gap-1.5 min-h-[44px] -my-2 px-1 text-sm text-brand-warm-ink hover:underline underline-offset-4">
                   Все направления <ArrowRight className="w-4 h-4" />
                 </Link>
               </div>
@@ -384,7 +384,7 @@ export default async function ProgramPage({ params }: Props) {
                   <Link
                     key={p.id}
                     href={`/programs/${slugify(p.title)}`}
-                    className="group bg-card rounded-2xl border border-border/60 overflow-hidden hover:shadow-lg transition-shadow"
+                    className="group glass rounded-2xl overflow-hidden hover:shadow-lg transition-shadow"
                   >
                     {p.image && (
                       <div className="relative aspect-[16/10] overflow-hidden">
@@ -400,7 +400,7 @@ export default async function ProgramPage({ params }: Props) {
                     )}
                     <div className="p-4">
                       <p className="text-xs text-muted-foreground mb-1">{p.ageRange}</p>
-                      <h3 className="font-display font-bold text-foreground text-sm group-hover:text-brand-warm transition-colors">
+                      <h3 className="font-display font-bold text-foreground text-sm group-hover:text-brand-warm-ink transition-colors">
                         {p.title}
                       </h3>
                     </div>
@@ -411,7 +411,7 @@ export default async function ProgramPage({ params }: Props) {
           )}
 
           <div className="mt-12">
-            <Link href="/" className="inline-flex items-center gap-1.5 min-h-[44px] -my-2 text-sm text-muted-foreground hover:text-brand-warm transition-colors">
+            <Link href="/" className="inline-flex items-center gap-1.5 min-h-[44px] -my-2 text-sm text-muted-foreground hover:text-brand-warm-ink transition-colors">
               <ArrowLeft className="w-4 h-4" /> На главную
             </Link>
           </div>

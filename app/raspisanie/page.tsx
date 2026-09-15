@@ -28,7 +28,7 @@ export default async function SchedulePage() {
       <Header />
       <main className="min-h-screen pt-28 md:pt-36 pb-20">
         <div className="container-max">
-          <p className="text-sm font-semibold uppercase tracking-widest text-brand-warm mb-2">
+          <p className="text-sm font-semibold uppercase tracking-widest text-brand-warm-ink mb-2">
             Расписание
           </p>
           <h1 className="font-display font-extrabold text-3xl sm:text-4xl md:text-5xl text-foreground text-balance">
@@ -40,7 +40,7 @@ export default async function SchedulePage() {
           </p>
 
           {groups.length === 0 ? (
-            <div className="bg-card rounded-2xl border border-border/60 p-8 text-center max-w-lg mt-12">
+            <div className="glass rounded-2xl p-8 text-center max-w-lg mt-12">
               <p className="text-muted-foreground">
                 Расписание пока не опубликовано. Позвоните нам — подскажем дни и часы
                 занятий для вашего ребёнка.

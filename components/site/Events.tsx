@@ -27,7 +27,7 @@ export function Events() {
     <section id="events" className="section-padding bg-brand-cream/50 relative overflow-hidden">
       <div className="container-max relative z-10">
         <Reveal>
-          <p className="text-sm font-semibold uppercase tracking-widest text-brand-warm mb-3">
+          <p className="text-sm font-semibold uppercase tracking-widest text-brand-warm-ink mb-3">
             Жизнь Сферы
           </p>
           <h2 className="font-display font-extrabold text-3xl sm:text-4xl md:text-5xl text-foreground text-balance leading-[1.15]">
@@ -41,7 +41,7 @@ export function Events() {
         <Stagger className="mt-12 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 lg:gap-6">
           {content.events.map((event) => (
             <StaggerItem key={event.id}>
-              <article className="card-hover bg-card rounded-2xl overflow-hidden border border-border/60 h-full">
+              <article className="card-hover glass rounded-2xl overflow-hidden h-full">
                 <div className="relative aspect-[16/10] overflow-hidden">
                   <Image
                     src={event.image}
@@ -53,7 +53,7 @@ export function Events() {
                   />
                 </div>
                 <div className="p-5">
-                  <div className="flex items-center gap-2 text-xs font-medium text-brand-warm mb-2">
+                  <div className="flex items-center gap-2 text-xs font-medium text-brand-warm-ink mb-2">
                     <CalendarDays className="w-4 h-4" />
                     {formatDate(event.date)}
                   </div>

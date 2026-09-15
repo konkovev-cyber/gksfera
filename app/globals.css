@@ -2,81 +2,196 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ══════════════════════════════════════════════════════════════════════════
+   ТОКЕНЫ ТЕМЫ.  Светлая — off-white, не #FFF; тёмная — графит #121212/#1E1E1E.
+   Размеренные цвета (`--*-ink`) нужны потому, что брендовый оранжевый
+   #F28C28 на белом даёт 2.46:1 — для мелкого текста и подписей на кнопках
+   это ниже порога WCAG AA 4.5:1. Оранжевый остаётся декоративным (пятна,
+   точки, иконки, градиенты), а для текста и залитых плашек берётся его
+   «чернильная» версия 5.9:1. В тёмной теме наоборот: там яркие акценты
+   контрастны (7.9–8.4:1), а «чернила» просто приравниваются к ярким.
+   ══════════════════════════════════════════════════════════════════════════ */
 @layer base {
   :root {
-    /* Сфера — тёплая образовательная палитра */
-    --background: 42 33% 98%;
-    --foreground: 200 25% 12%;
+    --background: 210 14% 98%;        /* #F8F9FA — мягкий off-white */
+    --foreground: 240 4% 12%;         /* #1C1C1E */
 
     --card: 0 0% 100%;
-    --card-foreground: 200 25% 12%;
+    --card-foreground: 240 4% 12%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 200 25% 12%;
+    --popover-foreground: 240 4% 12%;
 
-    /* Тёплый янтарный — основной цвет бренда */
-    --primary: 32 85% 52%;
+    /* Залипки: поля ввода, вторые поверхности (#F1F3F5) */
+    --surface: 210 11% 96%;
+    --surface-2: 210 12% 93%;
+
+    /* Акценты бренда */
+    --primary: 24 82% 37%;            /* залитые кнопки: белый текст даёт 5.1:1.
+                                         Солнечный #F28C28 с белым — 2.46:1, то
+                                         есть ни одна кнопка сайта не проходила
+                                         AA. Яркий янтарь остаётся декоративным
+                                         (--brand-warm), кнопка «печётся». */
     --primary-foreground: 0 0% 100%;
-
-    /* Глубокий тил — акцент */
-    --secondary: 178 45% 28%;
+    --secondary: 179 44% 29%;         /* #2A6B6A — глубокий тил */
     --secondary-foreground: 0 0% 100%;
 
-    --muted: 42 23% 93%;
-    --muted-foreground: 200 10% 42%;
+    --brand-warm: 30 88% 55%;
+    --brand-teal: 179 44% 29%;
+    /* «Чернила» — то же имя цвета, но годное для мелкого текста на светлом */
+    --brand-warm-ink: 26 82% 35%;     /* 5.9:1 на белом */
+    --brand-teal-ink: 179 46% 27%;    /* 9.6:1 на белом */
 
-    /* Мягкий персик для подложек */
-    --accent: 20 70% 93%;
+    --brand-warm-light: 32 90% 96%;
+    --brand-teal-light: 172 40% 92%;
+    /* Прежние кремовые полосы секций на новом прохладном off-white читались
+       тёплыми пятнами — переводим их в нейтральную «поверхность». */
+    --brand-cream: 210 17% 97%;
+    --brand-sand: 38 30% 88%;
+
+    --muted: 210 12% 94%;
+    --muted-foreground: 216 6% 40%;
+
+    --accent: 20 70% 95%;
     --accent-foreground: 20 60% 25%;
 
-    --destructive: 0 72% 51%;
+    --destructive: 0 72% 47%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 42 20% 87%;
-    --input: 42 20% 87%;
-    --ring: 32 85% 52%;
+    --border: 214 16% 89%;
+    --input: 214 16% 89%;
+    /* Индикатор фокуса обязан быть видимым (3:1 к соседним цветам): яркого
+       янтаря на белом — 2.35:1, берём «чернильный» тон 5.7:1. */
+    --ring: 26 82% 35%;
 
-    --chart-1: 32 85% 52%;
-    --chart-2: 178 45% 28%;
+    /* Кнопка CTA: градиент + цвет текста подбираются по теме отдельно,
+       чтобы белый на янтаре проходил AA. Верхняя точка — 4.55:1, нижняя —
+       5.43:1: раньше --cta-from был 30 82% 44% и давал 3.55:1 (провал AA). */
+    --cta-from: 26 84% 40%;           /* #BC5B10 */
+    --cta-to: 24 82% 37%;             /* #AC4F11 */
+    --cta-fg: 0 0% 100%;
+    --cta-glow: 30 88% 55%;
+
+    /* Стекло и «затемнение под фото» */
+    --glass: 0 0% 100%;
+    --glass-a: 0.72;
+    --glass-border: 0 0% 100%;
+    --glass-border-a: 0.75;
+    --hairline: 214 16% 82%;
+    --scrim: 240 6% 12%;              /* подложка плашки поверх фото */
+    --scrim-a: 0.8;
+    --on-scrim: 0 0% 98%;
+
+    /* Мягкие тени с цветным отливом */
+    --shadow-hue: 216 40% 22%;
+    --shadow-tint-warm: 30 88% 45%;
+    --shadow-tint-teal: 179 44% 28%;
+
+    /* Залитая панель (блок «Познакомьтесь со Сферой»): остаётся глубокой
+       бирюзовой в обеих темах. Туда нельзя вешать --brand-teal: в тёмной теме
+       он намеренно яркий (чтобы читаться текстом на графите), и белый текст
+       поверх яркого тила даёт 1.12:1 — подвал из «Сферы» превращался в
+       выбеленное пятно с нечитаемым заголовком. */
+    --panel: 179 46% 25%;
+    --panel-2: 192 44% 19%;
+    --on-panel: 0 0% 100%;
+
+    /* Градиент для крупных цифр: в светлой теме собран из «чернильных» тонов
+       (5.1–5.9:1 на белом), в тёмной — из ярких (6–8:1 на графите). */
+    --grad-warm-1: 26 82% 36%;
+    --grad-warm-2: 24 82% 29%;
+    --grad-teal-1: 179 46% 28%;
+    --grad-teal-2: 186 48% 21%;
+
+    --chart-1: 30 88% 55%;
+    --chart-2: 179 44% 29%;
     --chart-3: 142 52% 42%;
     --chart-4: 45 85% 60%;
     --chart-5: 12 76% 56%;
 
     --radius: 1.25rem;
-
-    /* Дополнительные фирменные цвета */
-    --brand-warm: 32 85% 52%;
-    --brand-warm-light: 32 90% 96%;
-    --brand-teal: 178 45% 28%;
-    --brand-teal-light: 172 40% 92%;
-    --brand-cream: 42 40% 96%;
-    --brand-sand: 38 30% 88%;
   }
 
   .dark {
-    --background: 200 25% 9%;
-    --foreground: 42 25% 95%;
-    --card: 200 22% 13%;
-    --card-foreground: 42 25% 95%;
-    --popover: 200 22% 13%;
-    --popover-foreground: 42 25% 95%;
-    --primary: 32 80% 55%;
-    --primary-foreground: 0 0% 100%;
-    --secondary: 178 35% 35%;
-    --secondary-foreground: 0 0% 100%;
-    --muted: 200 15% 18%;
-    --muted-foreground: 200 10% 60%;
-    --accent: 20 40% 20%;
-    --accent-foreground: 20 60% 85%;
-    --border: 200 15% 20%;
-    --input: 200 15% 20%;
-    --ring: 32 80% 55%;
+    --background: 0 0% 7%;            /* #121212 */
+    --foreground: 0 0% 96%;           /* #F5F5F5 */
 
-    /* Фирменные подложки в тёмном исполнении */
+    --card: 0 0% 12%;                 /* #1E1E1E */
+    --card-foreground: 0 0% 96%;
+
+    --popover: 0 0% 14%;
+    --popover-foreground: 0 0% 96%;
+
+    --surface: 0 0% 16%;              /* #292929 — залитые поля */
+    --surface-2: 0 0% 20%;            /* #333 — состояние фокуса */
+
+    --primary: 32 88% 63%;            /* приглушённый, но яркий янтарь */
+    --primary-foreground: 0 0% 7%;    /* на ярком янтаре — тёмный графит */
+    --secondary: 174 45% 55%;
+    --secondary-foreground: 0 0% 7%;
+
+    /* В тёмной теме «чернила» = сами акценты: они уже контрастны (≥7.9:1) */
+    --brand-warm: 32 88% 63%;
+    --brand-teal: 174 45% 55%;
+    --brand-warm-ink: 32 88% 63%;
+    --brand-teal-ink: 174 45% 55%;
+
     --brand-warm-light: 32 40% 16%;
     --brand-teal-light: 178 30% 14%;
-    --brand-cream: 200 20% 11%;
-    --brand-sand: 200 15% 22%;
+    --brand-cream: 0 0% 10%;
+    --brand-sand: 0 0% 20%;
+
+    --muted: 0 0% 16%;
+    --muted-foreground: 0 0% 66%;
+
+    --accent: 0 0% 18%;
+    --accent-foreground: 0 0% 92%;
+
+    --destructive: 0 72% 58%;
+    --destructive-foreground: 0 0% 8%;
+
+    /* Границы — тонкие и светлые, как rgba(255,255,255,.1) по графиту */
+    --border: 0 0% 20%;
+    --input: 0 0% 22%;
+    --ring: 32 88% 63%;
+
+    --cta-from: 34 92% 66%;
+    --cta-to: 28 88% 58%;
+    --cta-fg: 0 0% 7%;
+    --cta-glow: 32 90% 60%;
+
+    --glass: 0 0% 100%;
+    --glass-a: 0.05;
+    --glass-border: 0 0% 100%;
+    --glass-border-a: 0.10;
+    --hairline: 0 0% 26%;
+    --scrim: 0 0% 6%;
+    --scrim-a: 0.72;
+    --on-scrim: 0 0% 98%;
+
+    --shadow-hue: 0 0% 0%;
+    --shadow-tint-warm: 32 88% 60%;
+    --shadow-tint-teal: 174 45% 50%;
+
+    --panel: 179 42% 17%;
+    --panel-2: 190 45% 12%;
+    --on-panel: 0 0% 98%;
+
+    --grad-warm-1: 34 92% 66%;
+    --grad-warm-2: 28 88% 56%;
+    --grad-teal-1: 174 50% 60%;
+    --grad-teal-2: 176 45% 47%;
+  }
+}
+
+@layer base {
+  :root {
+    color-scheme: light;              /* нативные контролы (select, чекбокс,
+                                         автозаполнение, скроллбар) — светлые */
+  }
+  .dark {
+    color-scheme: dark;               /* иначе в тёмной теме выпадашка select
+                                         и галочка согласия остаются белыми */
   }
 }
 
@@ -93,6 +208,10 @@
     scroll-behavior: smooth;
     scroll-padding-top: 80px;
   }
+  /* Тёмная тема: крупные цифры и заголовки не должны «кричать» белизной */
+  .dark ::selection {
+    background: hsl(var(--brand-warm) / 0.32);
+  }
 }
 
 @layer components {
@@ -104,6 +223,292 @@
   }
   .text-balance {
     text-wrap: balance;
+  }
+
+  /* ── Матовое стекло ───────────────────────────────────────────────────
+     В светлой теме — молочное стекло с белёсой кромкой, в тёмной — тонкая
+     светлая плёнка поверх графита с внутренним бликом по верхнему краю. */
+  .glass {
+    background: hsl(var(--glass) / var(--glass-a));
+    backdrop-filter: blur(14px) saturate(1.4);
+    -webkit-backdrop-filter: blur(14px) saturate(1.4);
+    border: 1px solid hsl(var(--glass-border) / var(--glass-border-a));
+    box-shadow:
+      0 18px 40px -24px hsl(var(--shadow-hue) / 0.28),
+      0 2px 8px -4px hsl(var(--shadow-hue) / 0.12),
+      inset 0 1px 0 0 hsl(var(--glass-border) / 0.6);
+  }
+  .dark .glass {
+    box-shadow:
+      0 20px 44px -26px hsl(0 0% 0% / 0.75),
+      0 2px 10px -4px hsl(0 0% 0% / 0.5),
+      inset 0 1px 0 0 hsl(0 0% 100% / 0.08);
+  }
+  /* «Скрим» — та же стеклянная пластинка, но затемнённая: ставится поверх
+     фотографии, где светлое стекло читалось бы плохо. Текст — --on-scrim. */
+  .glass-scrim {
+    background: hsl(var(--scrim) / var(--scrim-a));
+    backdrop-filter: blur(16px) saturate(1.5);
+    -webkit-backdrop-filter: blur(16px) saturate(1.5);
+    border: 1px solid hsl(0 0% 100% / 0.18);
+    box-shadow:
+      0 22px 44px -22px hsl(0 0% 0% / 0.45),
+      inset 0 1px 0 0 hsl(0 0% 100% / 0.16);
+    color: hsl(var(--on-scrim));
+  }
+
+  /* ── Мягкие тени с цветным отливом ──────────────────────────────────── */
+  .soft-shadow {
+    box-shadow:
+      0 24px 48px -28px hsl(var(--shadow-hue) / 0.30),
+      0 4px 12px -6px hsl(var(--shadow-hue) / 0.12);
+  }
+  .soft-shadow-warm {
+    box-shadow:
+      0 24px 50px -26px hsl(var(--shadow-tint-warm) / 0.30),
+      0 3px 10px -4px hsl(var(--shadow-hue) / 0.12);
+  }
+  .soft-shadow-teal {
+    box-shadow:
+      0 24px 50px -26px hsl(var(--shadow-tint-teal) / 0.30),
+      0 3px 10px -4px hsl(var(--shadow-hue) / 0.12);
+  }
+  /* Свечение акцентом — тёмная тема охотно носит, светлая почти не видно */
+  .glow-warm {
+    box-shadow: 0 0 0 1px hsl(var(--brand-warm) / 0.35), 0 12px 36px -12px hsl(var(--brand-warm) / 0.45);
+  }
+  .glow-teal {
+    box-shadow: 0 0 0 1px hsl(var(--brand-teal) / 0.35), 0 12px 36px -12px hsl(var(--brand-teal) / 0.45);
+  }
+
+  /* ── Mesh-градиент для первого экрана ─────────────────────────────────
+     Четыре радиальных пятна: два тёплых, два бирюзовых, плюс базовый
+     вертикальный сдвиг. В светлой теме — пастель, в тёмной — свечение
+     из центра кадра. */
+  .mesh-hero {
+    background-image:
+      radial-gradient(56% 46% at 8% 6%, hsl(var(--brand-warm) / 0.16), transparent 62%),
+      radial-gradient(44% 42% at 96% 12%, hsl(var(--brand-teal) / 0.14), transparent 60%),
+      radial-gradient(52% 44% at 84% 92%, hsl(var(--brand-warm) / 0.12), transparent 62%),
+      radial-gradient(38% 36% at 14% 88%, hsl(var(--brand-teal) / 0.10), transparent 58%),
+      linear-gradient(180deg, hsl(var(--brand-warm-light) / 0.55), transparent 45%);
+  }
+  .dark .mesh-hero {
+    background-image:
+      radial-gradient(56% 46% at 8% 6%, hsl(var(--brand-warm) / 0.13), transparent 62%),
+      radial-gradient(44% 42% at 96% 12%, hsl(var(--brand-teal) / 0.12), transparent 60%),
+      radial-gradient(52% 44% at 84% 92%, hsl(var(--brand-warm) / 0.10), transparent 62%),
+      radial-gradient(38% 36% at 14% 88%, hsl(var(--brand-teal) / 0.09), transparent 58%),
+      linear-gradient(180deg, hsl(0 0% 100% / 0.03), transparent 50%);
+  }
+
+  /* ── Поля ввода: заливка вместо рамки + плавающий лейбл ─────────────
+     Лейбл «в покое» сидит внутри поля и уходит вверх при фокусе и при
+     заполненном значении (:placeholder-shown). Поэтому placeholder в
+     разметке обязан быть одним пробелом — иначе трюк не работает. */
+  .field {
+    position: relative;
+    display: block;
+  }
+  .field-input {
+    width: 100%;
+    height: 3.5rem;
+    padding: 1.35rem 0.95rem 0.35rem 2.9rem;
+    border-radius: 1rem;
+    border: 1px solid transparent;
+    background: hsl(var(--surface));
+    color: hsl(var(--foreground));
+    font-size: 0.9375rem;
+    transition:
+      background-color 0.22s ease,
+      border-color 0.22s ease,
+      box-shadow 0.22s ease;
+  }
+  textarea.field-input {
+    height: auto;
+    padding-top: 1.6rem;
+    padding-bottom: 0.5rem;
+    line-height: 1.5;
+  }
+  .field-input::placeholder {
+    color: transparent;
+  }
+  .field-input:hover {
+    background: hsl(var(--surface-2));
+  }
+  .field-input:focus {
+    outline: none;
+    background: hsl(var(--card));
+    border-color: hsl(var(--brand-warm-ink) / 0.65);
+    box-shadow:
+      0 0 0 4px hsl(var(--brand-warm) / 0.18),
+      0 10px 26px -14px hsl(var(--brand-warm) / 0.6);
+  }
+  .dark .field-input:focus {
+    background: hsl(var(--surface-2));
+    border-color: hsl(var(--brand-teal) / 0.6);
+    box-shadow:
+      0 0 0 4px hsl(var(--brand-teal) / 0.18),
+      0 0 28px -6px hsl(var(--brand-teal) / 0.45);
+  }
+  .field-label {
+    position: absolute;
+    left: 2.9rem;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 0.9375rem;
+    color: hsl(var(--muted-foreground));
+    pointer-events: none;
+    transition:
+      top 0.18s ease,
+      transform 0.18s ease,
+      font-size 0.18s ease,
+      color 0.18s ease;
+  }
+  textarea ~ .field-label {
+    top: 1.05rem;
+    transform: none;
+  }
+  /* «Всплыл»: фокус или непустое значение */
+  .field-input:focus ~ .field-label {
+    top: 0.5rem;
+    transform: none;
+    font-size: 0.6875rem;
+    letter-spacing: 0.02em;
+    color: hsl(var(--brand-warm-ink));
+  }
+  .dark .field-input:focus ~ .field-label {
+    color: hsl(var(--brand-teal));
+  }
+  .field-input:not(:placeholder-shown) ~ .field-label,
+  .field-input--filled ~ .field-label {
+    top: 0.5rem;
+    transform: none;
+    font-size: 0.6875rem;
+    letter-spacing: 0.02em;
+  }
+  .field-input:not(:placeholder-shown) {
+    padding-top: 1.35rem;
+  }
+  .field-icon {
+    position: absolute;
+    left: 0.95rem;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 1.15rem;
+    height: 1.15rem;
+    color: hsl(var(--muted-foreground));
+    pointer-events: none;
+    transition: color 0.22s ease;
+  }
+  textarea ~ .field-icon {
+    top: 1.15rem;
+    transform: none;
+  }
+  .field-input:focus ~ .field-icon {
+    color: hsl(var(--brand-warm-ink));
+  }
+  .dark .field-input:focus ~ .field-icon {
+    color: hsl(var(--brand-teal));
+  }
+
+  /* ── Кнопка CTA: градиент, мягкая тень, свечение на ховере ─────────── */
+  .btn-cta {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    border-radius: 9999px;
+    color: hsl(var(--cta-fg));
+    background-image: linear-gradient(135deg, hsl(var(--cta-from)), hsl(var(--cta-to)));
+    box-shadow:
+      0 14px 28px -16px hsl(var(--cta-glow) / 0.65),
+      inset 0 1px 0 0 hsl(0 0% 100% / 0.22);
+    transition:
+      box-shadow 0.25s ease,
+      transform 0.25s ease,
+      filter 0.25s ease;
+  }
+  .btn-cta:hover:not(:disabled) {
+    filter: saturate(1.06) brightness(1.03);
+    transform: translateY(-1px);
+    box-shadow:
+      0 20px 38px -16px hsl(var(--cta-glow) / 0.72),
+      inset 0 1px 0 0 hsl(0 0% 100% / 0.28);
+  }
+  .dark .btn-cta:hover:not(:disabled) {
+    box-shadow:
+      0 0 0 1px hsl(var(--cta-glow) / 0.55),
+      0 0 34px -6px hsl(var(--cta-glow) / 0.55),
+      inset 0 1px 0 0 hsl(0 0% 100% / 0.22);
+  }
+  .btn-cta:active:not(:disabled) {
+    transform: translateY(0) scale(0.99);
+  }
+  .btn-cta:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+  /* Стрелка/самолётик: на ховере делает «рывок» вправо и возвращается —
+     анимация перезапускается при каждом наведении, в отличие от transform. */
+  .btn-cta .btn-arrow {
+    transition: transform 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  @keyframes btn-arrow-nudge {
+    0%   { transform: translateX(0); }
+    45%  { transform: translateX(6px); }
+    100% { transform: translateX(0); }
+  }
+  .btn-cta:hover:not(:disabled) .btn-arrow {
+    animation: btn-arrow-nudge 0.55s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  /* ── Вторичная кнопка: контур со свечением в тёмной теме ───────────── */
+  .btn-outline {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    border-radius: 9999px;
+    border: 1px solid hsl(var(--border));
+    background: hsl(var(--card) / 0.6);
+    color: hsl(var(--foreground));
+    transition: border-color 0.22s ease, color 0.22s ease, background-color 0.22s ease, box-shadow 0.22s ease, transform 0.22s ease;
+  }
+  .btn-outline:hover {
+    border-color: hsl(var(--brand-warm) / 0.6);
+    color: hsl(var(--brand-warm-ink));
+    transform: translateY(-1px);
+  }
+  .dark .btn-outline:hover {
+    box-shadow: 0 0 26px -8px hsl(var(--brand-teal) / 0.55);
+    color: hsl(var(--brand-teal));
+    border-color: hsl(var(--brand-teal) / 0.55);
+  }
+
+  /* ── Пилюля-контакт (телефон, VK, MAX) ──────────────────────────────── */
+  .pill-contact {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.75rem;
+    border-radius: 9999px;
+    padding: 0.5rem 1.1rem 0.5rem 0.5rem;
+    background: hsl(var(--glass) / var(--glass-a));
+    border: 1px solid hsl(var(--glass-border) / var(--glass-border-a));
+    box-shadow: 0 12px 26px -20px hsl(var(--shadow-hue) / 0.5);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    transition: transform 0.22s ease, box-shadow 0.22s ease, background-color 0.22s ease, border-color 0.22s ease;
+  }
+  .pill-contact:hover {
+    transform: translateY(-2px);
+    border-color: hsl(var(--brand-warm) / 0.5);
+    box-shadow: 0 20px 34px -20px hsl(var(--brand-warm) / 0.55);
+  }
+  .dark .pill-contact:hover {
+    border-color: hsl(var(--brand-warm) / 0.55);
+    box-shadow: 0 0 30px -8px hsl(var(--brand-warm) / 0.6);
   }
 }
 
@@ -120,8 +525,11 @@
   transition: box-shadow 0.3s ease, transform 0.3s ease;
 }
 .card-hover:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 20px 40px -12px hsl(200 25% 12% / 0.12);
+  transform: translateY(-5px);
+  box-shadow: 0 26px 48px -18px hsl(var(--shadow-hue) / 0.22);
+}
+.dark .card-hover:hover {
+  box-shadow: 0 26px 52px -18px hsl(0 0% 0% / 0.7);
 }
 
 /* Стиль скроллбара */
@@ -152,7 +560,9 @@
   }
 }
 
-/* Современные эффекты Hero */
+/* ══════════════════════════════════════════════════════════════════════════
+   СОВРЕМЕННЫЕ ЭФФЕКТЫ ПЕРВОГО ЭКРАНА
+   ══════════════════════════════════════════════════════════════════════════ */
 @keyframes marquee {
   from {
     transform: translateX(0);
@@ -188,11 +598,18 @@
   animation-play-state: paused !important;
 }
 
+/* Затухание бегущей строки по краям: текст уходит в воздух, а не в обрез.
+   Маска вместо прежней рамки-полосы с градиентами и внутренними тенями. */
+.fade-edges {
+  -webkit-mask-image: linear-gradient(to right, transparent, #000 9%, #000 91%, transparent);
+  mask-image: linear-gradient(to right, transparent, #000 9%, #000 91%, transparent);
+}
+
 @media (prefers-reduced-motion: reduce) {
   /* Колебания «волной» — главная причина дискомфорта, их убираем. */
   .marquee-wave { animation: none !important; }
   /* Саму ленту не останавливаем: при уменьшенном движении она идёт медленно.
-   Полностью остановить можно кнопкой паузы рядом со строкой (WCAG 2.2.2). */
+     Полностью остановить можно кнопкой паузы рядом со строкой (WCAG 2.2.2). */
   .animate-marquee { animation-duration: 90s !important; }
 }
 
@@ -222,6 +639,21 @@
   animation: text-shimmer 5s linear infinite !important;
 }
 
+/* Медленный дрейф светового пятна (градиентные «капли» в карточках).
+   Останавливается вместе с остальным движением по prefers-reduced-motion. */
+@keyframes blob-drift {
+  0%   { transform: translate3d(0, 0, 0) scale(1); }
+  50%  { transform: translate3d(6px, -10px, 0) scale(1.12); }
+  100% { transform: translate3d(0, 0, 0) scale(1); }
+}
+.blob-drift {
+  animation: blob-drift 14s ease-in-out infinite;
+  will-change: transform;
+}
+@media (prefers-reduced-motion: reduce) {
+  .blob-drift { animation: none; }
+}
+
 /* Скрыть скроллбар для горизонтальных вкладок админки */
 .scrollbar-hide::-webkit-scrollbar {
   display: none;
@@ -249,6 +681,40 @@
 /* Печать страницы «Расписание» (и вообще сайта): убираем интерфейсную
    обвязку и лишние отступы, чтобы на лист попадало только содержимое. */
 @media print {
+  /* Тёмная тема на бумаге бессмысленна: возвращаем все токены к светлым
+     значениям, иначе текст и акценты доезжают до листа «тёмными» числами
+     (body выше по CSS форсировался, а hsl(var(--…)) внутри классов — нет). */
+  .dark {
+    color-scheme: light;
+    --background: 0 0% 100%;
+    --foreground: 0 0% 8%;
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 8%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 8%;
+    --surface: 0 0% 97%;
+    --surface-2: 0 0% 94%;
+    --primary: 24 82% 32%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 179 44% 24%;
+    --muted: 0 0% 96%;
+    --muted-foreground: 0 0% 30%;
+    --accent: 0 0% 96%;
+    --accent-foreground: 0 0% 12%;
+    --border: 0 0% 82%;
+    --input: 0 0% 82%;
+    --brand-warm: 28 80% 38%;
+    --brand-teal: 179 44% 24%;
+    --brand-warm-ink: 26 82% 30%;
+    --brand-teal-ink: 179 46% 22%;
+    --brand-cream: 0 0% 100%;
+    --hairline: 0 0% 80%;
+    --glass-a: 1;
+    --glass-border-a: 1;
+    --scrim-a: 1;
+    --scrim: 0 0% 100%;
+    --on-scrim: 0 0% 8%;
+  }
   header, footer, #mobile-cta { display: none !important; }
   main { padding-top: 0 !important; padding-bottom: 0 !important; min-height: 0 !important; }
   body { background: #fff !important; color: #000 !important; }
@@ -257,4 +723,13 @@
   li, .print-avoid-break { break-inside: avoid; }
   /* Тёмная тема на печати не нужна — форсируем светлое содержимое блоков. */
   [data-theme="dark"] body { background: #fff !important; }
+  /* Стекло и маски при печати мешают: возвратим непрозрачные подложки. */
+  .glass, .glass-scrim, .pill-contact {
+    background: #fff !important;
+    backdrop-filter: none !important;
+    border: 1px solid #d8dbe0 !important;
+    box-shadow: none !important;
+    color: #111 !important;
+  }
+  .fade-edges { -webkit-mask-image: none !important; mask-image: none !important; }
 }

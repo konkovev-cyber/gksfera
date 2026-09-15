@@ -55,9 +55,12 @@ function MosaicTile({
         />
       )}
 
-      {/* Подпись выезжает снизу при наведении/фокусе */}
-      <span className="absolute inset-x-0 bottom-0 flex items-end pt-10 pb-3 px-3 bg-gradient-to-t from-foreground/75 via-foreground/25 to-transparent opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100 transition-opacity duration-300">
-        <span className="text-xs sm:text-sm font-medium text-background leading-snug line-clamp-2">
+      {/* Подпись выезжает снизу при наведении/фокусе. Прежняя пара
+          from-foreground/75 + text-background инвертировалась вместе с темой и
+          в тёмной давала светлую вуаль с тёмным текстом поверх фото. Скрим
+          теперь фиксированный: тёмная вуаль + светлый текст в обеих темах. */}
+      <span className="absolute inset-x-0 bottom-0 flex items-end pt-10 pb-3 px-3 bg-gradient-to-t from-scrim/90 via-scrim/35 to-transparent opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100 transition-opacity duration-300">
+        <span className="text-xs sm:text-sm font-medium text-on-scrim leading-snug line-clamp-2">
           {item.alt}
         </span>
       </span>
@@ -131,7 +134,7 @@ export function GalleryPageView({ items }: { items: GalleryItem[] }) {
             >
               <c.icon className="w-4 h-4" aria-hidden="true" />
               {c.label}
-              <span className={cn("text-xs", active ? "text-primary-foreground/70" : "text-muted-foreground/70")}>
+              <span className={cn("text-xs", active ? "text-primary-foreground/90" : "text-muted-foreground")}>
                 {c.count}
               </span>
             </button>

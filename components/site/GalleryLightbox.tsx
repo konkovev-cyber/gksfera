@@ -107,7 +107,7 @@ export function GalleryLightbox({
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 z-[70] bg-foreground/90 backdrop-blur-md flex items-center justify-center p-4"
+          className="fixed inset-0 z-[70] bg-scrim/95 backdrop-blur-md flex items-center justify-center p-4"
           onClick={close}
           onTouchStart={handleTouchStart}
           onTouchEnd={handleTouchEnd}
@@ -117,7 +117,7 @@ export function GalleryLightbox({
         >
           {/* Кнопка закрытия */}
           <button
-            className="absolute top-4 right-4 w-12 h-12 rounded-full bg-card/20 text-white flex items-center justify-center hover:bg-card/30 transition-colors z-20"
+            className="absolute top-4 right-4 w-12 h-12 rounded-full bg-on-scrim/10 text-on-scrim flex items-center justify-center hover:bg-on-scrim/20 transition-colors z-20"
             onClick={(e) => {
               e.stopPropagation();
               close();
@@ -130,7 +130,7 @@ export function GalleryLightbox({
           {/* Кнопка зума (только для изображений) */}
           {!video && (
             <button
-              className="absolute top-4 right-20 w-12 h-12 rounded-full bg-card/20 text-white flex items-center justify-center hover:bg-card/30 transition-colors z-20"
+              className="absolute top-4 right-20 w-12 h-12 rounded-full bg-on-scrim/10 text-on-scrim flex items-center justify-center hover:bg-on-scrim/20 transition-colors z-20"
               onClick={(e) => {
                 e.stopPropagation();
                 setZoomed((z) => !z);
@@ -145,7 +145,7 @@ export function GalleryLightbox({
           {!zoomed && total > 1 && (
             <>
               <button
-                className="absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full bg-card/20 text-white flex items-center justify-center hover:bg-card/30 transition-colors z-10"
+                className="absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full bg-on-scrim/10 text-on-scrim flex items-center justify-center hover:bg-on-scrim/20 transition-colors z-10"
                 onClick={(e) => {
                   e.stopPropagation();
                   goPrev();
@@ -155,7 +155,7 @@ export function GalleryLightbox({
                 <ChevronLeft className="w-6 h-6" />
               </button>
               <button
-                className="absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full bg-card/20 text-white flex items-center justify-center hover:bg-card/30 transition-colors z-10"
+                className="absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full bg-on-scrim/10 text-on-scrim flex items-center justify-center hover:bg-on-scrim/20 transition-colors z-10"
                 onClick={(e) => {
                   e.stopPropagation();
                   goNext();
@@ -212,12 +212,12 @@ export function GalleryLightbox({
 
           {/* Подпись + счётчик */}
           <div className="absolute bottom-6 left-1/2 -translate-x-1/2 max-w-[90vw] text-center">
-            <p className="text-white/85 text-sm mb-1 truncate">{current.alt}</p>
-            <div className="text-white/60 text-sm flex items-center justify-center gap-3">
+            <p className="text-on-scrim text-sm mb-1 truncate">{current.alt}</p>
+            <div className="text-on-scrim/75 text-sm flex items-center justify-center gap-3">
               <span>
                 {(index ?? 0) + 1} / {total}
               </span>
-              <span className="text-white/40 text-xs hidden sm:inline">
+              <span className="text-on-scrim/65 text-xs hidden sm:inline">
                 {zoomed
                   ? "кликните для уменьшения"
                   : "кликните для увеличения · стрелки для навигации"}
