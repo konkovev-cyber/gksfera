@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowRight, Send } from "lucide-react";
+import { ArrowRight, MessageCircle, Send } from "lucide-react";
 import { useContent } from "./ContentContext";
 
 import { Reveal } from "./Reveal";
@@ -65,6 +65,17 @@ export function CTA() {
                   Написать в VK
                   <ArrowRight className="w-5 h-5" />
                 </a>
+                {content.siteConfig.maxUrl && (
+                  <a
+                    href={content.siteConfig.maxUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center justify-center gap-2 h-12 sm:h-13 px-5 sm:px-7 rounded-full border border-panel-foreground/35 text-panel-foreground font-semibold text-base whitespace-nowrap transition-colors hover:bg-panel-foreground/10"
+                  >
+                    <MessageCircle className="w-5 h-5" />
+                    Написать в MAX
+                  </a>
+                )}
               </div>
             </div>
           </div>

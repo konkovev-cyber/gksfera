@@ -4,7 +4,7 @@ import { Manrope } from 'next/font/google';
 import { MotionProvider } from '@/components/site/MotionProvider';
 import { getContent } from '@/lib/content';
 import { ldScript } from '@/lib/utils';
-import { SITE_ORIGIN } from '@/data/site';
+import { SITE_ORIGIN, siteConfig } from '@/data/site';
 
 const manrope = Manrope({
   subsets: ['cyrillic', 'latin'],
@@ -92,8 +92,12 @@ const jsonLd = {
     addressRegion: 'Краснодарский край',
     addressCountry: 'RU',
   },
-  telephone: '+7 (918) 345-67-89',
-  sameAs: ['https://vk.com/sfera_gk'],
+  // Телефон и соцсети берём из data/site.ts: раньше здесь был вписан номер-
+  // заглушка (+7 918 345-…) и несуществующая группа vk.com/sfera_gk — поисковики
+  // отдавали их как реквизиты организации. Актуальные правки контактов в админке
+  // попадают на страницы, а в этот блок — после обновления дефолтов.
+  telephone: siteConfig.phone,
+  sameAs: [siteConfig.vkUrl, siteConfig.maxUrl].filter(Boolean),
   areaServed: 'Горячий Ключ',
   knowsAbout: [
     'Подготовка к школе',

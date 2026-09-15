@@ -71,6 +71,20 @@ export default function PrivacyPage() {
           Телефон: {siteConfig.phone}
           <br />
           VK: {siteConfig.vkDisplay}
+          {siteConfig.maxUrl && (
+            <>
+              <br />
+              MAX Messenger:{" "}
+              <a
+                href={siteConfig.maxUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-foreground underline decoration-border hover:decoration-current"
+              >
+                написать в чат
+              </a>
+            </>
+          )}
         </p>
       </div>
     </article>

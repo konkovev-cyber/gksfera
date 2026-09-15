@@ -302,6 +302,16 @@ export default async function ProgramPage({ params }: Props) {
                       <MessageCircle className="w-4 h-4" /> Написать в VK
                     </a>
                   )}
+                  {data.siteConfig.maxUrl && (
+                    <a
+                      href={data.siteConfig.maxUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center justify-center gap-2 h-12 px-5 rounded-full border-2 border-border bg-card font-semibold text-sm hover:border-brand-warm hover:text-brand-warm-ink transition-colors"
+                    >
+                      <MessageCircle className="w-4 h-4" /> Написать в MAX
+                    </a>
+                  )}
                 </div>
               </div>
             </div>

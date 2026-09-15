@@ -61,6 +61,20 @@ export function Contact() {
       href: content.siteConfig.vkUrl,
       external: true,
     },
+    // MAX — мессенджер, которым пользоваться удобно не всем: если ссылки в
+    // настройках нет, строку не показываем (пустая ссылка = битая кнопка).
+    ...(content.siteConfig.maxUrl
+      ? [
+          {
+            icon: MessageCircle,
+            tone: "teal" as const,
+            label: "Мессенджер",
+            value: "MAX Messenger",
+            href: content.siteConfig.maxUrl,
+            external: true,
+          },
+        ]
+      : []),
     {
       icon: Clock,
       tone: "teal" as const,
@@ -144,8 +158,19 @@ export function Contact() {
                     className="btn-outline h-12 px-5 font-semibold text-sm flex-1"
                   >
                     <MessageCircle className="w-4 h-4" />
-                    Написать
+                    Написать в VK
                   </a>
+                  {content.siteConfig.maxUrl && (
+                    <a
+                      href={content.siteConfig.maxUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="btn-outline h-12 px-5 font-semibold text-sm flex-1"
+                    >
+                      <MessageCircle className="w-4 h-4" />
+                      Написать в MAX
+                    </a>
+                  )}
                 </div>
               </div>
 

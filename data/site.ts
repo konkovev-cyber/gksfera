@@ -200,7 +200,9 @@ export const siteConfig = {
   phoneHref: "tel:+79284349108",
   vkUrl: "https://vk.ru/sferaznanei",
   vkDisplay: "vk.ru/sferaznanei",
-  maxUrl: "",  // Ссылка на MAX Messenger (https://max.me/...) — заполните в админке
+  // Ссылка на чат в MAX (messenger.max.ru). Пустая строка — кнопки «Написать в MAX»
+  // не показываются; правится в админке («Настройки» → контакты).
+  maxUrl: "https://max.ru/u/f9LHodD0cOKd7dmKcQqOZtWn2bg8boYLKF7kZWk6CVfSGkF-NuvuELyECuY",
   ageRange: "от 5 до 15 лет",
   // Подтверждено из источников: Zoon, GdeProf, Skidkom
   workingHours: "Пн–Пт: 09:30–18:30 (по предварительной записи)",
