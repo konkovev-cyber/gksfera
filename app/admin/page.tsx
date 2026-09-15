@@ -18,6 +18,11 @@ import { cn } from "@/lib/utils";
 type Tab = "settings" | "hero" | "visibility" | "programs" | "gallery" |
   "teachers" | "reviews" | "learning" | "faq" | "news" | "seo" | "io" | "inbox" | "blocks" | "schedule" | "banners";
 
+/** Куда в редакторе прикладывается картинка — из медиатеки или с компьютера. */
+type FieldKind = "program" | "hero" | "heroList" | "step" | "teacher" | "schedule" | "news" | "newsBody";
+/** Ключ занятости загрузки: одно поле показывает спиннер, остальные ждут. */
+const busyKey = (kind: FieldKind, index: number) => `${kind}:${index}`;
+
 const TABS: { id: Tab; label: string; icon: any; hint: string }[] = [
   { id: "settings", label: "Настройки", icon: Settings, hint: "Реквизиты студии: название, телефон, адрес, соцсети, часы работы. Используются в шапке, подвале и на контактах." },
   { id: "hero", label: "Экран", icon: LayoutDashboard, hint: "Первый экран главной страницы: заголовок, подзаголовок, кнопки и ротация фотографий (показывается со сменой кадров)." },
@@ -855,9 +860,7 @@ export default function AdminPage() {
     flash("Отзыв добавлен ✓");
   };
 
-  const applyPhoto = (src: string) => {
-    if (!pickerFor) return;
-    const { kind, index } = pickerFor;
+  const applyToTarget = (kind: FieldKind, index: number, src: string) => {
     if (kind === "program") {
       setPrograms((prev) => prev.map((x, j) => (j === index ? { ...x, image: src } : x)));
     } else if (kind === "hero") {
@@ -880,20 +883,104 @@ export default function AdminPage() {
     } else if (kind === "newsBody") {
       mdInsertImage(src, newsDraft?.title ? "Фото к новости" : "Фото");
     }
+  };
+
+  const applyPhoto = (src: string) => {
+    if (!pickerFor) return;
+    applyToTarget(pickerFor.kind, pickerFor.index, src);
     setPickerFor(null);
     flash("Фото выбрано ✓");
   };
 
-  const pickBtn = (kind: "program" | "hero" | "heroList" | "step" | "teacher" | "schedule" | "news" | "newsBody", index: number, label = "Выбрать") => (
-    <button
-      type="button"
-      onClick={() => { setPickerFor({ kind, index }); if (pickerFiles.length === 0) fetch("/api/admin/files").then(r => r.ok ? r.json() : null).then(j => setPickerFiles(j?.files ?? [])); }}
-      className="h-10 px-3 rounded-lg border border-border hover:bg-accent inline-flex items-center gap-1.5 text-sm shrink-0"
-      title="Выбрать из загруженных фото"
-    >
-      <ImageIcon className="w-4 h-4" /> {label}
-    </button>
-  );
+  /** Загрузка файла с компьютера прямо в поле. Раньше во всех полях-картинках
+   *  был только «Выбрать из загруженных»: картинку расписания приходилось
+   *  сначала нести в медиатеку, а потом искать её там. Путь тот же, что у
+   *  обложки новости: сжать на клиенте → подписать URL → PUT в Storage.
+   *  Для расписания планку ширины поднимаем до 2400px: это таблица, которую
+   *  печатают на A4, и при 1920 мелкие строки расплываются. */
+  const [imgBusy, setImgBusy] = useState<string | null>(null);
+  const uploadImageInto = async (file: File, kind: FieldKind, index: number) => {
+    const key = busyKey(kind, index);
+    if (file.size > IMAGE_MAX) {
+      flash(`${humanSize(file.size)} > лимита ${humanSize(IMAGE_MAX)}`);
+      return;
+    }
+    setImgBusy(key);
+    try {
+      const { file: prepared } = await compressImageFile(file, kind === "schedule" ? { maxDim: 2400 } : {});
+      const signRes = await fetch("/api/admin/photos/sign", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ filename: prepared.name, size: prepared.size, contentType: prepared.type }),
+      });
+      const sign = await signRes.json().catch(() => ({}));
+      if (!signRes.ok || sign.error) throw new Error(sign.error ?? "не удалось получить ссылку на загрузку");
+
+      const putRes = await fetch(sign.signedUrl, {
+        method: "PUT",
+        headers: {
+          "Content-Type": prepared.type || "image/jpeg",
+          Authorization: `Bearer ${process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? ""}`,
+          "x-upsert": "false",
+        },
+        body: prepared,
+      });
+      if (!putRes.ok) throw new Error(`загрузка не удалась (HTTP ${putRes.status})`);
+
+      const src = String(sign.publicUrl ?? "");
+      if (!src) throw new Error("сервер не вернул ссылку на файл");
+      applyToTarget(kind, index, src);
+      flash(prepared === file ? "Картинка загружена ✓" : `Картинка загружена ✓ (сжата на ${humanSize(file.size - prepared.size)})`);
+    } catch (err) {
+      flash(err instanceof Error ? err.message : "Ошибка загрузки файла");
+    } finally {
+      setImgBusy(null);
+    }
+  };
+
+  /**
+   * Пара контролов для поля-картинки: выбрать из медиатеки и загрузить с ПК.
+   * Раньше во всех таких полях (картинка расписания, фото направления, фото
+   * педагога, шаг «как проходит занятие», фото героя) был только выбор из уже
+   * загруженного — чтобы положить свежий снимок, его сначала несли в галерею.
+   * compact — для тесных рядков (плитка фото в ротации героя).
+   */
+  const pickBtn = (kind: FieldKind, index: number, label = "Выбрать", opts: { compact?: boolean } = {}) => {
+    const busy = imgBusy === busyKey(kind, index);
+    const cls = opts.compact
+      ? "flex-1 min-w-0 text-[11px] h-7 rounded border border-transparent hover:bg-accent inline-flex items-center justify-center gap-1 truncate"
+      : "h-10 px-3 rounded-lg border border-border hover:bg-accent inline-flex items-center gap-1.5 text-sm shrink-0";
+    const ico = opts.compact ? "w-3.5 h-3.5" : "w-4 h-4";
+    return (
+      <>
+        <button
+          type="button"
+          onClick={() => { setPickerFor({ kind, index }); if (pickerFiles.length === 0) fetch("/api/admin/files").then(r => r.ok ? r.json() : null).then(j => setPickerFiles(j?.files ?? [])); }}
+          className={cls}
+          title="Выбрать из загруженных фото"
+        >
+          <ImageIcon className={ico} /> {label}
+        </button>
+        <label
+          className={cn(cls, "cursor-pointer", busy && "opacity-60 pointer-events-none")}
+          title="Загрузить файл с компьютера"
+        >
+          {busy ? <Loader2 className={cn(ico, "animate-spin")} /> : <Upload className={ico} />} Загрузить файл
+          <input
+            type="file"
+            accept="image/*"
+            className="hidden"
+            disabled={imgBusy !== null}
+            onChange={(e) => {
+              const f = e.target.files?.[0];
+              if (f) void uploadImageInto(f, kind, index);
+              e.target.value = "";
+            }}
+          />
+        </label>
+      </>
+    );
+  };
 
   if (authed === null) return <div className="min-h-screen flex items-center justify-center"><Loader2 className="w-6 h-6 animate-spin text-brand-warm-ink" /></div>;
 
@@ -1008,7 +1095,7 @@ export default function AdminPage() {
                         <span className="absolute top-1 left-1 text-[10px] font-bold bg-black/60 text-white rounded px-1.5 py-0.5">#{i + 1}</span>
                       </div>
                       <div className="p-1.5 flex items-center gap-1">
-                        <button type="button" title="Заменить фото" onClick={() => setPickerFor({ kind: "heroList", index: i })} className="flex-1 text-[11px] h-7 rounded hover:bg-accent truncate">Заменить</button>
+                        {pickBtn("heroList", i, "Заменить", { compact: true })}
                         <button type="button" title="Выше" disabled={i === 0} onClick={() => setHero((p) => { const a = [...p.images]; [a[i - 1], a[i]] = [a[i], a[i - 1]]; return { ...p, images: a }; })} className="w-7 h-7 rounded hover:bg-accent disabled:opacity-30 inline-flex items-center justify-center"><ArrowUp className="w-3.5 h-3.5" /></button>
                         <button type="button" title="Ниже" disabled={i === hero.images.length - 1} onClick={() => setHero((p) => { const a = [...p.images]; [a[i + 1], a[i]] = [a[i], a[i + 1]]; return { ...p, images: a }; })} className="w-7 h-7 rounded hover:bg-accent disabled:opacity-30 inline-flex items-center justify-center"><ArrowDown className="w-3.5 h-3.5" /></button>
                         <button type="button" title="Удалить" onClick={() => setHero((p) => ({ ...p, images: p.images.filter((_: string, j: number) => j !== i) }))} className="w-7 h-7 rounded hover:bg-destructive/10 text-destructive inline-flex items-center justify-center"><Trash2 className="w-3.5 h-3.5" /></button>
@@ -1545,6 +1632,9 @@ export default function AdminPage() {
                 Время окончания <b>последнего</b> урока дня выводится на странице жирной строкой «Окончание уроков» —
                 ориентир для родителей, во сколько забирать ребёнка; в карточке дня есть предпросмотр этой строки.
                 Можно загрузить картинку-расписание — она выводится под таблицей группы, её удобно скачать и распечатать.
+                Кнопка <b>«Загрузить файл»</b> берёт картинку прямо с компьютера (можно и «Выбрать» из медиатеки), перед
+                отправкой сжимает её до 2400px по длинной стороне, PNG с прозрачностью остаётся PNG.
+                Печатается картинка так: клик по ней открывает полноразмерный файл в новой вкладке.
               </p>
             </div>
 

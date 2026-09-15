@@ -93,7 +93,13 @@ function GroupCard({ group }: { group: ScheduleGroup }) {
             title="Открыть картинку-расписание в полном размере (можно скачать и распечатать)"
           >
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={group.image} alt={`Расписание — ${group.title}`} className="w-full h-auto" />
+            <img
+              src={group.image}
+              alt={`Расписание — ${group.title}`}
+              className="w-full h-auto"
+              loading="lazy"
+              decoding="async"
+            />
           </a>
           <div className="flex items-center gap-2 mt-2 text-xs text-muted-foreground">
             <ImageDown className="w-3.5 h-3.5" />
