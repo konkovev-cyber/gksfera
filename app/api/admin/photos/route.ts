@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { revalidatePath } from "next/cache";
+import { safePhotoKey } from "@/lib/photo-key";
 import { checkAdmin } from "@/lib/admin-auth";
 import { createClient } from "@supabase/supabase-js";
 
@@ -78,8 +79,9 @@ export async function POST(req: NextRequest) {
   const span = String(form.get("span") ?? "normal");
   const pos = String(form.get("pos") ?? "").trim() || null;
 
-  const safeName = file.name.replace(/[^\w.\-]/g, "_");
-  const path = `gallery/${Date.now()}-${safeName}`;
+  // Тот же ключ, что и у signed-пути: ASCII с транслитерацией, иначе русское
+  // имя схлопывается в «_.jpg», а кириллица в ключе хранилище отвергается.
+  const path = `gallery/${Date.now()}-${safePhotoKey(file.name)}`;
   const buf = Buffer.from(await file.arrayBuffer());
   const up = await db.storage
     .from(BUCKET)

@@ -164,6 +164,14 @@ const inputCls = "w-full h-10 px-3 text-sm rounded-lg border border-input bg-bac
  */
 const timeCls = "w-14 shrink-0 min-w-0 h-9 px-1 text-center text-sm tabular-nums rounded-lg border border-input bg-background focus:outline-none focus:ring-2 focus:ring-ring/60";
 const btnCls = "inline-flex items-center justify-center gap-2 h-10 px-4 rounded-full bg-primary text-primary-foreground text-sm font-semibold hover:bg-primary/90 disabled:opacity-50 w-full sm:w-auto";
+
+/**
+ * Имя файла снимка для списка галереи. Загрузка добавляет к имени префикс из
+ * миллисекунд (иначе два файла с одним названием столкнулись бы в хранилище),
+ * на глаз он только мешает — режем его в подписи, полное имя держим в title.
+ */
+const photoFileName = (src?: string | null) => String(src || "").split("?")[0].split("#")[0].split("/").pop() || "";
+const photoDisplayName = (src?: string | null) => photoFileName(src).replace(/^\d{10,}-/, "") || "(без имени)";
 const btnSecondaryCls = "inline-flex items-center justify-center gap-2 h-10 px-4 rounded-full border-2 border-border text-sm font-semibold hover:border-primary hover:text-primary disabled:opacity-50 w-full sm:w-auto";
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
@@ -189,7 +197,7 @@ export default function AdminPage() {
   const [tab, setTab] = useState<Tab>("settings");
   const [saving, setSaving] = useState(false);
   const [msg, setMsg] = useState("");
-  const [uploadQueue, setUploadQueue] = useState<{ name: string; status: "pending" | "compressing" | "uploading" | "done" | "error"; message?: string; saved?: number }[]>([]);
+  const [uploadQueue, setUploadQueue] = useState<{ name: string; status: "pending" | "compressing" | "uploading" | "done" | "error"; message?: string; saved?: number; stored?: string }[]>([]);
   const fileRef = useRef<HTMLInputElement>(null);
 
   // Плавающая кнопка «наверх»: появляется после прокрутки длинной формы
@@ -311,7 +319,7 @@ export default function AdminPage() {
     flash(res.ok ? "Сохранено ✓" : "Ошибка");
   };
 
-  const updateQueueItem = (idx: number, patch: Partial<{ status: "pending" | "compressing" | "uploading" | "done" | "error"; message?: string; saved?: number }>) => {
+  const updateQueueItem = (idx: number, patch: Partial<{ status: "pending" | "compressing" | "uploading" | "done" | "error"; message?: string; saved?: number; stored?: string }>) => {
     setUploadQueue((prev) => prev.map((x, j) => (j === idx ? { ...x, ...patch } : x)));
   };
 
@@ -377,7 +385,7 @@ export default function AdminPage() {
       return;
     }
     setPhotos((prev) => [...prev, reg.photo]);
-    updateQueueItem(idx, { status: "done" });
+    updateQueueItem(idx, { status: "done", stored: photoFileName(reg.photo?.src || sign.publicUrl) });
   };
 
   /** Массовая загрузка: обрабатываем файлы последовательно, чтобы
@@ -1271,12 +1279,17 @@ export default function AdminPage() {
                     const status = q.status === "pending" ? "в очереди"
                       : q.status === "compressing" ? "сжимаю…"
                       : q.status === "uploading" ? "загружаю…"
-                      : q.status === "done" ? (q.saved ? `готово (сэкономлено ${humanSize(q.saved)})` : "готово")
+                      : q.status === "done" ? [
+                          q.saved ? `готово (сэкономлено ${humanSize(q.saved)})` : "готово",
+                          // Каким именем файл лег в хранилище: к имени добавлены
+                          // миллисекунды, чтобы одноимённые не терли друг друга.
+                          q.stored ? `→ ${q.stored}` : null,
+                        ].filter(Boolean).join(" ")
                       : `ошибка: ${q.message ?? ""}`;
                     return (
                       <li key={i} className="flex items-center gap-2">
                         {icon}
-                        <span className="flex-1 truncate">{q.name}</span>
+                        <span className="flex-1 truncate" title={q.name}>{q.name}</span>
                         <span className={q.status === "error" ? "text-destructive" : "text-muted-foreground"}>{status}</span>
                       </li>
                     );
@@ -1292,7 +1305,12 @@ export default function AdminPage() {
               photos.map((ph, i) => (
                 <div key={ph.id} className="bg-card rounded-2xl border border-border/60 p-3 sm:p-4 flex flex-col sm:flex-row gap-3 items-start sm:items-center">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <div className="relative w-full sm:w-24 shrink-0">
+                  {/* Миниатюра + имя файла. Раньше под картинкой не было ничего,
+                      и свежезагруженный снимок приходилось искать «на глаз»:
+                      теперь видно, какой это файл, и его место в порядке показа
+                      (он совпадает с сайтом: sort_order идёт тем же порядком). */}
+                  <div className="relative w-full sm:w-40 shrink-0 flex flex-col gap-1 min-w-0">
+                    <div className="relative">
                     {isVideoSrc(ph.src) ? (
                       <>
                         <video src={ph.src} muted playsInline preload="metadata" className="w-full sm:h-16 h-32 object-cover rounded-lg border border-border bg-black" />
@@ -1312,6 +1330,26 @@ export default function AdminPage() {
                         )}
                       </>
                     )}
+                    </div>
+                    <div className="flex items-center gap-1.5 min-w-0">
+                      <span
+                        data-photo-pos
+                        className="shrink-0 rounded bg-muted px-1 text-[10px] font-semibold tabular-nums text-muted-foreground"
+                        title={`Позиция ${i + 1} из ${photos.length}. На сайте галерея идёт в том же порядке: на главной это лента (крайнее право — ${photos.length}), на /gallery — сетка вниз.`}
+                      >
+                        {i + 1}
+                      </span>
+                      <a
+                        data-photo-name
+                        href={ph.src}
+                        target="_blank"
+                        rel="noreferrer"
+                        title={`${photoFileName(ph.src)} — открыть файл в новой вкладке`}
+                        className="min-w-0 flex-1 truncate text-[11px] text-muted-foreground underline decoration-border underline-offset-2 hover:text-foreground hover:decoration-current"
+                      >
+                        {photoDisplayName(ph.src)}
+                      </a>
+                    </div>
                   </div>
                   <div className="flex-1 min-w-0 grid grid-cols-1 sm:grid-cols-3 gap-2 w-full">
                     <input className={inputCls} placeholder="alt" value={ph.alt ?? ""} onChange={(e) => setPhotos((prev) => prev.map((x, j) => j === i ? { ...x, alt: e.target.value } : x))} />

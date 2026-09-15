@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { checkAdmin } from "@/lib/admin-auth";
 import { createClient } from "@supabase/supabase-js";
+import { safePhotoKey } from "@/lib/photo-key";
 
 const BUCKET = "media";
 const IMAGE_MAX = 20 * 1024 * 1024;  // 20MB
@@ -53,12 +54,11 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const safe = filename
-    .replace(/[\\/]/g, "_")
-    .replace(/[^\w.\-]+/g, "_")
-    .replace(/_+/g, "_")
-    .slice(0, 64);
-  const path = `gallery/${Date.now()}-${safe}`;
+  // Ключ хранилища: ASCII + транслитерация. Напрямую кириллицу Supabase не
+  // принимает (400 InvalidKey, проверено на бакете), а прежний санитар без
+  // транслитерации схлопывал «Олег 2024.jpg» в «_.jpg» — такое имя в админке
+  // не читается. Подробно — lib/photo-key.ts.
+  const path = `gallery/${Date.now()}-${safePhotoKey(filename)}`;
 
   const db = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
