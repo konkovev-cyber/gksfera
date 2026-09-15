@@ -8,10 +8,11 @@ import { iconMap } from "./program-icons";
 import type { HeroBanner } from "@/data/site";
 import { cn } from "@/lib/utils";
 
+/** Мягкие брендовые тона для иконок — те же, что в карточках направлений. */
 const ACCENT: Record<string, string> = {
-  warm: "bg-brand-warm/12 text-brand-warm ring-brand-warm/25",
-  teal: "bg-brand-teal/12 text-brand-teal ring-brand-teal/25",
-  violet: "bg-violet-500/12 text-violet-600 dark:text-violet-300 ring-violet-500/25",
+  warm: "bg-brand-warm/10 text-brand-warm ring-brand-warm/20",
+  teal: "bg-brand-teal/10 text-brand-teal ring-brand-teal/20",
+  violet: "bg-violet-500/10 text-violet-600 dark:text-violet-300 ring-violet-500/20",
 };
 
 function isExternal(href: string) {
@@ -19,7 +20,28 @@ function isExternal(href: string) {
 }
 
 /**
- * Небольшие промо-баннеры («облачные чипы») под кнопками в первом экране.
+ * Ширина ленты подбирается под число баннеров: строка всегда делится на
+ * равные ячейки, «хвост» из одной плашки не остаётся.
+ *  3 → три в ряд (по 192px в колонке hero), 4 → квадрат 2×2.
+ */
+function gridFor(n: number) {
+  if (n <= 1) return "grid-cols-1";
+  if (n === 2) return "grid-cols-1 min-[430px]:grid-cols-2";
+  if (n === 3) return "grid-cols-1 min-[560px]:grid-cols-3";
+  if (n === 4) return "grid-cols-1 min-[430px]:grid-cols-2";
+  return "grid-cols-1 min-[430px]:grid-cols-2 min-[760px]:grid-cols-3";
+}
+
+/**
+ * Промо-баннеры под кнопками первого экрана.
+ *
+ * Раньше это были отдельные «облачные чипы» (flex-wrap): каждый — по ширине
+ * своего текста, поэтому на десктопе вставали 2 + 1, правый край обрывался на
+ * 543px против 688px у текстовой колонки, а внутренние отступы были разными
+ * слева и справа (10/12). Теперь одна лента: ячейки равные по построению,
+ * разделены волосяной линией, выровнены с колонкой и сверху, и снизу.
+ * Круглые плашки иконок — нарочно: «сфера» любит круг.
+ *
  * Содержимое и порядок задаются в админке (вкладка «Баннеры»).
  */
 export function HeroBanners() {
@@ -28,72 +50,76 @@ export function HeroBanners() {
   if (banners.length === 0) return null;
 
   return (
-    <div className="mt-6 flex flex-wrap gap-2.5 sm:gap-3">
-      {banners.map((b, i) => (
-        <BannerChip key={b.id ?? i} b={b} index={i} />
-      ))}
-    </div>
+    <motion.div
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: 0.85, duration: 0.5 }}
+      className="mt-7 overflow-hidden rounded-2xl border border-border/60 bg-border/45 shadow-[0_16px_32px_-26px_rgba(31,41,55,0.45),0_2px_6px_-3px_rgba(31,41,55,0.10)]"
+    >
+      <div className={cn("grid gap-px", gridFor(banners.length))}>
+        {banners.map((b, i) => (
+          <BannerCell key={b.id ?? i} b={b} index={i} />
+        ))}
+      </div>
+    </motion.div>
   );
 }
 
-function BannerChip({ b, index }: { b: HeroBanner; index: number }) {
+function BannerCell({ b, index }: { b: HeroBanner; index: number }) {
   const Icon = iconMap[b.icon] ?? SparklesFallback;
+  const external = isExternal(b.href);
+
   const inner = (
     <>
       <span
+        aria-hidden="true"
         className={cn(
-          "grid place-items-center w-9 h-9 rounded-xl ring-1 shrink-0",
+          "grid place-items-center w-8 h-8 rounded-full ring-1 shrink-0",
+          "transition-transform duration-200 group-hover:scale-110",
           ACCENT[b.accent ?? "warm"],
         )}
-        aria-hidden="true"
       >
-        <Icon className="w-[18px] h-[18px]" />
+        <Icon className="w-4 h-4" />
       </span>
-      <span className="min-w-0">
-        <span className="block text-sm font-semibold leading-tight text-foreground">{b.title}</span>
+      <span className="min-w-0 flex-1">
+        <span className="block text-[13px] font-semibold leading-tight text-foreground">{b.title}</span>
         {b.subtitle && (
-          <span className="block text-[11px] leading-tight text-muted-foreground truncate">{b.subtitle}</span>
+          <span className="mt-0.5 block text-[11px] leading-tight text-foreground/70">{b.subtitle}</span>
         )}
       </span>
-      <ArrowUpRight className="w-3.5 h-3.5 text-muted-foreground/60 shrink-0 transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+      {external && (
+        <ArrowUpRight
+          aria-hidden="true"
+          className="w-3.5 h-3.5 shrink-0 text-muted-foreground/50 transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
+        />
+      )}
     </>
   );
 
-  const shell =
-    "group inline-flex items-center gap-2.5 pl-2.5 pr-3 py-2 rounded-2xl " +
-    "bg-card/70 backdrop-blur-md border border-border/60 shadow-sm " +
-    "transition-all duration-200 hover:shadow-md hover:border-primary/40 hover:-translate-y-0.5";
-
-  // Анимация всегда одна и та же на сервере и на клиенте: за «уменьшить
-  // движение» отвечает глобальный MotionConfig (reducedMotion="user").
-  // Ветвиться по useReducedMotion здесь нельзя — набор props различался бы
-  // между SSR и клиентом, что давало hydration mismatch у reduce-пользователей.
-  const anim = {
-    initial: { opacity: 0, y: 10 },
-    animate: { opacity: 1, y: 0 },
-    transition: { delay: 0.85 + index * 0.08, duration: 0.45 },
-  };
+  const shell = cn(
+    "group flex items-center gap-2.5 px-3 py-3 text-left bg-card",
+    "transition-colors duration-200 hover:bg-brand-cream/70 focus-visible:bg-brand-cream/70",
+  );
 
   const href = b.href;
-  if (isExternal(href)) {
+  if (external) {
     return (
-      <motion.a {...anim} href={href} target="_blank" rel="noopener noreferrer" className={shell}>
+      <a href={href} target="_blank" rel="noopener noreferrer" className={shell} aria-label={`${b.title} — ${b.subtitle ?? "открыть"}`}>
         {inner}
-      </motion.a>
+      </a>
     );
   }
   if (href.startsWith("#")) {
     return (
-      <motion.a
-        {...anim}
+      <a
         href={href}
         className={shell}
         onClick={(e) => {
           const el = document.querySelector(href);
           if (el) {
             e.preventDefault();
-            // Привычка пользователя «меньше движения» учитываем в момент клика:
-            // на результат рендера это не влияет, значит SSR и клиент совпадают.
+            // Режим «уменьшить движение» смотрим в момент клика: на рендер это
+            // не влияет, значит SSR и клиент дают одинаковую разметку.
             const calm =
               typeof window !== "undefined" &&
               window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -102,14 +128,12 @@ function BannerChip({ b, index }: { b: HeroBanner; index: number }) {
         }}
       >
         {inner}
-      </motion.a>
+      </a>
     );
   }
   return (
-    <motion.div {...anim}>
-      <Link href={href} className={shell}>
-        {inner}
-      </Link>
-    </motion.div>
+    <Link href={href} className={shell}>
+      {inner}
+    </Link>
   );
 }

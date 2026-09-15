@@ -18,6 +18,31 @@ import { cn } from "@/lib/utils";
 const NOISE =
   "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='2'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)' opacity='0.55'/%3E%3C/svg%3E";
 
+/**
+ * Ячейка стеклянной плашки-«спецификации» поверх фото. Цвет бренда живёт в
+ * точке-маркере, текст остаётся нейтральным: brand-warm на белом даёт 2.5:1,
+ * а brand-teal на тёмной карточке — 2.4:1, то есть мелкая подпись брендным
+ * цветом не читалась бы ни в одной из тем. Нейтральный текст foreground/70 —
+ * 6.0:1 в светлой и 7.7:1 в тёмной.
+ */
+function Float({ label, value, note, tone }: { label: string; value: string; note?: string; tone: "warm" | "teal" }) {
+  return (
+    <div className="flex flex-col justify-center px-3.5 py-2.5 text-center sm:px-4 sm:text-left">
+      <p className="flex items-center justify-center sm:justify-start gap-1.5 text-[10px] uppercase tracking-wider font-semibold text-foreground/70">
+        <span
+          aria-hidden="true"
+          className={cn("w-1.5 h-1.5 rounded-full shrink-0", tone === "warm" ? "bg-brand-warm" : "bg-brand-teal")}
+        />
+        {label}
+      </p>
+      <p className="mt-1 text-base sm:text-lg font-display font-extrabold leading-none text-foreground tabular-nums">
+        {value}
+      </p>
+      {note && <p className="mt-1 text-[11px] leading-tight text-foreground/70">{note}</p>}
+    </div>
+  );
+}
+
 export function Hero() {
   const content = useContent();
   const scrollTo = (href: string) => {
@@ -167,9 +192,9 @@ export function Hero() {
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1, duration: 0.45 }}
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-brand-warm/10 border border-brand-warm/20 text-brand-warm text-sm font-semibold mb-6"
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-brand-warm/10 border border-brand-warm/25 text-foreground text-sm font-semibold mb-6"
             >
-              <Sparkles className="w-4 h-4" />
+              <Sparkles className="w-4 h-4 text-brand-warm" aria-hidden="true" />
               {content.heroContent.badge}
             </motion.div>
 
@@ -235,17 +260,9 @@ export function Hero() {
               </button>
             </motion.div>
 
-            {/* Trust-строка под кнопками */}
-            <motion.p
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 1.0, duration: 0.5 }}
-              className="mt-5 text-xs sm:text-sm text-muted-foreground"
-            >
-              5–15 лет · небольшие группы · более 15 лет работы · Горячий Ключ
-            </motion.p>
-
-            {/* Промо-баннеры («облачные чипы») — настраиваются в админке */}
+            {/* Промо-лента («Расписание / Пробное / Направления») — настраивается
+                в админке. Отдельную строку «5–15 лет · небольшие группы · …»
+                убрали: те же факты уже читаются в ленте и на карточках фото. */}
             <HeroBanners />
           </motion.div>
 
@@ -299,8 +316,10 @@ export function Hero() {
               <div className="absolute inset-0 bg-gradient-to-tr from-brand-teal/15 via-transparent to-brand-warm/10 mix-blend-overlay pointer-events-none" />
 
               {/* Индикатор ротации — точки (только если фото больше одного) */}
+              {/* Индикатор ротации — точки (только если фото больше одного).
+                  В правом верхнем углу: низ кадра занимает плашка-спецификация. */}
               {heroImages.length > 1 && (
-                <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex items-center gap-1.5 z-10">
+                <div className="absolute top-3 right-3 flex items-center gap-1.5 z-10">
                   {heroImages.map((_, i) => (
                     <button
                       key={i}
@@ -316,30 +335,26 @@ export function Hero() {
               )}
             </div>
             <div className="absolute -inset-3 rounded-[2rem] border-2 border-brand-warm/20 -z-10 hidden sm:block" />
+            {/* Плашка-«спецификация» поверх фото. Раньше это были две разные
+                карточки: 193×113 сплошного оранжевого и 131×64 сплошного
+                бирюзового — пара читалась как два посторонних объявления.
+                Теперь одна стеклянная плашка с двумя равными ячейками и
+                волосяной разделительной линией: ячейки растянуты друг под
+                друга, так что разного объёма текста больше не видно. */}
             <motion.div
-              initial={{ opacity: 0, y: 20 }}
+              initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.7, duration: 0.5 }}
-              className="absolute -bottom-4 -left-4 sm:-bottom-6 sm:-left-6 rounded-2xl shadow-lg shadow-brand-warm/30 bg-brand-warm text-white border border-white/25 p-4 sm:p-5 max-w-[220px] flex flex-col items-center text-center"
+              className={cn(
+                "absolute -bottom-4 left-3 right-3 sm:-bottom-6 sm:left-6 sm:right-auto sm:w-auto",
+                "rounded-2xl border border-border/50 bg-card/90 backdrop-blur-md",
+                "shadow-[0_18px_40px_-24px_rgba(31,41,55,0.6),0_2px_8px_-4px_rgba(31,41,55,0.2)]",
+              )}
             >
-              <p className="text-[11px] uppercase tracking-wider font-semibold text-white/85">
-                Возраст детей
-              </p>
-              <p className="text-xl sm:text-2xl font-display font-extrabold mt-0.5">
-                5–15 лет
-              </p>
-              <p className="text-xs text-white/90 mt-1">
-                Дошкольники и школьники
-              </p>
-            </motion.div>
-            <motion.div
-              initial={{ opacity: 0, y: -20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.85, duration: 0.5 }}
-              className="absolute -top-3 -right-3 sm:-top-5 sm:-right-5 bg-brand-teal text-white rounded-2xl shadow-xl px-4 py-3 text-center"
-            >
-              <p className="text-xs text-white/70 font-medium">Опыт работы</p>
-              <p className="text-base font-display font-bold">более 15 лет</p>
+              <div className="grid grid-cols-2 divide-x divide-border/60">
+                <Float tone="warm" label="Возраст детей" value="5–15 лет" note="Дошкольники и школьники" />
+                <Float tone="teal" label="Опыт работы" value="более 15 лет" />
+              </div>
             </motion.div>
           </motion.div>
         </div>

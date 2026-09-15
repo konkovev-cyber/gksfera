@@ -20,6 +20,14 @@ const config: Config = {
       opacity: Object.fromEntries(
         Array.from({ length: 101 }, (_, i) => [i, String(i / 100)]),
       ),
+      /**
+       * Та же история со шкалой шага: `h-13` (кнопки в хиро и в CTA-секции)
+       * в дефолтной шкале Tailwind нет — класс есть в разметке, правила в CSS
+       * нет, кнопка оставалась 48px вместо задуманных 52px. Добавляем 13.
+       */
+      height: {
+        '13': '3.25rem',
+      },
       fontFamily: {
         sans: ['var(--font-manrope)', 'system-ui', 'sans-serif'],
         display: ['var(--font-manrope)', 'system-ui', 'sans-serif'],
