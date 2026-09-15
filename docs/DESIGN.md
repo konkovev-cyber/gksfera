@@ -316,6 +316,7 @@ node ../pptr-check/pixel-oracle.js      # модель подложки прот
 node ../pptr-check/admin-gallery-names.js     # в списке галереи видно имя файла и его позицию (порядок = порядок на сайте); только чтение
 node ../pptr-check/admin-delete-honesty.js    # удалено только то, что реально удалилось: база, список и счётчик сайта сходятся
 node ../pptr-check/max-contact-check.js       # ссылка MAX во всех контактных местах + панель из 4 кнопок не режет подписи
+node ../pptr-check/revalidate-nested-proof.js # правка в админке доходит до статической /programs/[id] (убрать → вернуть ссылку)
 node ../pptr-check/admin-upload-honesty.js    # загрузка честна при отказе подписи, при отказе хранилища и в успехе
 node ../pptr-check/storage-cyrillic-name.js   # русское имя файла → ключ хранилища: ASCII с транслитерацией, расширение целое
 ```
