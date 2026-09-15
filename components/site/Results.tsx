@@ -40,7 +40,7 @@ export function Results() {
             <Stagger className="space-y-3">
               {results.map((r) => (
                 <StaggerItem key={r}>
-                  <div className="flex items-start gap-3 p-4 rounded-2xl bg-brand-cream/60 dark:bg-white/5 border border-border/40">
+                  <div className="soft-panel flex items-start gap-3 p-4 rounded-2xl">
                     <CheckCircle2 className="w-5 h-5 text-brand-teal-ink flex-shrink-0 mt-0.5" />
                     <p className="text-sm sm:text-base text-foreground leading-relaxed">{r}</p>
                   </div>

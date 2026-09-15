@@ -25,7 +25,7 @@ export function Footer() {
     <footer className="bg-scrim text-on-scrim pt-12 pb-6 px-4 sm:px-6 lg:px-8 relative overflow-hidden max-w-full">
       {/* Декоративная сфера */}
       <div
-        className="absolute -top-20 -right-20 w-80 h-80 rounded-full bg-white/3 blur-3xl pointer-events-none"
+        className="absolute -top-20 -right-20 w-80 h-80 rounded-full bg-on-scrim/5 blur-3xl pointer-events-none"
         aria-hidden="true"
       />
       <svg
@@ -33,9 +33,9 @@ export function Footer() {
         viewBox="0 0 100 100"
         aria-hidden="true"
       >
-        <circle cx="50" cy="50" r="45" fill="none" stroke="white" strokeWidth="0.5" />
-        <circle cx="50" cy="50" r="30" fill="none" stroke="white" strokeWidth="0.5" />
-        <circle cx="50" cy="50" r="15" fill="none" stroke="white" strokeWidth="0.5" />
+        <circle cx="50" cy="50" r="45" fill="none" stroke="currentColor" strokeWidth="0.5" />
+        <circle cx="50" cy="50" r="30" fill="none" stroke="currentColor" strokeWidth="0.5" />
+        <circle cx="50" cy="50" r="15" fill="none" stroke="currentColor" strokeWidth="0.5" />
       </svg>
 
       <div className="container-max relative z-10 overflow-hidden">

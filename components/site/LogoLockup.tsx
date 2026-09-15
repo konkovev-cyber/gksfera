@@ -31,9 +31,9 @@ export function LogoLockup({ size = "md", onDark = false, priority = false, capt
     <div className={cn("flex items-center gap-2.5 sm:gap-3 min-w-0", className)}>
       <div
         className={cn(
-          "relative flex-shrink-0 rounded-full overflow-hidden bg-white shadow-sm transition-transform duration-300 group-hover:scale-105",
+          "relative flex-shrink-0 rounded-full overflow-hidden bg-paper shadow-sm transition-transform duration-300 group-hover:scale-105",
           box,
-          onDark ? "ring-1 ring-white/15" : "ring-1 ring-black/5",
+          onDark ? "ring-1 ring-on-scrim/15" : "ring-1 ring-hairline/60",
         )}
       >
         <Image

@@ -24,10 +24,11 @@ const NOISE =
  * курсора, верхним слоем (translateZ).
  *
  * Два варианта подложки — оба светлые, тёмных «заплаток» на кадре больше нет:
- *  • "frost" — матовое стекло (.glass-frost): плотность 56%, blur, волосяная
- *    белая рамка, скругление 24px. Текст графитовый (--frost-ink).
+ *  • "frost" — матовое стекло (.glass-frost): плотность 66% (--frost-a), blur,
+ *    волосяная белая рамка, скругление 24px. Текст графитовый (--frost-ink).
  *  • "pill"  — белая «пилюля» (.paper-plate) с обводкой фирменным цветом и
- *    числом чернильным токеном (--brand-*-ink: 5.9:1 и 9.6:1 на белом).
+ *    числом фиксированными чернилами плашки (--plate-*-ink: 5.9:1 и 9.6:1 на
+ *    белом). Обычные --brand-*-ink не подходят: они светлеют в тёмной теме.
  * Плашки принадлежат кадру, а не странице, поэтому в тёмной теме они не
  * переворачиваются: фото там то же самое.
  */
@@ -262,7 +263,8 @@ export function Hero() {
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1, duration: 0.45 }}
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-brand-warm/10 border border-brand-warm/25 text-foreground text-sm font-semibold mb-6"
+              data-hero-badge
+              className="glass inline-flex items-center gap-2 px-4 py-2 rounded-full ring-1 ring-brand-warm/20 text-foreground text-sm font-semibold mb-6"
             >
               <Sparkles className="w-4 h-4 text-brand-warm-ink" aria-hidden="true" />
               {content.heroContent.badge}
@@ -349,7 +351,7 @@ export function Hero() {
             }}
             className="relative aspect-[5/4] will-change-transform [transform-style:preserve-3d] transition-[aspect-ratio] duration-700 ease-out"
           >
-            <div className="absolute inset-0 rounded-3xl overflow-hidden shadow-2xl ring-1 ring-black/5 bg-muted" data-hero-rotate>
+            <div className="absolute inset-0 rounded-3xl overflow-hidden shadow-2xl ring-1 ring-hairline/60 bg-muted" data-hero-rotate>
               {/* Ротация фото: кроссфейд + очень медленное «дыхание» кадра. */}
               <AnimatePresence>
                 {heroImages.map((src, i) =>

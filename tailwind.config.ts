@@ -117,6 +117,14 @@ const config: Config = {
           warm: 'hsl(var(--plate-warm-ink))',
           teal: 'hsl(var(--plate-teal-ink))',
         },
+        // Поверхности, принадлежащие кадру: «бумага» (почти белый лист) и
+        // чернила поверх фотографии. Нужны, чтобы в разметке не оставалось
+        // литералов вроде bg-white / text-white на элементах внутри кадра.
+        paper: 'hsl(var(--paper))',
+        photo: {
+          ink: 'hsl(var(--photo-ink))',
+          film: 'hsl(var(--photo-film))',
+        },
         panel: {
           DEFAULT: 'hsl(var(--panel))',
           2: 'hsl(var(--panel-2))',

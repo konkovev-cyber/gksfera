@@ -8,11 +8,14 @@ import { iconMap } from "./program-icons";
 import type { HeroBanner } from "@/data/site";
 import { cn } from "@/lib/utils";
 
-/** Мягкие брендовые тона для иконок — те же, что в карточках направлений. */
+/** Мягкие брендовые тона для иконок — те же, что в карточках направлений.
+ *  Ключ "violet" исторический: он лежит в данных баннеров, но фиолетового в
+ *  палитре нет, поэтому третий акцент — нейтральный песочный с графитовым
+ *  чернильным текстом (переворачивается по темам через токены, без `dark:`). */
 const ACCENT: Record<string, string> = {
   warm: "bg-brand-warm/10 text-brand-warm-ink ring-brand-warm/20",
   teal: "bg-brand-teal/10 text-brand-teal-ink ring-brand-teal/20",
-  violet: "bg-violet-500/10 text-violet-600 dark:text-violet-300 ring-violet-500/20",
+  violet: "bg-brand-sand/45 text-foreground ring-brand-sand/70",
 };
 
 function isExternal(href: string) {
@@ -99,9 +102,7 @@ function BannerCell({ b, index }: { b: HeroBanner; index: number }) {
   // Ячейки прозрачные: под ними стекло ленты, а не сплошной card — иначе
   // blur и кромка не было бы видно. Ховер подсвечивает ячейку изнутри.
   const shell = cn(
-    "group flex items-center gap-2.5 px-3 py-3 text-left",
-    "transition-colors duration-200 hover:bg-white/55 focus-visible:bg-white/55",
-    "dark:hover:bg-white/6 dark:focus-visible:bg-white/6",
+    "group film-hover flex items-center gap-2.5 px-3 py-3 text-left",
   );
 
   const href = b.href;

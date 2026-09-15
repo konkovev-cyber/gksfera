@@ -194,7 +194,7 @@ export function GalleryLightbox({
                 controls
                 playsInline
                 preload="metadata"
-                className="w-full h-full max-h-[70vh] object-contain rounded-xl bg-black"
+                className="w-full h-full max-h-[70vh] object-contain rounded-xl bg-photo-film"
               />
             ) : (
               // eslint-disable-next-line @next/next/no-img-element

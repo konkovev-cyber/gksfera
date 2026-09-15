@@ -67,8 +67,8 @@ function MosaicTile({
 
       {video && (
         <span className="absolute inset-0 flex items-center justify-center pointer-events-none">
-          <span className="w-14 h-14 rounded-full bg-black/50 backdrop-blur-sm flex items-center justify-center border-2 border-white/70 group-hover:bg-black/70 group-hover:scale-110 transition-all">
-            <Play className="w-6 h-6 text-white fill-white ml-1" />
+          <span data-play-badge className="play-badge w-14 h-14 rounded-full backdrop-blur-sm flex items-center justify-center">
+            <Play className="w-6 h-6 fill-current ml-1" />
           </span>
         </span>
       )}

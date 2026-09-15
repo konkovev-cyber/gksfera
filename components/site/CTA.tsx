@@ -27,7 +27,7 @@ export function CTA() {
               aria-hidden="true"
             />
             <div
-              className="absolute -bottom-20 -left-20 w-72 h-72 rounded-full bg-white/6 blur-2xl pointer-events-none"
+              className="absolute -bottom-20 -left-20 w-72 h-72 rounded-full bg-panel-foreground/6 blur-2xl pointer-events-none"
               aria-hidden="true"
             />
             <svg
@@ -51,7 +51,7 @@ export function CTA() {
               <div className="mt-8 flex flex-col sm:flex-row sm:flex-wrap gap-3 justify-center">
                 <button
                   onClick={() => scrollTo("#enrollment")}
-                  className="group inline-flex items-center justify-center gap-2 h-12 sm:h-13 px-5 sm:px-7 rounded-full bg-white text-panel font-semibold text-base whitespace-nowrap shadow-[0_18px_36px_-18px_rgba(0,0,0,0.55)] transition-[transform,box-shadow] duration-300 hover:-translate-y-0.5 hover:shadow-[0_24px_44px_-18px_rgba(0,0,0,0.6)]"
+                  className="group inline-flex items-center justify-center gap-2 h-12 sm:h-13 px-5 sm:px-7 rounded-full bg-paper text-panel font-semibold text-base whitespace-nowrap shadow-[0_18px_36px_-18px_rgba(0,0,0,0.55)] transition-[transform,box-shadow] duration-300 hover:-translate-y-0.5 hover:shadow-[0_24px_44px_-18px_rgba(0,0,0,0.6)]"
                 >
                   <Send className="btn-arrow w-5 h-5" />
                   Записаться / задать вопрос
