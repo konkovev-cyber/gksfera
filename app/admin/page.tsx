@@ -172,6 +172,27 @@ const btnCls = "inline-flex items-center justify-center gap-2 h-10 px-4 rounded-
  */
 const photoFileName = (src?: string | null) => String(src || "").split("?")[0].split("#")[0].split("/").pop() || "";
 const photoDisplayName = (src?: string | null) => photoFileName(src).replace(/^\d{10,}-/, "") || "(без имени)";
+
+/**
+ * Мутация с честным разбором ответа. Раньше админка стреляла fetch'ом «в ответ»
+ * (`await fetch(...)` без проверки статуса) и тут же правилa список: если
+ * сессия истекла или сервер ответил 500, карточка исчезала, всплывало
+ * «Удалено», а в базе фото оставалось — счётчик на сайте не менялся, и после
+ * перезагрузки снимок возвращался. Бросаем Error с внятным текстом, чтобы
+ * вызывающий код сначала убедился, что всё хорошо.
+ */
+async function mutate(url: string, init: RequestInit): Promise<any> {
+  let res: Response;
+  try {
+    res = await fetch(url, init);
+  } catch {
+    throw new Error("нет связи с сервером");
+  }
+  const body = await res.json().catch(() => ({} as any));
+  if (res.status === 401) throw new Error("сессия истекла — войдите заново");
+  if (!res.ok) throw new Error(String(body?.error || `ошибка ${res.status}`));
+  return body;
+}
 const btnSecondaryCls = "inline-flex items-center justify-center gap-2 h-10 px-4 rounded-full border-2 border-border text-sm font-semibold hover:border-primary hover:text-primary disabled:opacity-50 w-full sm:w-auto";
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
@@ -197,6 +218,8 @@ export default function AdminPage() {
   const [tab, setTab] = useState<Tab>("settings");
   const [saving, setSaving] = useState(false);
   const [msg, setMsg] = useState("");
+  const [msgBad, setMsgBad] = useState(false);
+  const msgTimer = useRef<number>(0);
   const [uploadQueue, setUploadQueue] = useState<{ name: string; status: "pending" | "compressing" | "uploading" | "done" | "error"; message?: string; saved?: number; stored?: string }[]>([]);
   const fileRef = useRef<HTMLInputElement>(null);
 
@@ -241,7 +264,20 @@ export default function AdminPage() {
   const [pickerFiles, setPickerFiles] = useState<{ src: string; size: number }[]>([]);
   const [pickerFilter, setPickerFilter] = useState("");
 
-  const flash = (t: string) => { setMsg(t); setTimeout(() => setMsg(""), 2500); };
+  /**
+   * Тост в шапке. Разбор по тексту, а не по аргументу: вызовов ~35, и раньше
+   * «Ошибка» и «Сохранено ✓» красились одним зелёным — провал читался как
+   * успех. Плюс предыдущий таймер больше не гасит новый тост досрочно, а
+   * сообщения об ошибке живут дольше, чтобы их успели прочитать.
+   */
+  const BAD_MSG = /^(Не |Нет связи|Нет подходящих|Ошибка|VK: не|> лимита)|> лимита|ошиб|сессия истекла|поврежд|не удалось/i;
+  const flash = (t: string) => {
+    const bad = BAD_MSG.test(t);
+    setMsg(t);
+    setMsgBad(bad);
+    clearTimeout(msgTimer.current);
+    msgTimer.current = window.setTimeout(() => setMsg(""), bad ? 6000 : 2500);
+  };
 
   const loadAll = useCallback(async () => {
     const [s, p, e, r, n, lock] = await Promise.all([
@@ -274,8 +310,8 @@ export default function AdminPage() {
     setTrustStats(s.trustStats ?? []);
     setProgramOutcomes(s.programOutcomes ?? {});
     setStudioMotto(s.studioMotto ?? "");
-    const g = await fetch("/api/admin/photos").then((r) => (r.ok ? r.json() : null));
-    setPhotos(g?.photos ?? []);
+    const g = await fetch("/api/admin/photos").then((r) => (r.ok ? r.json() : null)).catch(() => null);
+    setPhotos(Array.isArray(g?.photos) ? g.photos : []);
   }, []);
 
   useEffect(() => { loadAll(); }, [loadAll]);
@@ -291,32 +327,49 @@ export default function AdminPage() {
 
   const saveSettings = async () => {
     setSaving(true);
-    const res = await fetch("/api/admin/settings", {
-      method: "PUT", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ settings: siteConfig, hero, visibility, learningExperience: learning, teachers, faqs, schedule, heroBanners, sectionsOrder: homeOrder, parentPains, resultsAfterLearning, trustStats, programOutcomes, studioMotto }),
-    });
-    setSaving(false);
-    flash(res.ok ? "Сохранено ✓" : "Ошибка");
+    try {
+      await mutate("/api/admin/settings", {
+        method: "PUT", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ settings: siteConfig, hero, visibility, learningExperience: learning, teachers, faqs, schedule, heroBanners, sectionsOrder: homeOrder, parentPains, resultsAfterLearning, trustStats, programOutcomes, studioMotto }),
+      });
+      flash("Сохранено ✓");
+    } catch (e) {
+      flash(`Настройки не сохранены: ${(e as Error).message}`);
+    } finally {
+      setSaving(false);
+    }
   };
 
   const savePrograms = async () => {
     setSaving(true);
-    const res = await fetch("/api/admin/programs", {
-      method: "PUT", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ items: programs.map((p, i) => ({ id: p.id, title: p.title, ageRange: p.age_range, description: p.description, image: p.image, imageAlt: p.image_alt, category: p.category ?? "educational", pos: p.pos ?? "", visible: p.visible !== false, sortOrder: i + 1 })) }),
-    });
-    setSaving(false);
-    flash(res.ok ? "Сохранено ✓" : "Ошибка");
+    try {
+      await mutate("/api/admin/programs", {
+        method: "PUT", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ items: programs.map((p, i) => ({ id: p.id, title: p.title, ageRange: p.age_range, description: p.description, image: p.image, imageAlt: p.image_alt, category: p.category ?? "educational", pos: p.pos ?? "", visible: p.visible !== false, sortOrder: i + 1 })) }),
+      });
+      flash(`Сохранено ✓ ${programs.length} направл.`);
+    } catch (e) {
+      flash(`Направления не сохранены: ${(e as Error).message}`);
+    } finally {
+      setSaving(false);
+    }
   };
 
   const savePhotoOrder = async (items: any[]) => {
     setSaving(true);
-    const res = await fetch("/api/admin/photos", {
-      method: "PUT", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ items: items.map((p, i) => ({ id: p.id, alt: p.alt ?? "", span: p.span ?? "normal", pos: p.pos || null, sort_order: i + 1 })) }),
-    });
-    setSaving(false);
-    flash(res.ok ? "Сохранено ✓" : "Ошибка");
+    try {
+      await mutate("/api/admin/photos", {
+        method: "PUT", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ items: items.map((p, i) => ({ id: p.id, alt: p.alt ?? "", span: p.span ?? "normal", pos: p.pos || null, sort_order: i + 1 })) }),
+      });
+      // Заодно честно проговариваем количество — тот же аргумент, что у жалобы
+      // «удалил, а число не поменялось».
+      flash(`Сохранено ✓ ${items.length} шт. · страница обновится при ближайшей загрузке`);
+    } catch (e) {
+      flash(`Не сохранено: ${(e as Error).message}`);
+    } finally {
+      setSaving(false);
+    }
   };
 
   const updateQueueItem = (idx: number, patch: Partial<{ status: "pending" | "compressing" | "uploading" | "done" | "error"; message?: string; saved?: number; stored?: string }>) => {
@@ -325,12 +378,13 @@ export default function AdminPage() {
 
   /** Загрузить файл через signed URL (обходит лимит тела функции Vercel),
    *  предварительно сжав изображения на клиенте. */
-  const uploadSingle = async (rawFile: File, idx: number) => {
+  const uploadSingle = async (rawFile: File, idx: number): Promise<true | string> => {
     const isVideo = rawFile.type.startsWith("video/");
     const maxBytes = isVideo ? VIDEO_MAX : IMAGE_MAX;
     if (rawFile.size > maxBytes) {
-      updateQueueItem(idx, { status: "error", message: `${humanSize(rawFile.size)} > лимита ${humanSize(maxBytes)}` });
-      return;
+      const msg = `${humanSize(rawFile.size)} > лимита ${humanSize(maxBytes)}`;
+      updateQueueItem(idx, { status: "error", message: msg });
+      return msg;
     }
 
     let file = rawFile;
@@ -353,8 +407,9 @@ export default function AdminPage() {
     });
     const sign = await signRes.json().catch(() => ({}));
     if (!signRes.ok || sign.error) {
-      updateQueueItem(idx, { status: "error", message: sign.error ?? "не удалось получить ссылку" });
-      return;
+      const msg = sign.error ?? (signRes.status === 401 ? "сессия истекла — войдите заново" : "не удалось получить ссылку");
+      updateQueueItem(idx, { status: "error", message: msg });
+      return msg;
     }
 
     // 2. PUT файла напрямую в Supabase Storage через signed URL
@@ -369,8 +424,9 @@ export default function AdminPage() {
     });
     if (!putRes.ok) {
       const txt = await putRes.text().catch(() => "");
-      updateQueueItem(idx, { status: "error", message: txt || `upload HTTP ${putRes.status}` });
-      return;
+      const msg = txt || `upload HTTP ${putRes.status}`;
+      updateQueueItem(idx, { status: "error", message: msg });
+      return msg;
     }
 
     // 3. зарегистрировать строку в gallery_photos
@@ -381,11 +437,20 @@ export default function AdminPage() {
     });
     const reg = await regRes.json().catch(() => ({}));
     if (!regRes.ok) {
-      updateQueueItem(idx, { status: "error", message: reg.error ?? "не удалось добавить в галерею" });
-      return;
+      const msg = reg.error ?? "файл в хранилище есть, но добавить его в галерею не удалось";
+      updateQueueItem(idx, { status: "error", message: msg });
+      return msg;
+    }
+    if (!reg.photo?.src) {
+      // Строка создана, но ответа нет: показываем то, что реально вернулось,
+      // иначе список «ожмётся» до несуществующего файла.
+      const msg = "сервер не вернул данные снимка";
+      updateQueueItem(idx, { status: "error", message: msg });
+      return msg;
     }
     setPhotos((prev) => [...prev, reg.photo]);
-    updateQueueItem(idx, { status: "done", stored: photoFileName(reg.photo?.src || sign.publicUrl) });
+    updateQueueItem(idx, { status: "done", stored: photoFileName(reg.photo.src) });
+    return true;
   };
 
   /** Массовая загрузка: обрабатываем файлы последовательно, чтобы
@@ -394,15 +459,29 @@ export default function AdminPage() {
     const list = Array.from(files).filter((f) => f.type.startsWith("image/") || f.type.startsWith("video/") || /\.(jpe?g|png|webp|gif|mp4|webm|mov|m4v)$/i.test(f.name));
     if (list.length === 0) { flash("Нет подходящих файлов (только jpg/png/webp/gif/mp4/webm/mov)"); return; }
     setUploadQueue(list.map((f) => ({ name: f.name, status: "pending" as const })));
+    // Считаем по фактическому результату каждого файла. Прежняя версия брала
+    // «ошибки» из state-массива uploadQueue, который внутри цикла не успевал
+    // обновиться (закрытие читало список до загрузки), и итог всегда выглядел
+    // как полный успех: «Загружено 8 файлов ✓» при нуле загруженных.
+    const errors: string[] = [];
     for (let i = 0; i < list.length; i++) {
-      await uploadSingle(list[i], i);
+      // Сетевую ошибку fetch выбрасывает наружу (заблокированный DNS, обрыв,
+      // 5xx на входе в функцию) — без этой обёртки файл навсегда остаётся
+      // «загружается…», а итог рисуется как полный успех.
+      let r: true | string;
+      try {
+        r = await uploadSingle(list[i], i);
+      } catch (e) {
+        r = e instanceof Error ? e.message : "обрыв сети";
+        updateQueueItem(i, { status: "error", message: r });
+      }
+      if (r !== true) errors.push(`${list[i].name}: ${r}`);
     }
-    const ok = list.length;
-    const failed = uploadQueue.filter((x) => x.status === "error").length;
+    const done = list.length - errors.length;
     flash(
-      failed === 0
-        ? `Загружено ${ok} файл${ok === 1 ? "" : ok < 5 ? "а" : "ов"} ✓`
-        : `Загружено ${ok - failed}, ошибок: ${failed}`,
+      errors.length === 0
+        ? `Загружено ${done} файл${done === 1 ? "" : done < 5 ? "а" : "ов"} ✓`
+        : `Загружено ${done} из ${list.length}, ошибок: ${errors.length} · ${errors[0]}${errors.length > 1 ? " (и ещё " + (errors.length - 1) + ")" : ""}`,
     );
     // Автоскрытие очереди через 5 секунд
     setTimeout(() => setUploadQueue([]), 5000);
@@ -425,21 +504,60 @@ export default function AdminPage() {
     }
   };
 
+  const setEnrollmentStatus = async (id: number, status: string) => {
+    const prev = enrollments;
+    setEnrollments((p) => p.map((x) => x.id === id ? { ...x, status } : x));
+    try {
+      await mutate("/api/admin/enrollments", {
+        method: "PATCH", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id, status }),
+      });
+    } catch (e) {
+      setEnrollments(prev);
+      flash(`Статус не сохранён: ${(e as Error).message}`);
+    }
+  };
+
+  const deleteEnrollment = async (id: number) => {
+    if (!confirm("Удалить?")) return;
+    try {
+      await mutate(`/api/admin/enrollments?id=${id}`, { method: "DELETE" });
+    } catch (e) {
+      flash(`Не удалилось: ${(e as Error).message}`);
+      return;
+    }
+    setEnrollments((prev) => prev.filter((x) => x.id !== id));
+  };
+
   const deletePhoto = async (id: number) => {
     if (!confirm("Удалить фото?")) return;
-    await fetch(`/api/admin/photos?id=${id}`, { method: "DELETE" });
+    try {
+      await mutate(`/api/admin/photos?id=${id}`, { method: "DELETE" });
+    } catch (e) {
+      flash(`Не удалилось: ${(e as Error).message}`);
+      // Раз список разошёлся с базой — перечитываем его, чтобы админка не
+      // показывала «уже удалено» там, где ничего не удалилось.
+      const g = await fetch("/api/admin/photos").then((r) => (r.ok ? r.json() : null)).catch(() => null);
+      if (Array.isArray(g?.photos)) setPhotos(g.photos);
+      return;
+    }
     setPhotos((prev) => prev.filter((p) => p.id !== id));
-    flash("Удалено");
+    flash(`Удалено · в галерее осталось ${photos.length - 1}`);
   };
 
   const saveReviews = async () => {
     setSaving(true);
-    const res = await fetch("/api/admin/reviews", {
-      method: "PUT", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ items: reviews.map((r, i) => ({ author: r.author, source: r.source, sourceUrl: r.source_url ?? r.sourceUrl, text: r.text, childInfo: r.child_info ?? r.childInfo, visible: r.visible !== false, sortOrder: i + 1 })) }),
-    });
-    setSaving(false);
-    flash(res.ok ? "Отзывы сохранены ✓" : "Ошибка");
+    try {
+      await mutate("/api/admin/reviews", {
+        method: "PUT", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ items: reviews.map((r, i) => ({ author: r.author, source: r.source, sourceUrl: r.source_url ?? r.sourceUrl, text: r.text, childInfo: r.child_info ?? r.childInfo, visible: r.visible !== false, sortOrder: i + 1 })) }),
+      });
+      flash(`Отзывы сохранены ✓ ${reviews.length}`);
+    } catch (e) {
+      flash(`Отзывы не сохранены: ${(e as Error).message}`);
+    } finally {
+      setSaving(false);
+    }
   };
 
   const move = (arr: any[], i: number, dir: -1 | 1, setter: (v: any[]) => void) => {
@@ -587,16 +705,27 @@ export default function AdminPage() {
   const toggleNewsVisible = async (id: string, visible: boolean) => {
     // id в базе — число, а в обработчик строки мы передаём String(n.id):
     // без String() сравнение не совпадало и галочка в списке не переворачивалась.
-    setNews((prev) => prev.map((n) => String(n.id) === String(id) ? { ...n, visible } : n));
-    await fetch("/api/admin/news", {
-      method: "PATCH", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ id, visible }),
-    });
+    const prev = news;
+    setNews((p) => p.map((n) => String(n.id) === String(id) ? { ...n, visible } : n));
+    try {
+      await mutate("/api/admin/news", {
+        method: "PATCH", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id, visible }),
+      });
+    } catch (e) {
+      setNews(prev);
+      flash(`Не сохранилось: ${(e as Error).message}`);
+    }
   };
 
   const deleteNewsItem = async (id: string) => {
     if (!confirm("Удалить новость?")) return;
-    await fetch(`/api/admin/news?id=${id}`, { method: "DELETE" });
+    try {
+      await mutate(`/api/admin/news?id=${id}`, { method: "DELETE" });
+    } catch (e) {
+      flash(`Не удалилось: ${(e as Error).message}`);
+      return;
+    }
     setNews((prev) => prev.filter((n) => String(n.id) !== String(id)));
     flash("Новость удалена");
   };
@@ -1012,7 +1141,14 @@ export default function AdminPage() {
         <div className="max-w-5xl mx-auto px-3 sm:px-4 h-14 flex items-center justify-between gap-2">
           <span className="font-display font-extrabold text-sm sm:text-base truncate">Админка «Сферы»</span>
           <div className="flex items-center gap-2 sm:gap-3 shrink-0">
-            {msg && <span className="text-xs sm:text-sm text-green-600 font-medium truncate max-w-[120px] sm:max-w-none">{msg}</span>}
+            {msg && (
+              <span
+                data-admin-msg={msgBad ? "bad" : "ok"}
+                className={"text-xs sm:text-sm font-medium max-w-[60ch] break-words " + (msgBad ? "text-destructive" : "text-primary")}
+              >
+                {msg}
+              </span>
+            )}
             <a href="/" target="_blank" className="text-xs sm:text-sm text-muted-foreground hover:text-foreground hidden sm:inline">Сайт ↗</a>
             <button onClick={logout} className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-destructive"><LogOut className="w-4 h-4" /> Выйти</button>
           </div>
@@ -1231,6 +1367,15 @@ export default function AdminPage() {
         {/* ─── Gallery ─── */}
         {tab === "gallery" && (
           <div className="space-y-4">
+            {/* Число должно быть видно: без него непонятно, применилось ли
+                удаление. Это тот же массив, что отдаёт сайту lib/content.ts
+                (одна и та же сортировка sort_order ASC, id ASC), поэтому
+                количество здесь и на сайте совпадает. */}
+            <p className="text-sm text-muted-foreground" data-gallery-total>
+              В галерее сейчас{" "}
+              <span className="font-semibold tabular-nums text-foreground">{photos.length}</span>{" "}
+              — столько же считает сайт: на главной это лента, на <code className="rounded bg-accent px-1">/gallery</code> — сетка вниз, порядок одинаковый.
+            </p>
             <div className="bg-card rounded-2xl border border-border/60 p-4 flex flex-wrap items-center gap-3">
               <label className="inline-flex items-center gap-2 h-10 px-4 rounded-full border-2 border-border text-sm font-semibold cursor-pointer hover:border-primary hover:text-primary">
                 <Upload className="w-4 h-4" /> Загрузить фото или видео
@@ -2266,12 +2411,12 @@ export default function AdminPage() {
                     {en.comment && <p className="text-sm mt-2">{en.comment}</p>}
                   </div>
                   <div className="flex items-center gap-2 shrink-0">
-                    <select className={inputCls + " flex-1 sm:w-36"} value={en.status ?? "new"} onChange={async (e) => { const status = e.target.value; setEnrollments((prev) => prev.map((x) => x.id === en.id ? { ...x, status } : x)); await fetch("/api/admin/enrollments", { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id: en.id, status }) }); }}>
+                    <select className={inputCls + " flex-1 sm:w-36"} value={en.status ?? "new"} onChange={(e) => setEnrollmentStatus(en.id, e.target.value)}>
                       <option value="new">новая</option>
                       <option value="contacted">связались</option>
                       <option value="enrolled">записан</option>
                     </select>
-                    <button onClick={async () => { if (!confirm("Удалить?")) return; await fetch(`/api/admin/enrollments?id=${en.id}`, { method: "DELETE" }); setEnrollments((prev) => prev.filter((x) => x.id !== en.id)); }} className="p-2 rounded-lg hover:bg-destructive/10 text-destructive shrink-0"><Trash2 className="w-4 h-4" /></button>
+                    <button onClick={() => deleteEnrollment(en.id)} className="p-2 rounded-lg hover:bg-destructive/10 text-destructive shrink-0"><Trash2 className="w-4 h-4" /></button>
                   </div>
                 </div>
               </div>
