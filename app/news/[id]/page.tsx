@@ -74,7 +74,7 @@ export default async function NewsDetailPage({ params }: Props) {
     <ContentProvider value={data}>
       <Header />
       <main className="min-h-screen pt-28 md:pt-36 pb-20">
-        <article className="container-max max-w-3xl">
+        <article className="container-page max-w-3xl">
           <script
             type="application/ld+json"
             dangerouslySetInnerHTML={{ __html: ldScript(jsonLd) }}

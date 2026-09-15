@@ -18,7 +18,7 @@ export default async function MarqueeLabPage() {
   return (
     <ContentProvider value={data}>
       <main className="min-h-screen overflow-x-clip bg-background text-foreground">
-        <header className="container-max flex items-end justify-between gap-6 pt-10 pb-6">
+        <header className="container-page flex items-end justify-between gap-6 pt-10 pb-6">
           <div>
             <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
               черновик · после выбора удаляется

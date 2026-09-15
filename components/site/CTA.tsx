@@ -48,10 +48,10 @@ export function CTA() {
                 Расскажите, сколько лет ребёнку и что вас сейчас интересует.
                 Мы поможем подобрать подходящее направление.
               </p>
-              <div className="mt-8 flex flex-col sm:flex-row gap-3 justify-center">
+              <div className="mt-8 flex flex-col sm:flex-row sm:flex-wrap gap-3 justify-center">
                 <button
                   onClick={() => scrollTo("#enrollment")}
-                  className="group inline-flex items-center justify-center gap-2 h-12 sm:h-13 px-7 rounded-full bg-white text-panel font-semibold text-base shadow-[0_18px_36px_-18px_rgba(0,0,0,0.55)] transition-[transform,box-shadow] duration-300 hover:-translate-y-0.5 hover:shadow-[0_24px_44px_-18px_rgba(0,0,0,0.6)]"
+                  className="group inline-flex items-center justify-center gap-2 h-12 sm:h-13 px-5 sm:px-7 rounded-full bg-white text-panel font-semibold text-base whitespace-nowrap shadow-[0_18px_36px_-18px_rgba(0,0,0,0.55)] transition-[transform,box-shadow] duration-300 hover:-translate-y-0.5 hover:shadow-[0_24px_44px_-18px_rgba(0,0,0,0.6)]"
                 >
                   <Send className="btn-arrow w-5 h-5" />
                   Записаться / задать вопрос
@@ -60,7 +60,7 @@ export function CTA() {
                   href={content.siteConfig.vkUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center justify-center gap-2 h-12 sm:h-13 px-7 rounded-full border border-panel-foreground/35 text-panel-foreground font-semibold text-base transition-colors hover:bg-panel-foreground/10"
+                  className="inline-flex items-center justify-center gap-2 h-12 sm:h-13 px-5 sm:px-7 rounded-full border border-panel-foreground/35 text-panel-foreground font-semibold text-base whitespace-nowrap transition-colors hover:bg-panel-foreground/10"
                 >
                   Написать в VK
                   <ArrowRight className="w-5 h-5" />

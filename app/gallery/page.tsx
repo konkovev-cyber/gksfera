@@ -50,7 +50,7 @@ export default async function GalleryPage() {
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: ldScript(jsonLd) }}
         />
-        <div className="container-max">
+        <div className="container-page">
           <Link
             href="/"
             className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-primary transition-colors mb-6"
@@ -102,16 +102,19 @@ export default async function GalleryPage() {
               <div className="flex flex-wrap items-center gap-3">
                 <Link
                   href="/#enrollment"
-                  className="inline-flex items-center gap-2 h-11 px-6 rounded-full bg-primary text-primary-foreground text-sm font-semibold hover:bg-primary/90 transition-colors"
+                  className="inline-flex items-center gap-2 h-11 px-6 rounded-full bg-primary text-primary-foreground text-sm font-semibold hover:bg-primary/90 transition-colors whitespace-nowrap"
                 >
                   Записаться
                 </Link>
+                {/* Телефон символом — как на страницах направлений: номеру не
+                    хватает ширины, и он рвётся по цифрам. */}
                 <a
                   href={data.siteConfig.phoneHref}
-                  className="inline-flex items-center gap-2 h-11 px-6 rounded-full border-2 border-border text-sm font-semibold hover:border-primary hover:text-primary transition-colors"
+                  aria-label={`Позвонить: ${data.siteConfig.phone}`}
+                  title={data.siteConfig.phone}
+                  className="inline-flex items-center justify-center h-11 w-11 shrink-0 rounded-full border-2 border-border text-foreground hover:border-primary hover:text-primary transition-colors"
                 >
                   <Phone className="w-4 h-4" aria-hidden="true" />
-                  {data.siteConfig.phone}
                 </a>
               </div>
             </div>

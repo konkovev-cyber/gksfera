@@ -221,6 +221,15 @@
   .container-max {
     @apply mx-auto max-w-7xl;
   }
+  /* Контейнер целой страницы. .container-max полей не даёт — он рассчитан на
+     то, что лежит внутри .section-padding. Standalone-страницы (/programs/…,
+     /news/…, /raspisanie, /reviews, /gallery) обёртывали в container-max
+     напрямую, и на экранах уже 1280px контент вставал вплотную к краю: именно
+     поэтому кнопки «не помещались» и переносились. Поля — те же, что у
+     .section-padding, чтобы ритм совпадал. */
+  .container-page {
+    @apply mx-auto max-w-7xl px-4 sm:px-6 lg:px-8;
+  }
   .text-balance {
     text-wrap: balance;
   }
@@ -418,6 +427,10 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
+    /* Подпись кнопки не переносим: в узкой колонке flex-элемент сжимался,
+       и «Смотреть направления» разваливалось на две строки. Ряд кнопок при
+       этом обязан уметь переноситься целиком (flex-wrap в разметке). */
+    white-space: nowrap;
     gap: 0.5rem;
     border-radius: 9999px;
     color: hsl(var(--cta-fg));
@@ -469,6 +482,7 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
+    white-space: nowrap; /* то же, что у .btn-cta */
     gap: 0.5rem;
     border-radius: 9999px;
     border: 1px solid hsl(var(--border));

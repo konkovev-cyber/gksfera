@@ -294,7 +294,7 @@ export function Hero() {
               initial={{ opacity: 0, y: 14 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.75, duration: 0.5 }}
-              className="mt-8 flex flex-col sm:flex-row gap-3"
+              className="mt-8 flex flex-col sm:flex-row sm:flex-wrap gap-3"
             >
               <button
                 onClick={() => scrollTo("#tasks")}

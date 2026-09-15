@@ -29,9 +29,9 @@ export function Results() {
               </p>
               <button
                 onClick={() => document.querySelector("#enrollment")?.scrollIntoView({ behavior: "smooth", block: "start" })}
-                className="mt-6 inline-flex items-center justify-center min-h-[48px] px-6 rounded-full bg-primary text-primary-foreground font-semibold text-sm hover:bg-primary/90 transition-colors"
+                className="mt-6 inline-flex items-center justify-center min-h-[48px] px-6 rounded-full bg-primary text-primary-foreground font-semibold text-sm hover:bg-primary/90 transition-colors whitespace-nowrap"
               >
-                Записаться на пробное занятие
+                Записаться на пробное
               </button>
             </Reveal>
           </div>

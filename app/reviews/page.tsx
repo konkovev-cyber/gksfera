@@ -52,7 +52,7 @@ export default async function ReviewsPage() {
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: ldScript(jsonLd) }}
         />
-        <div className="container-max">
+        <div className="container-page">
           <p className="text-sm font-semibold uppercase tracking-widest text-brand-warm-ink mb-2">
             Отзывы
           </p>
@@ -65,7 +65,7 @@ export default async function ReviewsPage() {
         </div>
 
         {reviews.length === 0 ? (
-          <div className="container-max mt-12">
+          <div className="container-page mt-12">
             <div className="glass rounded-2xl p-8 text-center max-w-lg">
               <p className="text-muted-foreground">Отзывов пока нет. Загляните в нашу группу VK — там живые отзывы от родителей.</p>
               {data.siteConfig.vkUrl && (
@@ -81,7 +81,7 @@ export default async function ReviewsPage() {
             </div>
           </div>
         ) : (
-          <div className="container-max mt-10 grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
+          <div className="container-page mt-10 grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
             {reviews.map((r) => (
               <div key={r.id} className="glass rounded-2xl p-5 sm:p-6 flex flex-col">
                 <Quote className="w-8 h-8 text-brand-warm-ink/20 mb-3" />
@@ -112,7 +112,7 @@ export default async function ReviewsPage() {
           </div>
         )}
 
-        <div className="container-max mt-12">
+        <div className="container-page mt-12">
           <Link href="/" className="inline-flex items-center gap-1.5 min-h-[44px] -my-2 text-sm text-muted-foreground hover:text-brand-warm-ink transition-colors">
             ← На главную
           </Link>

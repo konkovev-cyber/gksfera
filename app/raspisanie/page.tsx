@@ -27,7 +27,7 @@ export default async function SchedulePage() {
     <ContentProvider value={data}>
       <Header />
       <main className="min-h-screen pt-28 md:pt-36 pb-20">
-        <div className="container-max">
+        <div className="container-page">
           <p className="text-sm font-semibold uppercase tracking-widest text-brand-warm-ink mb-2">
             Расписание
           </p>

@@ -177,10 +177,10 @@ function VariantBlock({
 }) {
   return (
     <section className="relative border-t border-border pt-10">
-      <p className="container-max text-xs uppercase tracking-[0.2em] text-muted-foreground">
+      <p className="container-page text-xs uppercase tracking-[0.2em] text-muted-foreground">
         вариант {code} · <span className="font-semibold text-foreground">{title}</span>
       </p>
-      <p className="container-max mt-1 max-w-2xl text-sm text-muted-foreground">{note}</p>
+      <p className="container-page mt-1 max-w-2xl text-sm text-muted-foreground">{note}</p>
       <div className="mt-5">{children}</div>
     </section>
   );

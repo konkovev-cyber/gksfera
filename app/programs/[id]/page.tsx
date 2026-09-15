@@ -88,7 +88,7 @@ export default async function ProgramPage({ params }: Props) {
     <ContentProvider value={data}>
       <Header />
       <main className="min-h-screen pt-24 md:pt-32 pb-20">
-        <div className="container-max max-w-5xl">
+        <div className="container-page max-w-5xl">
           <script
             type="application/ld+json"
             dangerouslySetInnerHTML={{ __html: ldScript(jsonLd) }}
@@ -165,20 +165,27 @@ export default async function ProgramPage({ params }: Props) {
                 {program.description}
               </p>
 
-              <div className="mt-8 flex flex-col sm:flex-row gap-3">
+              <div className="mt-8 flex flex-wrap items-center gap-3">
                 <Link
                   href={enrollmentHref}
                   prefetch={false}
-                  className="group inline-flex items-center justify-center gap-2 h-12 px-7 rounded-full bg-primary text-primary-foreground font-semibold hover:bg-primary/90 transition-all shadow-lg hover:shadow-xl"
+                  className="group inline-flex items-center justify-center gap-2 h-12 px-6 rounded-full bg-primary text-primary-foreground font-semibold whitespace-nowrap hover:bg-primary/90 transition-all shadow-lg hover:shadow-xl"
                 >
-                  Записаться на пробное
+                  Записаться
                   <ArrowRight className="w-5 h-5 transition-transform group-hover:translate-x-1" />
                 </Link>
+                {/* Телефон — символом. В узкой колонке номера (220px) не
+                    хватало, и он переносился прямо по цифрам:
+                    «+7 (928) 434-91-» / «08». Номер остаётся в шапке,
+                    блоке контактов и подвале, так что глиф ничего не
+                    скрывает; доступное имя кнопки — полное. */}
                 <a
                   href={data.siteConfig.phoneHref}
-                  className="inline-flex items-center justify-center gap-2 h-12 px-7 rounded-full border-2 border-border bg-card/80 font-semibold hover:border-brand-warm hover:text-brand-warm-ink transition-colors"
+                  aria-label={`Позвонить: ${data.siteConfig.phone}`}
+                  title={data.siteConfig.phone}
+                  className="inline-flex items-center justify-center h-12 w-12 shrink-0 rounded-full border-2 border-border bg-card/80 text-foreground hover:border-brand-warm hover:text-brand-warm-ink transition-colors"
                 >
-                  <Phone className="w-4 h-4" /> {data.siteConfig.phone}
+                  <Phone className="w-5 h-5" aria-hidden="true" />
                 </a>
               </div>
               <p className="mt-3 text-xs text-muted-foreground">
@@ -351,20 +358,22 @@ export default async function ProgramPage({ params }: Props) {
               <p className="mt-3 text-primary-foreground/90 text-base">
                 Запишитесь на бесплатное пробное занятие — знакомство без обязательств.
               </p>
-              <div className="mt-6 flex flex-col sm:flex-row sm:justify-center gap-3">
+              <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
                 <Link
                   href={enrollmentHref}
                   prefetch={false}
-                  className="inline-flex items-center justify-center gap-2 h-12 px-7 rounded-full bg-card text-foreground font-semibold hover:bg-card/90 transition-colors"
+                  className="inline-flex items-center justify-center gap-2 h-12 px-6 rounded-full bg-card text-foreground font-semibold whitespace-nowrap hover:bg-card/90 transition-colors"
                 >
-                  Записаться на пробное
+                  Записаться
                   <ArrowRight className="w-5 h-5" />
                 </Link>
                 <a
                   href={data.siteConfig.phoneHref}
-                  className="inline-flex items-center justify-center gap-2 h-12 px-7 rounded-full border-2 border-primary-foreground/30 text-primary-foreground font-semibold hover:bg-primary-foreground/10 transition-colors"
+                  aria-label={`Позвонить: ${data.siteConfig.phone}`}
+                  title={data.siteConfig.phone}
+                  className="inline-flex items-center justify-center h-12 w-12 shrink-0 rounded-full border-2 border-primary-foreground/30 text-primary-foreground hover:bg-primary-foreground/10 transition-colors"
                 >
-                  <Phone className="w-4 h-4" /> {data.siteConfig.phone}
+                  <Phone className="w-5 h-5" aria-hidden="true" />
                 </a>
               </div>
             </div>
@@ -373,9 +382,9 @@ export default async function ProgramPage({ params }: Props) {
           {/* Другие направления */}
           {others.length > 0 && (
             <section className="mt-14 pt-10 border-t border-border/60">
-              <div className="flex items-center justify-between mb-6">
+              <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 mb-6">
                 <h2 className="font-display font-bold text-2xl text-foreground">Другие направления</h2>
-                <Link href="/#programs" className="inline-flex items-center gap-1.5 min-h-[44px] -my-2 px-1 text-sm text-brand-warm-ink hover:underline underline-offset-4">
+                <Link href="/#programs" className="inline-flex items-center gap-1.5 min-h-[44px] -my-2 px-1 text-sm text-brand-warm-ink hover:underline underline-offset-4 whitespace-nowrap">
                   Все направления <ArrowRight className="w-4 h-4" />
                 </Link>
               </div>
