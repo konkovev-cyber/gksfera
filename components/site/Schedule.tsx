@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import { Printer, ImageDown, CalendarDays } from "lucide-react";
 import type { ScheduleGroup, ScheduleLesson } from "@/data/site";
 import { cn } from "@/lib/utils";
@@ -111,42 +110,27 @@ function GroupCard({ group }: { group: ScheduleGroup }) {
   );
 }
 
-export function Schedule({ groups, studioName }: { groups: ScheduleGroup[]; studioName: string }) {
-  const [printHint, setPrintHint] = useState(false);
-  const onPrint = () => {
-    setPrintHint(true);
-    // Небольшая задержка, чтобы подсказка отрисовалась перед диалогом печати.
-    setTimeout(() => window.print(), 60);
-  };
-
-  const hasImages = groups.some((g) => !!g.image);
-
+export function Schedule({ groups }: { groups: ScheduleGroup[] }) {
   return (
     <>
       <div className="flex flex-wrap items-center gap-3 print:hidden">
         <button
           type="button"
-          onClick={onPrint}
+          onClick={() => window.print()}
+          title="Печатная форма расписания — один лист A4"
           className="inline-flex items-center gap-2 h-10 px-5 rounded-full bg-primary text-primary-foreground text-sm font-semibold hover:bg-primary/90 transition-colors"
         >
           <Printer className="w-4 h-4" /> Распечатать
         </button>
-        {hasImages && (
+        {groups.some((g) => !!g.image) && (
           <span className="text-xs text-muted-foreground">
             Если нужно — под таблицей есть картинка-расписание для печати.
           </span>
         )}
       </div>
 
-      {/* Заголовок для листа печати: виден только при печати */}
-      <h2 className="hidden print:block font-display font-extrabold text-2xl mb-1">
-        {studioName} — расписание занятий
-      </h2>
-      {printHint && (
-        <p className="hidden print:block text-sm text-muted-foreground mb-4">
-          Для экономии бумаги включите двустороннюю печать, если страниц несколько.
-        </p>
-      )}
+      {/* Печатная форма живёт не здесь: на бумаге — SchedulePrint, весь этот
+          экранный блок скрыт print:hidden. */}
 
       <div className={cn("mt-8 space-y-6")}>
         {groups.map((g) => (

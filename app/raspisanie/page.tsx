@@ -6,6 +6,7 @@ import { Header } from "@/components/site/Header";
 import { Footer } from "@/components/site/Footer";
 import { MobileCTA } from "@/components/site/MobileCTA";
 import { Schedule } from "@/components/site/Schedule";
+import { SchedulePrint } from "@/components/site/SchedulePrint";
 
 export const metadata: Metadata = {
   title: "Расписание занятий",
@@ -27,7 +28,9 @@ export default async function SchedulePage() {
     <ContentProvider value={data}>
       <Header />
       <main className="min-h-screen pt-28 md:pt-36 pb-20">
-        <div className="container-page">
+        {/* Экранная вёрстка в печать не уходит: для бумаги есть бланк
+            SchedulePrint ниже — он влезает в один лист A4. */}
+        <div className="container-page print:hidden">
           <p className="text-sm font-semibold uppercase tracking-widest text-brand-warm-ink mb-2">
             Расписание
           </p>
@@ -47,9 +50,10 @@ export default async function SchedulePage() {
               </p>
             </div>
           ) : (
-            <Schedule groups={groups} studioName={data.siteConfig.fullName} />
+            <Schedule groups={groups} />
           )}
         </div>
+        <SchedulePrint groups={groups} studio={data.siteConfig} />
       </main>
       <Footer />
       <MobileCTA />
