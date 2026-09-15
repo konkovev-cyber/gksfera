@@ -794,6 +794,21 @@
   .blob-drift { animation: none; }
 }
 
+/* Рубильник «пауза анимаций» в шапке (см. lib/motion.ts): останавливает всё,
+   что движется само, включая смену фото в герое — её таймер читает тот же
+   атрибут. Отличие от prefers-reduced-motion: это явная воля пользователя
+   именно на этом сайте, поэтому гаснет и то, что под reduce только замедляется
+   (лента). Нужна именно пауза, а не `animation: none`: кадр ленты не должен
+   прыгать в начало, когда её отпускают. */
+html[data-motion="paused"] .animate-marquee,
+html[data-motion="paused"] .marquee-wave,
+html[data-motion="paused"] .belt,
+html[data-motion="paused"] .belt-row,
+html[data-motion="paused"] .hero-breathe,
+html[data-motion="paused"] .blob-drift {
+  animation-play-state: paused !important;
+}
+
 /* Скрыть скроллбар для горизонтальных вкладок админки */
 .scrollbar-hide::-webkit-scrollbar {
   display: none;

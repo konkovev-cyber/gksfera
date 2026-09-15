@@ -7,6 +7,7 @@ import { Menu, X, Phone, MessageCircle, ChevronDown } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useContent } from "./ContentContext";
 import { ThemeToggle } from "./ThemeToggle";
+import { MotionToggle } from "./MotionToggle";
 import { LogoLockup } from "./LogoLockup";
 import type { NavItem } from "@/data/site";
 
@@ -222,7 +223,12 @@ export function Header() {
           </nav>
 
           {/* Телефон (только иконка — по тапу идёт набор номера), кнопка записи */}
-          <div className="flex items-center gap-2 sm:gap-3">
+          <div className="flex items-center gap-1.5 sm:gap-3">
+            {/* Пауза движения — одна на весь сайт (WCAG 2.2.2): смена фото в
+                герое, бегущая строка, «дыхание» кадра. Держим в шапке, а не на
+                кадре: кадр по требованию владельца без управления, а G186
+                разрешает контрол в начале страницы. */}
+            <MotionToggle />
             <ThemeToggle />
             <a
               href={content.siteConfig.phoneHref}

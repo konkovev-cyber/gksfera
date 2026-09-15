@@ -106,7 +106,9 @@ const jsonLd = {
   ],
 };
 
-const themeScript = `(function(){try{var t=localStorage.getItem('sfera-theme');var d=t?t==='dark':window.matchMedia('(prefers-color-scheme: dark)').matches;document.documentElement.classList.toggle('dark',d);}catch(e){}})();`;
+// До гидрации применяем оба пользовательских выбора: тему и «пауза анимаций».
+// Иначе первый кадр мелькает в другой теме и с уже крутящейся лентой.
+const themeScript = `(function(){try{var t=localStorage.getItem('sfera-theme');var d=t?t==='dark':window.matchMedia('(prefers-color-scheme: dark)').matches;document.documentElement.classList.toggle('dark',d);if(localStorage.getItem('sfera-motion')==='paused'){document.documentElement.dataset.motion='paused';}}catch(e){}})();`;
 
 export default function RootLayout({
   children,

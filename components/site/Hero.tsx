@@ -5,6 +5,7 @@ import Image from "next/image";
 import { ArrowRight, Sparkles, Pause, Play } from "lucide-react";
 import {
   motion,
+  AnimatePresence,
   useMotionValue,
   useSpring,
   useTransform,
@@ -13,6 +14,7 @@ import {
 import { useContent } from "./ContentContext";
 import { HeroBanners } from "./HeroBanners";
 import { cn } from "@/lib/utils";
+import { isMotionPaused, subscribeMotion } from "@/lib/motion";
 
 const NOISE =
   "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='2'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)' opacity='0.55'/%3E%3C/svg%3E";
@@ -157,20 +159,31 @@ export function Hero() {
   // останавливается совсем.
   const [marqueePaused, setMarqueePaused] = useState(false);
 
-  // Фото в герое показывается ОДНО — первое из набора. Раньше кадры
-  // перелистывались сами каждые 7 секунд, и вместе с авто-сменой жили точки
-  // выбора и кнопка паузы (без них вращающийся контент нарушает WCAG 2.2.2).
-  // Управление с кадра снято по просьбе владельца — значит снимаем и саму
-  // авто-смену: ротация без остановки недопустима, а ротация с невидимой
-  // кнопкой остановки всё равно была бы управлением на кадре.
-  // Побочный эффект: остальные снимки альбома в герое не показываются (см.
-  // раздел «Кадр героя» в docs/DESIGN.md).
+  // Смена фото в герое вернулась: кадры листаются сами каждые 7 секунд, НО без
+  // единой кнопки на кадре — так просил владелец. Право на авто-смену даёт
+  // рубильник «пауза анимаций» в шапке (lib/motion.ts): WCAG 2.2.2 требует
+  // механизм остановки, а приём G186 разрешает ему стоять в начале страницы, а
+  // не поверх движущегося содержимого. Под «уменьшить движение» смена остаётся,
+  // но без кроссфейда — меняется содержимое, а не положение в пространстве.
   const heroImages = (
     content.heroContent.images && content.heroContent.images.length > 0
       ? content.heroContent.images
       : [content.heroContent.image]
   ).filter(Boolean) as string[];
-  const heroPhoto = heroImages[0];
+  const [activeImg, setActiveImg] = useState(0);
+  const [motionStopped, setMotionStopped] = useState(false);
+  useEffect(() => {
+    setMotionStopped(isMotionPaused());
+    return subscribeMotion(setMotionStopped);
+  }, []);
+  useEffect(() => {
+    if (heroImages.length <= 1 || motionStopped) return;
+    const id = window.setInterval(() => setActiveImg((i) => (i + 1) % heroImages.length), 7000);
+    return () => window.clearInterval(id);
+  }, [heroImages.length, motionStopped]);
+  // Набор могли поменять в админке — не выходим за границы.
+  const safeIdx = heroImages.length > 0 ? activeImg % heroImages.length : 0;
+  const heroPhoto = heroImages[safeIdx];
 
   /**
    * Кадр имеет ФИКСИРОВАННОЕ соотношение сторон и заполняется снимком через
@@ -333,19 +346,33 @@ export function Hero() {
             className="relative aspect-square sm:aspect-[5/4] will-change-transform [transform-style:preserve-3d]"
           >
             <div className="absolute inset-0 rounded-3xl overflow-hidden shadow-2xl ring-1 ring-hairline/60 bg-muted" data-hero-frame>
-              {/* Один снимок в фиксированном кадре. «Дыхание» (hero-breathe)
-                  осталось: это CSS-анимация, которая выключается сама при
-                  «уменьшить движение», и она ничего не перелистывает. */}
-              <div className="absolute inset-0 hero-breathe" data-hero-photo>
-                <Image
-                  src={heroPhoto}
-                  alt={content.heroContent.imageAlt}
-                  fill
-                  priority
-                  sizes="(max-width: 1024px) 100vw, 50vw"
-                  className="object-cover object-center"
-                />
-              </div>
+              {/* Снимки листаются кроссфейдом внутри фиксированного кадра:
+                  ориентация фото влияет только на то, какая часть кадра
+                  отрезана, но не на размер блока. «Дыхание» (hero-breathe) —
+                  отдельная CSS-анимация, её выключает prefers-reduced-motion, а
+                  рубильник в шапке ставит на паузу. */}
+              <AnimatePresence>
+                <motion.div
+                  key={heroPhoto}
+                  data-hero-photo
+                  className="absolute inset-0"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: fineMotion ? 1.4 : 0, ease: "easeInOut" }}
+                >
+                  <div className="absolute inset-0 hero-breathe">
+                    <Image
+                      src={heroPhoto}
+                      alt={content.heroContent.imageAlt}
+                      fill
+                      priority
+                      sizes="(max-width: 1024px) 100vw, 50vw"
+                      className="object-cover object-center"
+                    />
+                  </div>
+                </motion.div>
+              </AnimatePresence>
               {/* Блик-градиент поверх фото */}
               <div className="absolute inset-0 bg-gradient-to-tr from-brand-teal/15 via-transparent to-brand-warm/10 mix-blend-overlay pointer-events-none" />
             </div>
