@@ -5,7 +5,6 @@ import Image from "next/image";
 import { ArrowRight, Sparkles, Pause, Play } from "lucide-react";
 import {
   motion,
-  AnimatePresence,
   useMotionValue,
   useSpring,
   useTransform,
@@ -158,47 +157,28 @@ export function Hero() {
   // останавливается совсем.
   const [marqueePaused, setMarqueePaused] = useState(false);
 
-  // Набор фото для ротации в Hero (fallback на одиночное image)
+  // Фото в герое показывается ОДНО — первое из набора. Раньше кадры
+  // перелистывались сами каждые 7 секунд, и вместе с авто-сменой жили точки
+  // выбора и кнопка паузы (без них вращающийся контент нарушает WCAG 2.2.2).
+  // Управление с кадра снято по просьбе владельца — значит снимаем и саму
+  // авто-смену: ротация без остановки недопустима, а ротация с невидимой
+  // кнопкой остановки всё равно была бы управлением на кадре.
+  // Побочный эффект: остальные снимки альбома в герое не показываются (см.
+  // раздел «Кадр героя» в docs/DESIGN.md).
   const heroImages = (
     content.heroContent.images && content.heroContent.images.length > 0
       ? content.heroContent.images
       : [content.heroContent.image]
   ).filter(Boolean) as string[];
-  const [activeImg, setActiveImg] = useState(0);
-  // «Уменьшить движение» не должно лишать контента: под этим флагом гаснем
-  // перелистывание без затухания (см. transition у кадра) и наклоны, но само
-  // фото обязано меняться — иначе герой показывает один снимок вместо альбома.
-  // Остановить совсем можно кнопкой в ленте точек (WCAG 2.2.2).
-  const [photosPaused, setPhotosPaused] = useState(false);
-  useEffect(() => {
-    if (heroImages.length <= 1 || photosPaused) return;
-    const id = window.setInterval(
-      () => setActiveImg((i) => (i + 1) % heroImages.length),
-      7000, // смена раз в 7 секунд — не слишком часто
-    );
-    return () => window.clearInterval(id);
-    // activeImg в зависимостях: ручной клик по точке перезапускает таймер,
-    // чтобы авто-смена не «догоняла» через долю секунды после выбора вручную.
-  }, [heroImages.length, activeImg, photosPaused]);
-  // Защита от выхода за границы после изменения набора в админке
-  const safeIdx = heroImages.length > 0 ? activeImg % heroImages.length : 0;
+  const heroPhoto = heroImages[0];
 
   /**
-   * Соотношения сторон реально загруженных фото. Рамка hero подстраивается под
-   * отношение текущего снимка: раньше жёсткий 4:5 отрезал 35% ширины альбомного
-   * фото (по краям как раз дети), а на xl — 19%. Кламп не даёт экстремальным
-   * панорамам и портретам раскачивать вёрстку.
+   * Кадр имеет ФИКСИРОВАННОЕ соотношение сторон и заполняется снимком через
+   * object-cover: раньше рамка подстраивалась под отношение сторон текущего
+   * фото (0.85…1.5), из-за чего альбомный и книжный снимки меняли размер
+   * блока, а вместе с ним прыгала высота героя и посадка угловых плашек.
+   * Теперь размер кадра постоянный, а разница ориентаций разрешается обрезкой.
    */
-  const [photoRatios, setPhotoRatios] = useState<Record<string, number>>({});
-  const noteRatio = (src: string, el: HTMLImageElement | null) => {
-    if (!el?.naturalWidth || !el?.naturalHeight) return;
-    const r = el.naturalWidth / el.naturalHeight;
-    setPhotoRatios((prev) => (prev[src] && Math.abs(prev[src] - r) < 0.01 ? prev : { ...prev, [src]: r }));
-  };
-  const clamp = (v: number, a: number, b: number) => Math.min(b, Math.max(a, v));
-  // Диапазон 0.85…1.5: между стартовым 4:5 и типовым 5:4 — так обрезка сходится
-  // к нулю, но рамка остаётся в пределах макета на любом фото из админки.
-  const frameRatio = clamp(photoRatios[heroImages[safeIdx]] ?? 1.25, 0.85, 1.5);
 
   return (
     <section
@@ -345,89 +325,29 @@ export function Hero() {
             transition={{ duration: 0.7, delay: 0.25, ease: [0.22, 1, 0.36, 1] }}
             onMouseMove={onTiltMove}
             onMouseLeave={onTiltLeave}
-            style={{
-              aspectRatio: String(frameRatio),
-              ...(fineMotion ? { rotateX: rotX, rotateY: rotY, transformPerspective: 1200 } : null),
-            }}
-            className="relative aspect-[5/4] will-change-transform [transform-style:preserve-3d] transition-[aspect-ratio] duration-700 ease-out"
+            style={fineMotion ? { rotateX: rotX, rotateY: rotY, transformPerspective: 1200 } : undefined}
+            /* Соотношение кадра задаётся только классом и не зависит от
+               ориентации снимка: на телефоне квадрат, начиная с sm — 5:4.
+               Переход по aspect-ratio был нужен живой подгонке под фото; с
+               фиксированным кадром он только смазывал бы смену брейкпоинта. */
+            className="relative aspect-square sm:aspect-[5/4] will-change-transform [transform-style:preserve-3d]"
           >
-            <div className="absolute inset-0 rounded-3xl overflow-hidden shadow-2xl ring-1 ring-hairline/60 bg-muted" data-hero-rotate>
-              {/* Ротация фото: кроссфейд + очень медленное «дыхание» кадра. */}
-              <AnimatePresence>
-                {heroImages.map((src, i) =>
-                  i === safeIdx ? (
-                    <motion.div
-                      key={src + "-" + i}
-                      className="absolute inset-0"
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      exit={{ opacity: 0 }}
-                      /* Под «уменьшить движение» кадр меняется мгновенно:
-                         меняется содержимое, а не положение в пространстве. */
-                      transition={{ duration: fineMotion ? 1.4 : 0, ease: "easeInOut" }}
-                    >
-                      {/* «Дыхание» кадра — CSS-анимация (hero-breathe), а не
-                          framer: на keyframes с repeat: Infinity framer доходил
-                          до 1.05 и останавливался. Плюс режим «уменьшить
-                          движение» выключает эффект средствами CSS — без
-                          расхождения SSR и клиента. */}
-                      <div className="absolute inset-0 hero-breathe">
-                        <Image
-                          src={src}
-                          alt={content.heroContent.imageAlt}
-                          fill
-                          priority={i === 0}
-                          sizes="(max-width: 1024px) 100vw, 50vw"
-                          className="object-cover"
-                          onLoad={(e) => noteRatio(src, e.currentTarget)}
-                        />
-                      </div>
-                    </motion.div>
-                  ) : null,
-                )}
-              </AnimatePresence>
+            <div className="absolute inset-0 rounded-3xl overflow-hidden shadow-2xl ring-1 ring-hairline/60 bg-muted" data-hero-frame>
+              {/* Один снимок в фиксированном кадре. «Дыхание» (hero-breathe)
+                  осталось: это CSS-анимация, которая выключается сама при
+                  «уменьшить движение», и она ничего не перелистывает. */}
+              <div className="absolute inset-0 hero-breathe" data-hero-photo>
+                <Image
+                  src={heroPhoto}
+                  alt={content.heroContent.imageAlt}
+                  fill
+                  priority
+                  sizes="(max-width: 1024px) 100vw, 50vw"
+                  className="object-cover object-center"
+                />
+              </div>
               {/* Блик-градиент поверх фото */}
               <div className="absolute inset-0 bg-gradient-to-tr from-brand-teal/15 via-transparent to-brand-warm/10 mix-blend-overlay pointer-events-none" />
-
-              {/* Индикатор ротации — в стеклянной капсуле: на светлых участках
-                  кадра голые точки терялись. Неактивные полупрозрачные,
-                  активная шире и на всю плотность. Снизу по центру: углы кадра
-                  занимают карточки-факта. */}
-              {heroImages.length > 1 && (
-                <div className="absolute top-3 left-3 z-10 sm:top-auto sm:bottom-3 sm:left-1/2 sm:-translate-x-1/2">
-                  <div className="glass-frost flex items-center gap-1.5 rounded-full px-3 py-2">
-                    {heroImages.map((_, i) => (
-                      <button
-                        key={i}
-                        onClick={() => setActiveImg(i)}
-                        aria-label={`Показать фото ${i + 1}`}
-                        className={cn(
-                          "h-1.5 rounded-full transition-all duration-300",
-                          i === safeIdx ? "w-5 bg-frost-ink" : "w-1.5 bg-frost-ink/40 hover:bg-frost-ink/70",
-                        )}
-                      />
-                    ))}
-                    <span aria-hidden="true" className="mx-0.5 h-4 w-px bg-frost-ink/20" />
-                    {/* Авто-листалка крутится всем, значит по WCAG 2.2.2 её надо
-                        уметь остановить: точки выбирают кадр, кнопка — выключает
-                        саму смену. */}
-                    <button
-                      type="button"
-                      onClick={() => setPhotosPaused((v) => !v)}
-                      aria-pressed={photosPaused}
-                      aria-label={photosPaused ? "Запустить смену фото" : "Остановить смену фото"}
-                      title={photosPaused ? "Запустить смену фото" : "Остановить смену фото"}
-                      className="chip-on-frost flex h-6 w-6 items-center justify-center rounded-full"
-                    >
-                      {photosPaused ? (
-                        <Play className="h-3 w-3 fill-current" />
-                      ) : (
-                        <Pause className="h-3 w-3" />
-                      )}
-                    </button>
-                  </div>
-                </div>
-              )}
             </div>
             <div className="absolute -inset-3 rounded-[2rem] border-2 border-brand-warm/20 -z-10 hidden sm:block" />
             {/* Две карточки-факта по углам кадра. Размещение то же, что было,

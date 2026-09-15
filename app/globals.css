@@ -335,16 +335,6 @@
       inset 0 1px 0 0 hsl(0 0% 100% / 0.85);
     color: hsl(var(--frost-ink));
   }
-  /* Контрол внутри светлой плашки (кнопка паузы, чип): подложка из того же
-     графитового чернила, что и текст, — отдельного цвета не просит. */
-  .chip-on-frost {
-    background: hsl(var(--frost-ink) / 0.1);
-    color: hsl(var(--frost-ink));
-    transition: background-color 0.2s ease;
-  }
-  .chip-on-frost:hover {
-    background: hsl(var(--frost-ink) / 0.18);
-  }
   /* Подсветка ячейки внутри стеклянной ленты. Процент плёнки — в токене,
      поэтому компоненту не нужен `dark:hover:bg-white/6`. */
   .film-hover {
@@ -882,7 +872,7 @@
   /* Тёмная тема на печати не нужна — форсируем светлое содержимое блоков. */
   [data-theme="dark"] body { background: #fff !important; }
   /* Стекло и маски при печати мешают: возвратим непрозрачные подложки. */
-  .glass, .glass-frost, .paper-plate, .chip-on-frost, .pill-contact {
+  .glass, .glass-frost, .paper-plate, .pill-contact {
     background: #fff !important;
     backdrop-filter: none !important;
     border: 1px solid #d8dbe0 !important;
