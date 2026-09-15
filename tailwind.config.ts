@@ -104,6 +104,19 @@ const config: Config = {
         hairline: 'hsl(var(--hairline))',
         scrim: 'hsl(var(--scrim))',
         'on-scrim': 'hsl(var(--on-scrim))',
+        // Чернила светлых плашек поверх фото (.glass-frost / .paper-plate).
+        // В тёмной теме не переворачиваются: подложка принадлежит кадру.
+        frost: {
+          ink: 'hsl(var(--frost-ink))',
+          muted: 'hsl(var(--frost-ink-muted))',
+        },
+        // Фирменные чернила для светлых плашек поверх фото: в отличие от
+        // brand-*-ink сюда заглядывает тёмная тема, и белая пилюля не должна
+        // от этого светлеть (замер: 1.81:1 на brand-warm-ink в dark).
+        plate: {
+          warm: 'hsl(var(--plate-warm-ink))',
+          teal: 'hsl(var(--plate-teal-ink))',
+        },
         panel: {
           DEFAULT: 'hsl(var(--panel))',
           2: 'hsl(var(--panel-2))',

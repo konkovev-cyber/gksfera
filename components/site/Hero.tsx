@@ -19,19 +19,24 @@ const NOISE =
   "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='2'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)' opacity='0.55'/%3E%3C/svg%3E";
 
 /**
- * Угловая карточка поверх фото: висит снаружи угла рамки — за счёт этого кадр
- * с наклоном читается объёмным. Карточка едет вместе с ним и слегка против
+ * Угловая карточка-факт поверх фото: висит снаружи угла рамки — за счёт этого
+ * кадр с наклоном читается объёмным. Карточка едет вместе с ним и слегка против
  * курсора, верхним слоем (translateZ).
  *
- * Подложка — затемнённое стекло (.glass-scrim), а не фирменная заливка:
- * белый по brand-warm даёт 2.5:1 и не проходит AA, по графитовой плёнке —
- * 12.7:1. Бренд остаётся точкой-маркером и тонированной обводкой.
+ * Два варианта подложки — оба светлые, тёмных «заплаток» на кадре больше нет:
+ *  • "frost" — матовое стекло (.glass-frost): плотность 56%, blur, волосяная
+ *    белая рамка, скругление 24px. Текст графитовый (--frost-ink).
+ *  • "pill"  — белая «пилюля» (.paper-plate) с обводкой фирменным цветом и
+ *    числом чернильным токеном (--brand-*-ink: 5.9:1 и 9.6:1 на белом).
+ * Плашки принадлежат кадру, а не странице, поэтому в тёмной теме они не
+ * переворачиваются: фото там то же самое.
  */
 function CornerCard({
   label,
   value,
   note,
   tone,
+  variant,
   className,
   style,
   delay,
@@ -40,10 +45,12 @@ function CornerCard({
   value: string;
   note?: string;
   tone: "warm" | "teal";
+  variant: "frost" | "pill";
   className: string;
   style?: Record<string, unknown>;
   delay: number;
 }) {
+  const frost = variant === "frost";
   return (
     <motion.div
       initial={{ opacity: 0, y: tone === "warm" ? 20 : -20 }}
@@ -52,22 +59,34 @@ function CornerCard({
       style={style}
       data-hero-card={tone}
       className={cn(
-        "glass-scrim absolute rounded-2xl px-4 py-3 sm:px-5 sm:py-3.5 text-center",
-        tone === "warm" ? "border-brand-warm/25" : "border-brand-teal/25",
+        "absolute text-center",
+        frost
+          ? "glass-frost rounded-3xl px-4 py-3 sm:px-5 sm:py-3.5"
+          : cn(
+              // Обводка и число — фиксированными «чернилами плашки»: пилюля
+              // белая в обеих темах, а brand-*-ink в тёмной светлеет.
+              "paper-plate rounded-full px-5 py-2.5 sm:px-6 sm:py-3",
+              tone === "warm" ? "[--plate-tint:var(--plate-warm-ink)]" : "[--plate-tint:var(--plate-teal-ink)]",
+            ),
         className,
       )}
     >
-      <p className="flex items-center justify-center gap-1.5 text-[10px] uppercase tracking-wider font-semibold text-on-scrim/85">
+      <p className="flex items-center justify-center gap-1.5 text-[10px] uppercase tracking-wider font-semibold text-frost-muted">
         <span
           aria-hidden="true"
           className={cn("w-1.5 h-1.5 rounded-full shrink-0", tone === "warm" ? "bg-brand-warm" : "bg-brand-teal")}
         />
         {label}
       </p>
-      <p className="mt-0.5 font-display font-extrabold leading-none text-xl sm:text-2xl text-on-scrim tabular-nums">
+      <p
+        className={cn(
+          "mt-0.5 font-display font-extrabold leading-none text-xl sm:text-2xl tabular-nums",
+          frost ? "text-frost-ink" : tone === "warm" ? "text-plate-warm" : "text-plate-teal",
+        )}
+      >
         {value}
       </p>
-      {note && <p className="mt-1 text-[11px] leading-tight text-on-scrim/85">{note}</p>}
+      {note && <p className="mt-1 text-[11px] leading-tight text-frost-muted">{note}</p>}
     </motion.div>
   );
 }
@@ -368,60 +387,68 @@ export function Hero() {
               {/* Блик-градиент поверх фото */}
               <div className="absolute inset-0 bg-gradient-to-tr from-brand-teal/15 via-transparent to-brand-warm/10 mix-blend-overlay pointer-events-none" />
 
-              {/* Индикатор ротации — точки (только если фото больше одного).
-                  Снизу по центру: углы кадра занимают карточки-факты. */}
+              {/* Индикатор ротации — в стеклянной капсуле: на светлых участках
+                  кадра голые точки терялись. Неактивные полупрозрачные,
+                  активная шире и на всю плотность. Снизу по центру: углы кадра
+                  занимают карточки-факта. */}
               {heroImages.length > 1 && (
-                <div className="absolute top-3 left-3 flex items-center gap-1.5 z-10 sm:top-auto sm:bottom-3 sm:left-1/2 sm:-translate-x-1/2">
-                  {heroImages.map((_, i) => (
+                <div className="absolute top-3 left-3 z-10 sm:top-auto sm:bottom-3 sm:left-1/2 sm:-translate-x-1/2">
+                  <div className="glass-frost flex items-center gap-1.5 rounded-full px-3 py-2">
+                    {heroImages.map((_, i) => (
+                      <button
+                        key={i}
+                        onClick={() => setActiveImg(i)}
+                        aria-label={`Показать фото ${i + 1}`}
+                        className={cn(
+                          "h-1.5 rounded-full transition-all duration-300",
+                          i === safeIdx ? "w-5 bg-frost-ink" : "w-1.5 bg-frost-ink/40 hover:bg-frost-ink/70",
+                        )}
+                      />
+                    ))}
+                    <span aria-hidden="true" className="mx-0.5 h-4 w-px bg-frost-ink/20" />
+                    {/* Авто-листалка крутится всем, значит по WCAG 2.2.2 её надо
+                        уметь остановить: точки выбирают кадр, кнопка — выключает
+                        саму смену. */}
                     <button
-                      key={i}
-                      onClick={() => setActiveImg(i)}
-                      aria-label={`Показать фото ${i + 1}`}
-                      className={cn(
-                        "h-1.5 rounded-full transition-all duration-300",
-                        i === safeIdx ? "w-5 bg-white" : "w-1.5 bg-white/50 hover:bg-white/80",
+                      type="button"
+                      onClick={() => setPhotosPaused((v) => !v)}
+                      aria-pressed={photosPaused}
+                      aria-label={photosPaused ? "Запустить смену фото" : "Остановить смену фото"}
+                      title={photosPaused ? "Запустить смену фото" : "Остановить смену фото"}
+                      className="chip-on-frost flex h-6 w-6 items-center justify-center rounded-full"
+                    >
+                      {photosPaused ? (
+                        <Play className="h-3 w-3 fill-current" />
+                      ) : (
+                        <Pause className="h-3 w-3" />
                       )}
-                    />
-                  ))}
-                  {/* Авто-листалка крутится всем, значит по WCAG 2.2.2 её надо
-                      уметь остановить: точки выбирают кадр, кнопка — выключает
-                      саму смену. */}
-                  <button
-                    type="button"
-                    onClick={() => setPhotosPaused((v) => !v)}
-                    aria-pressed={photosPaused}
-                    aria-label={photosPaused ? "Запустить смену фото" : "Остановить смену фото"}
-                    title={photosPaused ? "Запустить смену фото" : "Остановить смену фото"}
-                    className="glass-scrim ml-1 -mt-0.5 flex h-7 w-7 items-center justify-center rounded-full text-on-scrim/85 transition-colors hover:text-on-scrim"
-                  >
-                    {photosPaused ? (
-                      <Play className="h-3 w-3 fill-current" />
-                    ) : (
-                      <Pause className="h-3 w-3" />
-                    )}
-                  </button>
+                    </button>
+                  </div>
                 </div>
               )}
             </div>
             <div className="absolute -inset-3 rounded-[2rem] border-2 border-brand-warm/20 -z-10 hidden sm:block" />
-            {/* Две карточки-факта по углам кадра — как было. Раньше они были
-                залиты brand-warm / brand-teal белым текстом: 2.5:1 и 3.4:1, то
-                есть не проходили AA. Теперь то же размещение и тот же силуэт,
-                но подложка — графитовое стекло, а фирменный цвет остался в
-                маркере и обводке.
+            {/* Две карточки-факта по углам кадра. Размещение то же, что было,
+                но подложки light: справа-сверху матовое стекло (variant
+                "frost"), слева-снизу белая пилюля в фирменном тёплом контуре
+                ("pill") — она перекликается с бейджем над заголовком. Подпись
+                «Дошкольники и школьники» с плашки убрана: возраст 5–15 лет
+                указан и в карточках направлений, а в тесной пилюле он только
+                мешал.
                 style с x/y/z применяется только при fineMotion: при
                 «уменьшить движение» кадр стоит ровно, и трогать его нечем. */}
             <CornerCard
               tone="warm"
+              variant="pill"
               label="Возраст детей"
               value="5–15 лет"
-              note="Дошкольники и школьники"
               delay={0.7}
-              className="-bottom-4 left-0 sm:-bottom-6 sm:-left-6 max-w-[220px]"
+              className="-bottom-4 left-0 sm:-bottom-6 sm:-left-6"
               style={fineMotion ? { x: warmX, y: warmY, z: 46 } : undefined}
             />
             <CornerCard
               tone="teal"
+              variant="frost"
               label="Опыт работы"
               value="более 15 лет"
               delay={0.85}

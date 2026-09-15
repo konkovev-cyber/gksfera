@@ -82,6 +82,26 @@
     --scrim-a: 0.8;
     --on-scrim: 0 0% 98%;
 
+    /* Поверх фотографии: «матовое стекло» и «бумага». В .dark эти токены
+       намеренно НЕ переопределены: плашка принадлежит кадру, а не странице —
+       фото в обеих темах одно и то же, поэтому светлая подложка с графитовым
+       текстом читается одинаково везде. Тёмные «заплатки» по углам раньше
+       ломали воздушность героя и перекрывали кадр. */
+    --frost: 0 0% 100%;
+    --frost-a: 0.66;                  /* плотность матового стекла */
+    --frost-line: 0 0% 100%;
+    --frost-line-a: 0.75;             /* волосяная белая рамка */
+    --frost-ink: 240 5% 15%;          /* основной текст на стекле/бумаге */
+    --frost-ink-muted: 240 5% 20%;    /* лейблы и подписи: 6.1:1 на стекле */
+    --paper: 0 0% 100%;
+    --paper-a: 0.94;                  /* «бумажная» пилюля почти непрозрачная */
+    /* Чернила ФИКСИРОВАННЫЕ: пилюля лежит на фото и остаётся белой в обеих
+       темах, поэтому обычный --brand-*-ink (в тёмной теме он светлеет) туда
+       вешать нельзя — замер давал 1.81:1. Это те же тона, что в светлой теме,
+       но не переворачиваются: 5.9:1 и 9.6:1 на белом. */
+    --plate-warm-ink: 26 82% 35%;
+    --plate-teal-ink: 179 46% 27%;
+
     /* Мягкие тени с цветным отливом */
     --shadow-hue: 216 40% 22%;
     --shadow-tint-warm: 30 88% 45%;
@@ -168,6 +188,8 @@
     --scrim: 0 0% 6%;
     --scrim-a: 0.72;
     --on-scrim: 0 0% 98%;
+    /* --frost* и --paper* здесь нет: матовое стекло и бумажная пилюля поверх
+       фото остаются светлыми и в тёмной теме (см. пояснение в :root). */
 
     --shadow-hue: 0 0% 0%;
     --shadow-tint-warm: 32 88% 60%;
@@ -253,17 +275,46 @@
       0 2px 10px -4px hsl(0 0% 0% / 0.5),
       inset 0 1px 0 0 hsl(0 0% 100% / 0.08);
   }
-  /* «Скрим» — та же стеклянная пластинка, но затемнённая: ставится поверх
-     фотографии, где светлое стекло читалось бы плохо. Текст — --on-scrim. */
-  .glass-scrim {
-    background: hsl(var(--scrim) / var(--scrim-a));
+  /* «Матовое стекло» — светлая пластинка поверх кадра. Тот же стеклянный язык,
+     что у .glass, но принадлежит фото: плотность и подложка фиксированные,
+     текст графитовый. В тёмной теме не меняется вместе со страницей.
+     (Прежняя тёмная подложка .glass-scrim удалена: на светлом кадре она
+     читалась «заплаткой». Токены --scrim/--on-scrim остались — это фон подвала,
+     затемнение в галерее и лайтбокс.) */
+  .glass-frost {
+    background: hsl(var(--frost) / var(--frost-a));
     backdrop-filter: blur(16px) saturate(1.5);
     -webkit-backdrop-filter: blur(16px) saturate(1.5);
-    border: 1px solid hsl(0 0% 100% / 0.18);
+    border: 1px solid hsl(var(--frost-line) / var(--frost-line-a));
     box-shadow:
-      0 22px 44px -22px hsl(0 0% 0% / 0.45),
-      inset 0 1px 0 0 hsl(0 0% 100% / 0.16);
-    color: hsl(var(--on-scrim));
+      0 20px 40px -24px hsl(var(--shadow-hue) / 0.55),
+      0 2px 8px -4px hsl(0 0% 0% / 0.18),
+      inset 0 1px 0 0 hsl(0 0% 100% / 0.7);
+    color: hsl(var(--frost-ink));
+  }
+  /* «Бумажная» плашка-пилюля: почти белая подложка, обводка фирменным цветом
+     (--plate-tint задаётся на элементе). Текст — --frost-ink, число — своим
+     чернильным токеном (--brand-*-ink посчитаны на белом). */
+  .paper-plate {
+    background: hsl(var(--paper) / var(--paper-a));
+    backdrop-filter: blur(10px) saturate(1.2);
+    -webkit-backdrop-filter: blur(10px) saturate(1.2);
+    border: 1px solid hsl(var(--plate-tint, var(--brand-warm)) / 0.42);
+    box-shadow:
+      0 18px 36px -22px hsl(var(--shadow-hue) / 0.5),
+      0 1px 6px -2px hsl(0 0% 0% / 0.12),
+      inset 0 1px 0 0 hsl(0 0% 100% / 0.85);
+    color: hsl(var(--frost-ink));
+  }
+  /* Контрол внутри светлой плашки (кнопка паузы, чип): подложка из того же
+     графитового чернила, что и текст, — отдельного цвета не просит. */
+  .chip-on-frost {
+    background: hsl(var(--frost-ink) / 0.1);
+    color: hsl(var(--frost-ink));
+    transition: background-color 0.2s ease;
+  }
+  .chip-on-frost:hover {
+    background: hsl(var(--frost-ink) / 0.18);
   }
 
   /* ── Мягкие тени с цветным отливом ──────────────────────────────────── */
@@ -766,7 +817,7 @@
   /* Тёмная тема на печати не нужна — форсируем светлое содержимое блоков. */
   [data-theme="dark"] body { background: #fff !important; }
   /* Стекло и маски при печати мешают: возвратим непрозрачные подложки. */
-  .glass, .glass-scrim, .pill-contact {
+  .glass, .glass-frost, .paper-plate, .chip-on-frost, .pill-contact {
     background: #fff !important;
     backdrop-filter: none !important;
     border: 1px solid #d8dbe0 !important;
