@@ -83,11 +83,18 @@ export function Footer() {
               Контакты
             </h3>
             <ul className="space-y-0.5">
-              <li className="flex items-start gap-2.5">
-                <MapPin className="w-4 h-4 text-brand-warm flex-shrink-0 mt-[9px]" />
-                <span className="text-sm text-on-scrim/60 leading-relaxed min-h-[40px] lg:min-h-[28px] flex items-center">
-                  {content.siteConfig.city}, {content.siteConfig.address}
-                </span>
+              <li className="flex items-center gap-2.5">
+                <MapPin className="w-4 h-4 text-brand-warm flex-shrink-0" aria-hidden="true" />
+                {/* Адрес набираем двумя осмысленными строками, а не как попало.
+                    Раньше «{city}, {address}» в одном потоке давало вдов: на
+                    1440px — «…Спортивный переулок, » / «13», на 390px — три
+                    строки со «Спортивный» одной отдельной. Город и улица —
+                    разные сущности, у каждой своя строка; balance добивает то,
+                    что улица на узких экранах всё-таки переносится. */}
+                <address className="not-italic text-sm leading-snug text-on-scrim/60">
+                  <span className="block">{content.siteConfig.city}</span>
+                  <span className="block text-balance">{content.siteConfig.address}</span>
+                </address>
               </li>
               <li>
                 <a
