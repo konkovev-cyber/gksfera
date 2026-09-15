@@ -605,12 +605,40 @@
   mask-image: linear-gradient(to right, transparent, #000 9%, #000 91%, transparent);
 }
 
+/* Встречные ленты («лаборатория» /design/marquee-lab). Геометрия та же, что у
+   marquee: трек = два копированных списка, смещение на -50%. Отличие — ряды
+   едут в разные стороны и с разной длительностью, поэтому картина не
+   повторяется. Направление и скорость задаются из разметки переменными, без
+   !important: .animate-marquee его бы перебил. */
+@keyframes belt-run {
+  from { transform: translateX(var(--belt-from, 0)); }
+  to   { transform: translateX(var(--belt-to, -50%)); }
+}
+.belt {
+  --belt-dur: 36s;
+  animation: belt-run var(--belt-dur) linear infinite;
+  will-change: transform;
+}
+/* Обратный ряд: стартует с половины трека и приезжает к нулю. */
+.belt-rev {
+  --belt-from: -50%;
+  --belt-to: 0;
+}
+.belt-paused,
+.belt-paused * {
+  animation-play-state: paused !important;
+}
+
 @media (prefers-reduced-motion: reduce) {
   /* Колебания «волной» — главная причина дискомфорта, их убираем. */
   .marquee-wave { animation: none !important; }
   /* Саму ленту не останавливаем: при уменьшенном движении она идёт медленно.
      Полностью остановить можно кнопкой паузы рядом со строкой (WCAG 2.2.2). */
   .animate-marquee { animation-duration: 90s !important; }
+  /* Встречные ряды — так же: медленнее, но не стойко. */
+  .belt {
+    animation-duration: calc(var(--belt-dur) * 2.6);
+  }
 }
 
 /* «Дыхание» фото в первом экране: очень слабое приближение (до 5%) и назад,
