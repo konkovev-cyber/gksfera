@@ -19,27 +19,55 @@ const NOISE =
   "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='2'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)' opacity='0.55'/%3E%3C/svg%3E";
 
 /**
- * Ячейка стеклянной плашки-«спецификации» поверх фото. Плашка лежит на кадре,
- * поэтому она затемнённая (.glass-scrim) со светлым текстом: светлое стекло
- * на фотографии превращается в мутное пятно, а белый по графитовой плёнке
- * даёт 12.7:1. Брендовый цвет — только в точке-маркере: brand-warm как
- * мелкий текст на светлом фоне даёт 2.5:1 и не проходит WCAG AA.
+ * Угловая карточка поверх фото: висит снаружи угла рамки — за счёт этого кадр
+ * с наклоном читается объёмным. Карточка едет вместе с ним и слегка против
+ * курсора, верхним слоем (translateZ).
+ *
+ * Подложка — затемнённое стекло (.glass-scrim), а не фирменная заливка:
+ * белый по brand-warm даёт 2.5:1 и не проходит AA, по графитовой плёнке —
+ * 12.7:1. Бренд остаётся точкой-маркером и тонированной обводкой.
  */
-function Float({ label, value, note, tone }: { label: string; value: string; note?: string; tone: "warm" | "teal" }) {
+function CornerCard({
+  label,
+  value,
+  note,
+  tone,
+  className,
+  style,
+  delay,
+}: {
+  label: string;
+  value: string;
+  note?: string;
+  tone: "warm" | "teal";
+  className: string;
+  style?: Record<string, unknown>;
+  delay: number;
+}) {
   return (
-    <div className="flex flex-col justify-center px-3.5 py-2.5 text-center sm:px-4 sm:text-left">
-      <p className="flex items-center justify-center sm:justify-start gap-1.5 text-[10px] uppercase tracking-wider font-semibold text-on-scrim/85">
+    <motion.div
+      initial={{ opacity: 0, y: tone === "warm" ? 20 : -20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay, duration: 0.5 }}
+      style={style}
+      className={cn(
+        "glass-scrim absolute rounded-2xl px-4 py-3 sm:px-5 sm:py-3.5 text-center",
+        tone === "warm" ? "border-brand-warm/25" : "border-brand-teal/25",
+        className,
+      )}
+    >
+      <p className="flex items-center justify-center gap-1.5 text-[10px] uppercase tracking-wider font-semibold text-on-scrim/85">
         <span
           aria-hidden="true"
           className={cn("w-1.5 h-1.5 rounded-full shrink-0", tone === "warm" ? "bg-brand-warm" : "bg-brand-teal")}
         />
         {label}
       </p>
-      <p className="mt-1 text-base sm:text-lg font-display font-extrabold leading-none text-on-scrim tabular-nums">
+      <p className="mt-0.5 font-display font-extrabold leading-none text-xl sm:text-2xl text-on-scrim tabular-nums">
         {value}
       </p>
       {note && <p className="mt-1 text-[11px] leading-tight text-on-scrim/85">{note}</p>}
-    </div>
+    </motion.div>
   );
 }
 
@@ -78,6 +106,16 @@ export function Hero() {
     stiffness: 180,
     damping: 22,
   });
+  // Собственно объём читают угловые карточки: они едут ПРОТИВ наклона кадра
+  // (слои смещаются в разные стороны → глаз видит разницу глубин) и подняты
+  // по Z. Без них наклон почти незаметен — отсюда ощущение «раньше двигалось».
+  // Пружины объявлены плоско: вызов useSpring из вспомогательной функции
+  // ломает правила хуков (react-hooks/rules-of-hooks).
+  const spring = { stiffness: 160, damping: 20 };
+  const warmX = useSpring(useTransform(tx, [-0.5, 0.5], [16, -16]), spring);
+  const warmY = useSpring(useTransform(ty, [-0.5, 0.5], [10, -10]), spring);
+  const tealX = useSpring(useTransform(tx, [-0.5, 0.5], [-20, 20]), spring);
+  const tealY = useSpring(useTransform(ty, [-0.5, 0.5], [-12, 12]), spring);
 
   const onTiltMove = (e: React.MouseEvent<HTMLDivElement>) => {
     if (!fineMotion) return;
@@ -284,7 +322,7 @@ export function Hero() {
               aspectRatio: String(frameRatio),
               ...(fineMotion ? { rotateX: rotX, rotateY: rotY, transformPerspective: 1200 } : null),
             }}
-            className="relative aspect-[5/4] will-change-transform transition-[aspect-ratio] duration-700 ease-out"
+            className="relative aspect-[5/4] will-change-transform [transform-style:preserve-3d] transition-[aspect-ratio] duration-700 ease-out"
           >
             <div className="absolute inset-0 rounded-3xl overflow-hidden shadow-2xl ring-1 ring-black/5 bg-muted" data-hero-rotate>
               {/* Ротация фото: кроссфейд + очень медленное «дыхание» кадра. */}
@@ -322,11 +360,10 @@ export function Hero() {
               {/* Блик-градиент поверх фото */}
               <div className="absolute inset-0 bg-gradient-to-tr from-brand-teal/15 via-transparent to-brand-warm/10 mix-blend-overlay pointer-events-none" />
 
-              {/* Индикатор ротации — точки (только если фото больше одного) */}
               {/* Индикатор ротации — точки (только если фото больше одного).
-                  В правом верхнем углу: низ кадра занимает плашка-спецификация. */}
+                  Снизу по центру: углы кадра занимают карточки-факты. */}
               {heroImages.length > 1 && (
-                <div className="absolute top-3 right-3 flex items-center gap-1.5 z-10">
+                <div className="absolute top-3 left-3 flex items-center gap-1.5 z-10 sm:top-auto sm:bottom-3 sm:left-1/2 sm:-translate-x-1/2">
                   {heroImages.map((_, i) => (
                     <button
                       key={i}
@@ -342,26 +379,30 @@ export function Hero() {
               )}
             </div>
             <div className="absolute -inset-3 rounded-[2rem] border-2 border-brand-warm/20 -z-10 hidden sm:block" />
-            {/* Плашка-«спецификация» поверх фото. Раньше это были две разные
-                карточки: 193×113 сплошного оранжевого и 131×64 сплошного
-                бирюзового — пара читалась как два посторонних объявления.
-                Теперь одна затемнённая стеклянная пластина со светлым текстом
-                и двумя равными ячейками: ячейки растянуты друг под друга,
-                поэтому разный объём текста внутри не бросается в глаза. */}
-            <motion.div
-              initial={{ opacity: 0, y: 16 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.7, duration: 0.5 }}
-              className={cn(
-                "glass-scrim absolute -bottom-4 left-3 right-3 sm:-bottom-6 sm:left-6 sm:right-auto sm:w-auto",
-                "rounded-2xl",
-              )}
-            >
-              <div className="grid grid-cols-2 divide-x divide-white/15">
-                <Float tone="warm" label="Возраст детей" value="5–15 лет" note="Дошкольники и школьники" />
-                <Float tone="teal" label="Опыт работы" value="более 15 лет" />
-              </div>
-            </motion.div>
+            {/* Две карточки-факта по углам кадра — как было. Раньше они были
+                залиты brand-warm / brand-teal белым текстом: 2.5:1 и 3.4:1, то
+                есть не проходили AA. Теперь то же размещение и тот же силуэт,
+                но подложка — графитовое стекло, а фирменный цвет остался в
+                маркере и обводке.
+                style с x/y/z применяется только при fineMotion: при
+                «уменьшить движение» кадр стоит ровно, и трогать его нечем. */}
+            <CornerCard
+              tone="warm"
+              label="Возраст детей"
+              value="5–15 лет"
+              note="Дошкольники и школьники"
+              delay={0.7}
+              className="-bottom-4 left-0 sm:-bottom-6 sm:-left-6 max-w-[220px]"
+              style={fineMotion ? { x: warmX, y: warmY, z: 46 } : undefined}
+            />
+            <CornerCard
+              tone="teal"
+              label="Опыт работы"
+              value="более 15 лет"
+              delay={0.85}
+              className="-top-3 right-0 sm:-top-5 sm:-right-5"
+              style={fineMotion ? { x: tealX, y: tealY, z: 62 } : undefined}
+            />
           </motion.div>
         </div>
       </div>
