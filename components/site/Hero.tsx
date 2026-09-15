@@ -50,6 +50,7 @@ function CornerCard({
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay, duration: 0.5 }}
       style={style}
+      data-hero-card={tone}
       className={cn(
         "glass-scrim absolute rounded-2xl px-4 py-3 sm:px-5 sm:py-3.5 text-center",
         tone === "warm" ? "border-brand-warm/25" : "border-brand-teal/25",
@@ -144,8 +145,13 @@ export function Hero() {
       : [content.heroContent.image]
   ).filter(Boolean) as string[];
   const [activeImg, setActiveImg] = useState(0);
+  // «Уменьшить движение» не должно лишать контента: под этим флагом гаснем
+  // перелистывание без затухания (см. transition у кадра) и наклоны, но само
+  // фото обязано меняться — иначе герой показывает один снимок вместо альбома.
+  // Остановить совсем можно кнопкой в ленте точек (WCAG 2.2.2).
+  const [photosPaused, setPhotosPaused] = useState(false);
   useEffect(() => {
-    if (!fineMotion || heroImages.length <= 1) return;
+    if (heroImages.length <= 1 || photosPaused) return;
     const id = window.setInterval(
       () => setActiveImg((i) => (i + 1) % heroImages.length),
       7000, // смена раз в 7 секунд — не слишком часто
@@ -153,7 +159,7 @@ export function Hero() {
     return () => window.clearInterval(id);
     // activeImg в зависимостях: ручной клик по точке перезапускает таймер,
     // чтобы авто-смена не «догоняла» через долю секунды после выбора вручную.
-  }, [fineMotion, heroImages.length, activeImg]);
+  }, [heroImages.length, activeImg, photosPaused]);
   // Защита от выхода за границы после изменения набора в админке
   const safeIdx = heroImages.length > 0 ? activeImg % heroImages.length : 0;
 
@@ -335,7 +341,9 @@ export function Hero() {
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       exit={{ opacity: 0 }}
-                      transition={{ duration: 1.4, ease: "easeInOut" }}
+                      /* Под «уменьшить движение» кадр меняется мгновенно:
+                         меняется содержимое, а не положение в пространстве. */
+                      transition={{ duration: fineMotion ? 1.4 : 0, ease: "easeInOut" }}
                     >
                       {/* «Дыхание» кадра — CSS-анимация (hero-breathe), а не
                           framer: на keyframes с repeat: Infinity framer доходил
@@ -375,6 +383,23 @@ export function Hero() {
                       )}
                     />
                   ))}
+                  {/* Авто-листалка крутится всем, значит по WCAG 2.2.2 её надо
+                      уметь остановить: точки выбирают кадр, кнопка — выключает
+                      саму смену. */}
+                  <button
+                    type="button"
+                    onClick={() => setPhotosPaused((v) => !v)}
+                    aria-pressed={photosPaused}
+                    aria-label={photosPaused ? "Запустить смену фото" : "Остановить смену фото"}
+                    title={photosPaused ? "Запустить смену фото" : "Остановить смену фото"}
+                    className="glass-scrim ml-1 -mt-0.5 flex h-7 w-7 items-center justify-center rounded-full text-on-scrim/85 transition-colors hover:text-on-scrim"
+                  >
+                    {photosPaused ? (
+                      <Play className="h-3 w-3 fill-current" />
+                    ) : (
+                      <Pause className="h-3 w-3" />
+                    )}
+                  </button>
                 </div>
               )}
             </div>
