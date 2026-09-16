@@ -425,7 +425,10 @@
     border: 1px solid transparent;
     background: hsl(var(--surface));
     color: hsl(var(--foreground));
-    font-size: 0.9375rem;
+    /* 16px, а не 15px: ниже 16px iOS Safari при фокусе автозумит страницу, и
+       пользователь остаётся с «приближённой» формой, из которой надо выбираться.
+       Это единственный способ убрать зум без запретительного maximum-scale. */
+    font-size: 1rem;
     transition:
       background-color 0.22s ease,
       border-color 0.22s ease,

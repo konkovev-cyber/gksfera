@@ -457,7 +457,7 @@ export function Hero() {
           aria-pressed={marqueePaused}
           aria-label={marqueePaused ? "Запустить бегущую строку" : "Остановить бегущую строку"}
           title={marqueePaused ? "Запустить бегущую строку" : "Остановить бегущую строку"}
-          className="glass absolute right-3 sm:right-6 top-1/2 -translate-y-1/2 z-20 w-9 h-9 rounded-full text-muted-foreground hover:text-brand-warm-ink transition-colors flex items-center justify-center"
+          className="glass absolute right-3 sm:right-6 top-1/2 -translate-y-1/2 z-20 w-11 h-11 rounded-full text-muted-foreground hover:text-brand-warm-ink transition-colors flex items-center justify-center"
         >
           {marqueePaused ? (
             <Play className="w-3.5 h-3.5 fill-current ml-0.5" />

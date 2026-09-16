@@ -5,6 +5,8 @@ export const metadata: Metadata = {
   title: "Согласие на обработку персональных данных",
   description: "Согласие на обработку персональных данных учебно-развивающей студии «Сфера» в Горячем Ключе.",
   robots: { index: false, follow: false },
+  // См. app/privacy/page.tsx: canonical обязан быть своим, а не унаследованным.
+  alternates: { canonical: "/consent" },
 };
 
 export default function ConsentPage() {

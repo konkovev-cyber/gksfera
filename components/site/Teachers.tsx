@@ -6,9 +6,25 @@ import { useContent } from "./ContentContext";
 
 import { Reveal, Stagger, StaggerItem } from "./Reveal";
 
+/**
+ * В дефолтных данных лежат карточки-затычки («Имя преподавателя», «Должность /
+ * предмет», «Короткое описание опыта»). Блок скрыт флагом showTeachers, но
+ * достаточно включить флаг, не заполнив педагогов, — и на сайте появятся
+ * вымышленные люди с вымышленным опытом. Поэтому показываем только карточки с
+ * настоящим именем: нет людей — нет блока, а не три заглушки.
+ */
+const PLACEHOLDER = /^(имя преподавателя|ф и. о\.?|и\. о\.?|должность|педагог$)/i;
+function isRealTeacher(t: { name?: string; role?: string }) {
+  const name = (t.name || "").trim();
+  return name.length >= 3 && !PLACEHOLDER.test(name) && !/преподавателя/i.test(name);
+}
+
 export function Teachers() {
   const content = useContent();
-  if (!content.siteConfig.showTeachers) return null;
+  const teachers = (content.teachers || []).filter(isRealTeacher);
+  // Флаг + наличие реальных людей: оба условия, иначе переключатель в админке
+  // сам по себе выводит на сайт пустой или фиктивный блок.
+  if (!content.siteConfig.showTeachers || teachers.length === 0) return null;
 
   return (
     <section id="teachers" className="section-padding relative overflow-hidden">
@@ -26,7 +42,7 @@ export function Teachers() {
         </Reveal>
 
         <Stagger className="mt-12 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 lg:gap-6">
-          {content.teachers.map((teacher) => (
+          {teachers.map((teacher) => (
             <StaggerItem key={teacher.id}>
               <div className="card-hover glass rounded-2xl overflow-hidden h-full">
                 <div className="relative aspect-[4/5] bg-muted overflow-hidden">

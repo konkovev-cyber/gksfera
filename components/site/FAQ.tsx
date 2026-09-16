@@ -12,6 +12,8 @@ function FAQItem({ question, answer, index }: { question: string; answer: string
     <div className="border border-border/60 rounded-xl overflow-hidden">
       <button
         onClick={() => setOpen(!open)}
+        data-track="faq_open"
+        data-track-question={question}
         className="flex items-center justify-between w-full p-4 sm:p-5 text-left gap-4 hover:bg-accent/50 transition-colors"
         aria-expanded={open}
       >

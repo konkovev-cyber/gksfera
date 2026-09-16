@@ -27,6 +27,9 @@ function Tile({
   return (
     <button
       data-card
+      data-track="gallery_open"
+      data-track-position={i + 1}
+      data-track-kind={video ? "video" : "photo"}
       onClick={() => onOpen(i)}
       className={cn(
         "group relative shrink-0 snap-start aspect-[4/5] w-[74%] min-[420px]:w-[52%] sm:w-[46%] md:w-[calc((100%-2rem)/3)] lg:w-[calc((100%-3rem)/4)] rounded-2xl overflow-hidden bg-muted cursor-pointer",

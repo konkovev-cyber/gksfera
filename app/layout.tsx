@@ -2,6 +2,7 @@ import './globals.css';
 import type { Metadata, Viewport } from 'next';
 import { Manrope } from 'next/font/google';
 import { MotionProvider } from '@/components/site/MotionProvider';
+import { AnalyticsTracker } from '@/components/site/AnalyticsTracker';
 import { getContent } from '@/lib/content';
 import { ldScript } from '@/lib/utils';
 import { SITE_ORIGIN, siteConfig } from '@/data/site';
@@ -31,11 +32,13 @@ export async function generateMetadata(): Promise<Metadata> {
     keywords: keywords.split(',').map((k) => k.trim()).filter(Boolean),
     authors: [{ name: 'Учебно-развивающая студия «Сфера»' }],
     creator: 'Учебно-развивающая студия «Сфера»',
-    alternates: { canonical: '/' },
+    // Canonical задаётся каждой страницей отдельно. В корневом layout его быть
+    // не должно: значение наследовалось всеми маршрутами без своего canonical,
+    // и /privacy со /consent официально считались дублями главной.
     openGraph: {
       type: 'website',
       locale: 'ru_RU',
-      url: 'https://sfera-goryachiy-klyuch.ru',
+      url: SITE_ORIGIN,
       siteName: 'Учебно-развивающая студия «Сфера»',
       title,
       description,
@@ -81,8 +84,14 @@ export async function generateViewport(): Promise<Viewport> {
 const jsonLd = {
   '@context': 'https://schema.org',
   '@type': 'EducationalOrganization',
+  '@id': `${SITE_ORIGIN}/#organization`,
   name: 'Учебно-развивающая студия «Сфера»',
   alternateName: 'Сфера',
+  url: SITE_ORIGIN,
+  // logo и image — реальные файлы из public/; без них поисковик и мессенджеры
+  // не связывают организацию с узнаваемым образом (og:image уже отсюда же).
+  logo: `${SITE_ORIGIN}/icon-512.png`,
+  image: `${SITE_ORIGIN}/og-image.png`,
   description:
     'Учебно-развивающая студия для детей в Горячем Ключе. Подготовка к школе, помощь школьникам, английский язык, чистописание, развивающие занятия, театр, семейное обучение.',
   address: {
@@ -129,7 +138,10 @@ export default function RootLayout({
         />
       </head>
       <body className="font-sans antialiased">
-        <MotionProvider>{children}</MotionProvider>
+        <MotionProvider>
+          <AnalyticsTracker />
+          {children}
+        </MotionProvider>
       </body>
     </html>
   );

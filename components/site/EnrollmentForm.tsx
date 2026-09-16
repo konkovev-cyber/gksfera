@@ -19,6 +19,7 @@ import {
 import { useContent } from "./ContentContext";
 import { Reveal } from "./Reveal";
 import { cn } from "@/lib/utils";
+import { trackEvent } from "@/lib/analytics";
 
 type FormState = {
   parentName: string;
@@ -112,6 +113,7 @@ export function EnrollmentForm() {
   // Защита от спама: штамп времени открытия формы + honeypot-поле
   const mountedAt = useRef(0);
   const honeypotRef = useRef<HTMLInputElement>(null);
+  const startedRef = useRef(false);
   useEffect(() => {
     mountedAt.current = Date.now();
   }, []);
@@ -134,6 +136,12 @@ export function EnrollmentForm() {
   ) => {
     const { name, value, type } = e.target;
     const checked = (e.target as HTMLInputElement).checked;
+    // form_start — ровно один раз, на первом осмысленном действии: по нему судят,
+    // сколько людей дошли до формы и не начали.
+    if (!startedRef.current && !(type === "checkbox" && !checked)) {
+      startedRef.current = true;
+      trackEvent("form_start", { field: name });
+    }
     setForm((prev) => ({
       ...prev,
       [name]: type === "checkbox" ? checked : value,
@@ -145,10 +153,16 @@ export function EnrollmentForm() {
     if (!form.consent) {
       setStatus("error");
       setErrorMsg("Необходимо согласие на обработку персональных данных");
+      trackEvent("form_error", { reason: "no_consent" });
       return;
     }
     setStatus("loading");
     setErrorMsg("");
+    trackEvent("form_submit", {
+      // Только направление и длина — сами имя и телефон в аналитику не едут.
+      interest_len: form.interest.length,
+      has_comment: form.comment.trim().length > 0,
+    });
 
     try {
       const res = await fetch("/api/enrollment", {
@@ -174,12 +188,15 @@ export function EnrollmentForm() {
 
       setStatus("success");
       setForm(initialState);
+      startedRef.current = false;
+      trackEvent("form_success", {});
     } catch (err) {
       setStatus("error");
       const msg = err instanceof Error && err.message && err.message !== "Insert failed"
         ? err.message
         : "Не удалось отправить заявку. Пожалуйста, позвоните нам или напишите в VK.";
       setErrorMsg(msg);
+      trackEvent("form_error", { reason: msg.slice(0, 60) });
     }
   };
 
@@ -188,7 +205,7 @@ export function EnrollmentForm() {
       <section id="enrollment" className="section-padding relative overflow-hidden">
         <div className="container-max relative z-10">
           <Reveal>
-            <div className="glass max-w-md mx-auto text-center rounded-2xl p-7 sm:p-9">
+            <div className="glass max-w-md mx-auto text-center rounded-2xl p-7 sm:p-9" role="status" aria-live="polite">
               {/* Чип успеха был green-100/600 — единственный «несайтовый» цвет
                   на странице; в палитре из двух акцентов роль успеха играет тил. */}
               <div className="mx-auto mb-5 grid h-14 w-14 place-items-center rounded-full bg-brand-teal/12 ring-1 ring-brand-teal/30">
@@ -385,14 +402,14 @@ export function EnrollmentForm() {
                 />
                 <span className="text-xs text-foreground/70 leading-relaxed">
                   Согласен(на) на обработку персональных данных согласно{" "}
-                  <a href="/privacy" className="text-brand-warm-ink underline decoration-brand-warm/40 decoration-1 underline-offset-2 hover:decoration-brand-warm">
+                  <a href="/privacy" target="_blank" rel="noopener noreferrer" className="text-brand-warm-ink underline decoration-brand-warm/40 decoration-1 underline-offset-2 hover:decoration-brand-warm">
                     политике конфиденциальности
                   </a>
                 </span>
               </label>
 
               {status === "error" && (
-                <div className="flex items-start gap-2.5 p-3 rounded-xl bg-destructive/10 border border-destructive/25">
+                <div className="flex items-start gap-2.5 p-3 rounded-xl bg-destructive/10 border border-destructive/25" role="alert">
                   <AlertCircle className="w-4 h-4 text-destructive flex-shrink-0 mt-0.5" />
                   <p className="text-sm text-destructive">{errorMsg}</p>
                 </div>

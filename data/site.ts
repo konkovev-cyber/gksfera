@@ -95,9 +95,22 @@ export type Review = {
   childInfo?: string;
 };
 
-/** Абсолютный адрес сайта: один источник для metadataBase, OG-ссылок и sitemap.
- *  Раньше домен был продублирован литералом в layout.tsx и sitemap.ts. */
-export const SITE_ORIGIN = "https://sfera-goryachiy-klyuch.ru";
+/** Абсолютный адрес сайта: единственный источник для metadataBase, canonical,
+ *  og:url, sitemap.xml и robots.txt.
+ *
+ *  До этого здесь жёстко стоял https://sfera-goryachiy-klyuch.ru, которого в DNS
+ *  нет (NXDOMAIN). Следствие было хуже «некрасивого URL»: Googlebot не мог
+ *  скачать ни robots.txt, ни sitemap (они ссылались на дохлый хост), canonical
+ *  каждой страницы указывал в никуда — то есть сайт сам мешал своей индексации, —
+ *  а ссылки в MAX и VK уходили без картинки превью, потому что og:image тоже
+ *  висел на этом домене.
+ *
+ *  Правило: canonical должен указывать туда, где сайт действительно отдаёт 200.
+ *  Когда домен делегируют, достаточно выставить NEXT_PUBLIC_SITE_URL в
+ *  переменных окружения Vercel — код менять не нужно. */
+export const SITE_ORIGIN = (
+  process.env.NEXT_PUBLIC_SITE_URL || "https://gksfera.vercel.app"
+).replace(/\/+$/, "");
 
 export type NewsItem = {
   /** Ключ URL: числовой id поста VK либо slug для новости, написанной на сайте. */
@@ -317,7 +330,7 @@ export const trustStats = [
   { value: "15+", label: "лет", description: "работаем с детьми" },
   { value: "5–15", label: "лет", description: "возраст учеников" },
   { value: "Небольшие", label: "группы", description: "каждый ребёнок в фокусе" },
-  { value: "Центр", label: "города", description: "Спортический пер., 13" },
+  { value: "Центр", label: "города", description: "Спортивный пер., 13" },
 ];
 
 /** Позиционирующая цитата — короткая и честная */

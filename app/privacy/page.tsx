@@ -5,12 +5,15 @@ export const metadata: Metadata = {
   title: "Политика конфиденциальности",
   description: "Политика конфиденциальности учебно-развивающей студии «Сфера» в Горячем Ключе.",
   robots: { index: false, follow: false },
+  // Сам на себя: без явного значения доставалось canonical из layout, и страница
+  // официально считалась дублем главной.
+  alternates: { canonical: "/privacy" },
 };
 
 export default function PrivacyPage() {
   return (
     <article className="prose prose-neutral max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-24 md:py-32">
-      <h1 className="font-display font-extrabold text-3xl sm:text-4xl text-foreground mb-6">
+      <h1 className="font-display font-extrabold text-2xl sm:text-3xl md:text-4xl text-foreground mb-6 break-words">
         Политика конфиденциальности
       </h1>
       <p className="text-sm text-muted-foreground mb-8">

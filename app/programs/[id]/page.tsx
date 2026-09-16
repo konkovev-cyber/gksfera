@@ -13,7 +13,7 @@ import { Header } from "@/components/site/Header";
 import { Footer } from "@/components/site/Footer";
 import { MobileCTA } from "@/components/site/MobileCTA";
 import { iconMap } from "@/components/site/program-icons";
-import { type Program, programInterestMap, resultsAfterLearning } from "@/data/site";
+import { SITE_ORIGIN, type Program, programInterestMap, resultsAfterLearning } from "@/data/site";
 
 type Props = { params: { id: string } };
 
@@ -27,6 +27,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     alternates: { canonical: `/programs/${params.id}` },
     openGraph: {
       type: "website",
+      // og:url раньше не задавался и доставался из layout — то есть указывал на
+      // главную. У страницы направления должен быть свой адрес, иначе репост в
+      // MAX или VK ведёт не туда.
+      url: `${SITE_ORIGIN}/programs/${slugify(program.title)}`,
       title: `${program.title} — «Сфера»`,
       description: program.description,
       images: program.image ? [{ url: program.image }] : undefined,
@@ -76,12 +80,26 @@ export default async function ProgramPage({ params }: Props) {
         address: `${data.siteConfig.city}, ${data.siteConfig.addressFull}`,
       },
     },
-    offers: {
-      "@type": "Offer",
-      priceCurrency: "RUB",
-      price: "0",
-      description: "Первое занятие — бесплатная консультация и знакомство",
-    },
+    // Offer с price: "0" здесь раньше стоял — и поисковик читал это как «весь
+    // курс бесплатный», хотя реальных цен в данных нет: в FAQ сказано лишь про
+    // бесплатное первое знакомство. Стоимость курса — факт, которого у нас нет,
+    // значит в разметке его быть не должно. Бесплатное пробное занятие остаётся
+    // в тексте страницы и в FAQ, где оно и заявлено.
+  };
+
+  const breadcrumbLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "Главная", item: SITE_ORIGIN + "/" },
+      { "@type": "ListItem", position: 2, name: "Направления", item: SITE_ORIGIN + "/programs" },
+      {
+        "@type": "ListItem",
+        position: 3,
+        name: program.title,
+        item: `${SITE_ORIGIN}/programs/${slug}`,
+      },
+    ],
   };
 
   return (
@@ -93,12 +111,16 @@ export default async function ProgramPage({ params }: Props) {
             type="application/ld+json"
             dangerouslySetInnerHTML={{ __html: ldScript(jsonLd) }}
           />
+          <script
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{ __html: ldScript(breadcrumbLd) }}
+          />
 
           {/* Хлебные крошки */}
           <nav aria-label="Хлебные крошки" className="flex items-center gap-1.5 text-xs sm:text-sm text-muted-foreground mb-6 flex-wrap">
             <Link href="/" className="min-h-[44px] -my-2 px-1 flex items-center hover:text-brand-warm-ink transition-colors">Главная</Link>
             <ChevronRight className="w-3.5 h-3.5" />
-            <Link href="/#programs" className="min-h-[44px] -my-2 px-1 flex items-center hover:text-brand-warm-ink transition-colors">Направления</Link>
+            <Link href="/programs" className="min-h-[44px] -my-2 px-1 flex items-center hover:text-brand-warm-ink transition-colors">Направления</Link>
             <ChevronRight className="w-3.5 h-3.5" />
             <span className="text-foreground font-medium">{program.title}</span>
           </nav>

@@ -23,23 +23,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: 'daily',
       priority: 0.8,
     },
+    // /privacy и /consent в sitemap не пускаем: у них robots index:false, а
+    // sitemap — это обещание «проиндексируй», которое сам же и отменяешь.
+    // Доступны они по ссылкам из подвала и из формы.
     {
       url: `${baseUrl}/reviews`,
       lastModified,
       changeFrequency: 'monthly',
       priority: 0.8,
-    },
-    {
-      url: `${baseUrl}/privacy`,
-      lastModified,
-      changeFrequency: 'yearly',
-      priority: 0.3,
-    },
-    {
-      url: `${baseUrl}/consent`,
-      lastModified,
-      changeFrequency: 'yearly',
-      priority: 0.3,
     },
   ];
 

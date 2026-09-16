@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { Header } from "@/components/site/Header";
 import { Hero } from "@/components/site/Hero";
 import { TaskPicker } from "@/components/site/TaskPicker";
@@ -25,6 +26,12 @@ import { ContentProvider } from "@/components/site/ContentContext";
 import { Suspense, type ReactNode } from "react";
 
 export const dynamic = "force-dynamic";
+
+// Canonical теперь задаётся каждой страницей: из корневого layout он текла на
+// все маршруты без своего значения (см. app/layout.tsx).
+export const metadata: Metadata = {
+  alternates: { canonical: "/" },
+};
 
 /**
  * Реестр блоков главной: id → компонент + (опц.) ключ видимости.

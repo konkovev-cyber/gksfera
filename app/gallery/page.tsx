@@ -53,7 +53,7 @@ export default async function GalleryPage() {
         <div className="container-page">
           <Link
             href="/"
-            className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-primary transition-colors mb-6"
+            className="inline-flex items-center gap-1.5 min-h-[44px] -my-2 mb-4 text-sm text-muted-foreground hover:text-primary transition-colors"
           >
             <ArrowLeft className="w-4 h-4" />
             На главную
