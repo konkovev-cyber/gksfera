@@ -226,7 +226,6 @@ export function EnrollmentForm() {
               </button>
             </div>
           </Reveal>
-          <FloatingDecorations />
         </div>
       </section>
     );
@@ -234,11 +233,11 @@ export function EnrollmentForm() {
 
   return (
     <section id="enrollment" className="section-padding relative overflow-hidden">
+      <FloatingDecorations />
       <div
         className="absolute top-1/4 -left-32 w-80 h-80 rounded-full bg-brand-warm/8 blur-3xl pointer-events-none"
         aria-hidden="true"
       />
-      <FloatingDecorations />
       <div className="container-max relative z-10">
         <div className="grid lg:grid-cols-[1fr_1.25fr] gap-8 lg:gap-12 items-start">
           {/* Левая колонка — заголовок и быстрые контакты */}
