@@ -1,17 +1,25 @@
-.cursor {
+.dot {
   position: fixed;
   top: 0;
   left: 0;
   pointer-events: none;
   z-index: 9999;
-  /* Центрируем SVG относительно курсора */
-  transform: translate(-50%, -50%);
-  color: hsl(var(--brand-warm));
-  mix-blend-mode: multiply;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: hsl(var(--brand-warm) / 0.55);
+  box-shadow:
+    0 0 8px hsl(var(--brand-warm) / 0.45),
+    0 0 20px hsl(var(--brand-warm) / 0.25),
+    0 0 40px hsl(var(--brand-warm) / 0.15);
+  /* центрируем круг относительно координаты */
+  margin-left: -5px;
+  margin-top: -5px;
+  mix-blend-mode: normal;
 }
 
-@media (hover: none) {
-  .cursor {
+@media (hover: none), (max-width: 1023px) {
+  .dot {
     display: none;
   }
 }
