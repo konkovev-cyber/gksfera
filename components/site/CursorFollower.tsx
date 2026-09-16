@@ -18,13 +18,18 @@ export function CursorFollower() {
       window.matchMedia("(min-width: 1024px) and (hover: hover)").matches;
     if (!isDesktop) return;
 
+    document.body.style.cursor = "none";
+
     const onMove = (e: MouseEvent) => {
       x.set(e.clientX);
       y.set(e.clientY);
     };
 
     document.addEventListener("mousemove", onMove);
-    return () => document.removeEventListener("mousemove", onMove);
+    return () => {
+      document.body.style.cursor = "";
+      document.removeEventListener("mousemove", onMove);
+    };
   }, []);
 
   return (
