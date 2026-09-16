@@ -1,0 +1,47 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+# Отменяем предыдущий прогон для той же ветки: незачем тратить минуты
+# на сборку коммита, который уже устарел.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Установка зависимостей
+        run: npm ci
+
+      - name: Линт
+        run: npm run lint
+
+      - name: Проверка типов
+        run: npm run typecheck
+
+      # Переменные нужны только чтобы модули, читающие process.env на этапе
+      # импорта, не падали при сборке. Это заглушки, а не рабочие значения:
+      # ни один запрос к Supabase на сборке не выполняется — страницы
+      # помечены force-dynamic и рендерятся по запросу.
+      - name: Сборка
+        run: npm run build
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: https://placeholder.supabase.co
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: placeholder-anon-key
+          SUPABASE_SERVICE_ROLE_KEY: placeholder-service-role-key
+          ADMIN_PASSWORD: placeholder-admin-password
+          ADMIN_SECRET: placeholder-admin-secret

@@ -6,8 +6,9 @@ const corsHeaders = {
     "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
-// VK Service Key
-const VK_SERVICE_KEY = "bc15f23abc15f23abc15f23a7dbf2b05adbbc15bc15f23ad58326cf040249df893a4523";
+// VK Service Key — только из окружения (секреты в исходниках не храним).
+// Задаётся в Supabase: Edge Functions → Secrets → VK_SERVICE_KEY.
+const VK_SERVICE_KEY = Deno.env.get("VK_SERVICE_KEY");
 const VK_VERSION = "5.199";
 
 function decodeHtml(str: string): string {
@@ -36,6 +37,8 @@ serve(async (req) => {
     if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 
     try {
+        if (!VK_SERVICE_KEY) throw new Error("VK_SERVICE_KEY не задан в окружении функции");
+
         const body = await req.json();
         const { url, count = 10, offset = 0 } = body;
 
@@ -72,7 +75,8 @@ serve(async (req) => {
         // Вернулся на api.vk.com для надежности
         const apiUrl = `https://api.vk.com/method/wall.get?${queryParams.toString()}`;
 
-        console.log(`[VK Import] Fetching from VK API: ${apiUrl.replace(VK_SERVICE_KEY, "HIDDEN")}`);
+        // Ключ уже не логируем вовсе — маскировка была единственной защитой.
+        console.log(`[VK Import] Fetching from VK API: ${apiUrl.replace(/access_token=[^&]*/, "access_token=HIDDEN")}`);
         const response = await fetch(apiUrl);
 
         if (!response.ok) {

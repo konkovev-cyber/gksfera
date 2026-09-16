@@ -7,6 +7,9 @@ function esc(s: string): string {
   return String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 }
 
+/** Предупреждаем о выключенных уведомлениях один раз за жизнь процесса. */
+let warnedMissingConfig = false;
+
 export async function sendTelegramNotification(payload: {
   parentName: string;
   childAge: string;
@@ -16,7 +19,19 @@ export async function sendTelegramNotification(payload: {
 }): Promise<void> {
   const token = process.env.TELEGRAM_BOT_TOKEN;
   const chatId = process.env.TELEGRAM_CHAT_ID;
-  if (!token || !chatId) return;
+  if (!token || !chatId) {
+    // Раньше здесь был молчаливый return: уведомления не уходили, и по логам
+    // нельзя было понять почему. Заявка при этом сохраняется в БД — теряется
+    // только оповещение, но узнать об этом было неоткуда.
+    if (!warnedMissingConfig) {
+      warnedMissingConfig = true;
+      console.warn(
+        "[telegram] TELEGRAM_BOT_TOKEN/TELEGRAM_CHAT_ID не заданы — " +
+          "уведомления о заявках отключены (заявки сохраняются в БД).",
+      );
+    }
+    return;
+  }
 
   const text = [
     "🔔 <b>Новая заявка в «Сферу»!</b>",
