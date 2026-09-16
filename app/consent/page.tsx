@@ -45,7 +45,19 @@ export default function ConsentPage() {
         <h2 className="font-display font-bold text-xl text-foreground">4. Срок действия согласия</h2>
         <p>
           Согласие действует до момента его отзыва пользователем. Отзыв согласия осуществляется
-          путём направления заявления в Студию по телефону {siteConfig.phone} или через {siteConfig.vkDisplay}.
+          путём направления заявления в Студию по телефону {siteConfig.phone}, через{" "}
+          <a href={siteConfig.vkUrl} target="_blank" rel="noopener noreferrer">
+            {siteConfig.vkDisplay}
+          </a>
+          {siteConfig.maxUrl && (
+            <>
+              {" "}или в мессенджере MAX:{" "}
+              <a href={siteConfig.maxUrl} target="_blank" rel="noopener noreferrer">
+                написать в чат
+              </a>
+            </>
+          )}
+          .
         </p>
 
         <h2 className="font-display font-bold text-xl text-foreground">5. Контакты</h2>
@@ -54,7 +66,24 @@ export default function ConsentPage() {
           <br />
           {siteConfig.city}, {siteConfig.address}
           <br />
-          Телефон: {siteConfig.phone}
+          Телефон: <a href={siteConfig.phoneHref}>{siteConfig.phone}</a>
+          <br />
+          Сообщения:{" "}
+          <a href={siteConfig.vkUrl} target="_blank" rel="noopener noreferrer">
+            {siteConfig.vkDisplay}
+          </a>
+          {siteConfig.maxUrl && (
+            <>
+              {" · "}
+              <a href={siteConfig.maxUrl} target="_blank" rel="noopener noreferrer">
+                MAX Messenger
+              </a>
+            </>
+          )}
+        </p>
+        <p className="text-sm text-muted-foreground">
+          Ответ на заявку Студия даёт по тому каналу, который указал пользователь: телефон или
+          сообщение. Из мессенджеров устойчиво работает MAX, поэтому для ответа мы предпочитаем его.
         </p>
       </div>
     </article>

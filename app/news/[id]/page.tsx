@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, Calendar, ExternalLink } from "lucide-react";
+import { ArrowLeft, Calendar, ExternalLink, MessageCircle } from "lucide-react";
 import { getContent, getNewsByKey } from "@/lib/content";
 import { newsUrl } from "@/lib/news";
 import { ldScript } from "@/lib/utils";
@@ -112,16 +112,30 @@ export default async function NewsDetailPage({ params }: Props) {
 
           <NewsBody item={news} className="mt-8" />
 
-          {news.source_url && (
-            <a
-              href={news.source_url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="mt-10 inline-flex items-center gap-2 h-11 px-6 rounded-full border-2 border-border bg-card text-sm font-semibold hover:border-brand-warm hover:text-brand-warm-ink transition-colors"
-            >
-              Обсудить в VK <ExternalLink className="w-4 h-4" />
-            </a>
-          )}
+          <div className="mt-10 flex flex-wrap gap-3">
+            {news.source_url && (
+              <a
+                href={news.source_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 h-11 px-6 rounded-full border-2 border-border bg-card text-sm font-semibold hover:border-brand-warm hover:text-brand-warm-ink transition-colors"
+              >
+                Обсудить в VK <ExternalLink className="w-4 h-4" />
+              </a>
+            )}
+            {/* Обсуждение обсуждением, а вопрос по делу лучше задать в MAX:
+                из мессенджеров у нас стабильно работает только он. */}
+            {data.siteConfig.maxUrl && (
+              <a
+                href={data.siteConfig.maxUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 h-11 px-6 rounded-full border-2 border-border bg-card text-sm font-semibold hover:border-brand-teal hover:text-brand-teal-ink transition-colors"
+              >
+                Задать вопрос в MAX <MessageCircle className="w-4 h-4" />
+              </a>
+            )}
+          </div>
         </article>
       </main>
       <Footer />

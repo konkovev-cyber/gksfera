@@ -38,18 +38,10 @@ export function MobileCTA() {
             <Phone className="w-5 h-5 text-brand-warm mb-0.5" />
             <span className="text-[10px] font-medium text-foreground">Позвонить</span>
           </a>
-          <a
-            href={content.siteConfig.vkUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex flex-col items-center justify-center flex-1 h-12 rounded-xl bg-card border border-border/60 active:scale-95 transition-transform"
-            aria-label="Написать в VK"
-          >
-            <MessageCircle className="w-5 h-5 text-brand-teal mb-0.5" />
-            {/* Подписи короткие: рядом появился MAX, четыре кнопки на узком
-                экране терпят только одно-два слова. */}
-            <span className="text-[10px] font-medium text-foreground">В VK</span>
-          </a>
+          {/* Порядок по надёжности канала: из мессенджеров в России штатно
+              работает MAX, он идёт первым; VK — как соцсеть, следом.
+              Подписи короткие: четыре кнопки на узком экране терпят только
+              одно-два слова. */}
           {content.siteConfig.maxUrl && (
             <a
               href={content.siteConfig.maxUrl}
@@ -62,6 +54,16 @@ export function MobileCTA() {
               <span className="text-[10px] font-medium text-foreground">В MAX</span>
             </a>
           )}
+          <a
+            href={content.siteConfig.vkUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex flex-col items-center justify-center flex-1 h-12 rounded-xl bg-card border border-border/60 active:scale-95 transition-transform"
+            aria-label="Написать в VK"
+          >
+            <MessageCircle className="w-5 h-5 text-brand-teal mb-0.5" />
+            <span className="text-[10px] font-medium text-foreground">В VK</span>
+          </a>
           <button
             onClick={scrollToEnrollment}
             className="flex flex-col items-center justify-center flex-1 h-12 rounded-xl bg-primary text-primary-foreground active:scale-95 transition-transform"

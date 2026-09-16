@@ -249,17 +249,8 @@ export function EnrollmentForm() {
                     {content.siteConfig.phone}
                   </span>
                 </a>
-                <a
-                  href={content.siteConfig.vkUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="pill-contact flex-1 justify-center lg:justify-start"
-                >
-                  <span className="grid place-items-center w-9 h-9 rounded-full bg-brand-teal/12 ring-1 ring-brand-teal/25 flex-shrink-0">
-                    <MessageCircle className="w-4 h-4 text-brand-teal-ink" />
-                  </span>
-                  <span className="font-semibold text-sm text-foreground">Написать в VK</span>
-                </a>
+                {/* MAX первым — надёжный канал; бирюзовая подложка у него и в
+                    других блоках, VK — тёплой. */}
                 {content.siteConfig.maxUrl && (
                   <a
                     href={content.siteConfig.maxUrl}
@@ -267,12 +258,23 @@ export function EnrollmentForm() {
                     rel="noopener noreferrer"
                     className="pill-contact flex-1 justify-center lg:justify-start"
                   >
-                    <span className="grid place-items-center w-9 h-9 rounded-full bg-brand-warm/12 ring-1 ring-brand-warm/25 flex-shrink-0">
-                      <MessageCircle className="w-4 h-4 text-brand-warm-ink" />
+                    <span className="grid place-items-center w-9 h-9 rounded-full bg-brand-teal/12 ring-1 ring-brand-teal/25 flex-shrink-0">
+                      <MessageCircle className="w-4 h-4 text-brand-teal-ink" />
                     </span>
                     <span className="font-semibold text-sm text-foreground">Написать в MAX</span>
                   </a>
                 )}
+                <a
+                  href={content.siteConfig.vkUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="pill-contact flex-1 justify-center lg:justify-start"
+                >
+                  <span className="grid place-items-center w-9 h-9 rounded-full bg-brand-warm/12 ring-1 ring-brand-warm/25 flex-shrink-0">
+                    <MessageCircle className="w-4 h-4 text-brand-warm-ink" />
+                  </span>
+                  <span className="font-semibold text-sm text-foreground">Написать в VK</span>
+                </a>
               </div>
 
               <p className="mt-4 flex items-center gap-2 text-sm text-foreground/70">

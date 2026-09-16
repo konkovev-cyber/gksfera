@@ -105,6 +105,19 @@ export function Footer() {
                   {content.siteConfig.phone}
                 </a>
               </li>
+              {content.siteConfig.maxUrl && (
+                <li>
+                  <a
+                    href={content.siteConfig.maxUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2.5 min-h-[40px] lg:min-h-[28px] text-sm text-on-scrim/60 hover:text-brand-teal transition-colors"
+                  >
+                    <MessageCircle className="w-4 h-4 text-brand-teal flex-shrink-0" />
+                    Написать в MAX
+                  </a>
+                </li>
+              )}
               <li>
                 <a
                   href={content.siteConfig.vkUrl}
@@ -116,19 +129,6 @@ export function Footer() {
                   {content.siteConfig.vkDisplay}
                 </a>
               </li>
-              {content.siteConfig.maxUrl && (
-                <li>
-                  <a
-                    href={content.siteConfig.maxUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2.5 min-h-[40px] lg:min-h-[28px] text-sm text-on-scrim/60 hover:text-brand-warm transition-colors"
-                  >
-                    <MessageCircle className="w-4 h-4 text-brand-teal flex-shrink-0" />
-                    MAX Messenger
-                  </a>
-                </li>
-              )}
             </ul>
           </div>
 

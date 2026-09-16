@@ -53,15 +53,8 @@ export function Contact() {
       value: content.siteConfig.phone,
       href: content.siteConfig.phoneHref,
     },
-    {
-      icon: MessageCircle,
-      tone: "teal" as const,
-      label: "Социальная сеть",
-      value: content.siteConfig.vkDisplay,
-      href: content.siteConfig.vkUrl,
-      external: true,
-    },
-    // MAX — мессенджер, которым пользоваться удобно не всем: если ссылки в
+    // Порядок отражает реальность связи: из мессенджеров в России штатно работает
+    // MAX, поэтому он идёт первым, а VK — как соцсеть, вторым. Если ссылки в
     // настройках нет, строку не показываем (пустая ссылка = битая кнопка).
     ...(content.siteConfig.maxUrl
       ? [
@@ -75,6 +68,14 @@ export function Contact() {
           },
         ]
       : []),
+    {
+      icon: MessageCircle,
+      tone: "teal" as const,
+      label: "Социальная сеть",
+      value: content.siteConfig.vkDisplay,
+      href: content.siteConfig.vkUrl,
+      external: true,
+    },
     {
       icon: Clock,
       tone: "teal" as const,
@@ -151,15 +152,6 @@ export function Contact() {
                     <Phone className="w-4 h-4" />
                     Позвонить
                   </a>
-                  <a
-                    href={content.siteConfig.vkUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="btn-outline h-12 px-5 font-semibold text-sm flex-1"
-                  >
-                    <MessageCircle className="w-4 h-4" />
-                    Написать в VK
-                  </a>
                   {content.siteConfig.maxUrl && (
                     <a
                       href={content.siteConfig.maxUrl}
@@ -171,6 +163,15 @@ export function Contact() {
                       Написать в MAX
                     </a>
                   )}
+                  <a
+                    href={content.siteConfig.vkUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="btn-outline h-12 px-5 font-semibold text-sm flex-1"
+                  >
+                    <MessageCircle className="w-4 h-4" />
+                    Написать в VK
+                  </a>
                 </div>
               </div>
 

@@ -56,15 +56,7 @@ export function CTA() {
                   <Send className="btn-arrow w-5 h-5" />
                   Записаться / задать вопрос
                 </button>
-                <a
-                  href={content.siteConfig.vkUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center justify-center gap-2 h-12 sm:h-13 px-5 sm:px-7 rounded-full border border-panel-foreground/35 text-panel-foreground font-semibold text-base whitespace-nowrap transition-colors hover:bg-panel-foreground/10"
-                >
-                  Написать в VK
-                  <ArrowRight className="w-5 h-5" />
-                </a>
+                {/* Сначала MAX — надёжный канал, потом VK */}
                 {content.siteConfig.maxUrl && (
                   <a
                     href={content.siteConfig.maxUrl}
@@ -76,6 +68,15 @@ export function CTA() {
                     Написать в MAX
                   </a>
                 )}
+                <a
+                  href={content.siteConfig.vkUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center justify-center gap-2 h-12 sm:h-13 px-5 sm:px-7 rounded-full border border-panel-foreground/35 text-panel-foreground font-semibold text-base whitespace-nowrap transition-colors hover:bg-panel-foreground/10"
+                >
+                  Написать в VK
+                  <ArrowRight className="w-5 h-5" />
+                </a>
               </div>
             </div>
           </div>
