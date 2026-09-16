@@ -27,6 +27,7 @@ export function FloatingDecorations() {
             fontSize: s.size,
             left: s.x,
             top: s.y,
+            opacity: 0.2,
             filter: "drop-shadow(0 2px 8px hsl(var(--brand-warm) / 0.25))",
           }}
           animate={{ x: [0, s.dx, 0], y: [0, s.dy, 0] }}
