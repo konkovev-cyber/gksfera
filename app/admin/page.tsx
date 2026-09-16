@@ -78,6 +78,30 @@ const BANNER_ACCENTS = [
   { value: "violet", label: "Сиреневый" },
 ];
 
+/**
+ * Заявки: канал поступления. Переписка остаётся в MAX, в журнал попадает только
+ * суть заявки — поэтому у записи должен быть честный источник.
+ * Метки в комментарии — аварийный вариант: их пишет API, если колонки source в
+ * базе ещё нет (миграция не применена). Иначе интерфейс соврал бы про канал.
+ */
+const EN_SOURCES = [
+  { value: "max", label: "MAX" },
+  { value: "site", label: "С сайта" },
+  { value: "phone", label: "Звонок" },
+  { value: "vk", label: "ВК" },
+];
+const EN_SOURCE_LABEL: Record<string, string> = { max: "MAX", site: "С сайта", phone: "Звонок", vk: "ВК" };
+const EN_SOURCE_TAG: Record<string, string> = { max: "[MAX]", phone: "[ЗВОНОК]", vk: "[ВК]", site: "" };
+const sourceOfEnrollment = (row: { source?: string; comment?: string | null }): string => {
+  const direct = String(row?.source ?? "");
+  if (EN_SOURCE_LABEL[direct]) return direct;
+  const c = String(row?.comment ?? "").trim();
+  for (const [key, tag] of Object.entries(EN_SOURCE_TAG)) {
+    if (tag && c.toUpperCase().startsWith(tag)) return key;
+  }
+  return "site";
+};
+
 const SITE_LABELS: Record<string, string> = {
   name: "Название (короткое)",
   fullName: "Полное название",
@@ -527,6 +551,45 @@ export default function AdminPage() {
       return;
     }
     setEnrollments((prev) => prev.filter((x) => x.id !== id));
+  };
+
+  // Ручной завод заявки: человек написал в MAX или позвонил — запись появляется
+  // в том же журнале, что и заявки с формы. Интеграции нет намеренно: переписка
+  // остаётся в мессенджере, на сайте живёт только факт обращения.
+  const [showAddEn, setShowAddEn] = useState(false);
+  const [savingEn, setSavingEn] = useState(false);
+  const emptyEn = { parent_name: "", phone: "", child_age: "", interest: "", comment: "", source: "max", status: "new" };
+  const [newEn, setNewEn] = useState(emptyEn);
+
+  const addEnrollment = async () => {
+    if (!newEn.parent_name.trim() && !newEn.phone.trim()) {
+      flash("Не заведено: укажите имя или контакт");
+      return;
+    }
+    setSavingEn(true);
+    let res: { enrollment?: Record<string, unknown>; degraded?: boolean; hint?: string };
+    try {
+      res = await mutate("/api/admin/enrollments", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(newEn),
+      }) as typeof res;
+    } catch (e) {
+      flash(`Не заведено: ${(e as Error).message}`);
+      setSavingEn(false);
+      return;
+    }
+    setSavingEn(false);
+    if (res?.enrollment) setEnrollments((prev) => [res.enrollment as never, ...prev]);
+    setNewEn(emptyEn);
+    setShowAddEn(false);
+    flash(
+      // Заявка всё-таки заведена, поэтому сообщение начинается с результата, а не
+      // с «не»: красный тост здесь означал бы «не вышло», хотя вышел только канал.
+      res?.degraded
+        ? `Заявка заведена · ${res.hint ?? "канал лёг меткой в комментарий"}`
+        : `Заявка заведена · всего ${enrollments.length + 1}`,
+    );
   };
 
   const deletePhoto = async (id: number) => {
@@ -2398,17 +2461,115 @@ export default function AdminPage() {
         {/* ─── Inbox ─── */}
         {tab === "inbox" && (
           <div className="space-y-3">
-            {enrollments.length === 0 && <p className="text-sm text-muted-foreground">Заявок пока нет.</p>}
-            {enrollments.map((en) => (
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <p className="text-sm text-muted-foreground" data-enrollments-total>
+                В журнале <span className="font-semibold tabular-nums text-foreground">{enrollments.length}</span>
+                {" · новых "}
+                <span className="font-semibold tabular-nums text-foreground">{enrollments.filter((x) => (x.status ?? "new") === "new").length}</span>
+                {" · из MAX "}
+                <span className="font-semibold tabular-nums text-foreground">{enrollments.filter((x) => sourceOfEnrollment(x) === "max").length}</span>
+              </p>
+              <button
+                onClick={() => setShowAddEn((v) => !v)}
+                className={btnSecondaryCls}
+                aria-expanded={showAddEn}
+              >
+                <Plus className="w-4 h-4" /> {showAddEn ? "Свернуть" : "Добавить заявку"}
+              </button>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Переписку в MAX не переносим — в журнале только факт обращения: кто, по какому направлению,
+              как с ним связаться и на какой стадии. Заявки с формы попадают сюда сами, источник у них «С сайта».
+            </p>
+
+            {showAddEn && (
+              <div className="bg-card rounded-2xl border border-border/60 p-4 space-y-3">
+                <div className="grid sm:grid-cols-2 gap-3">
+                  <Field label="Как зовут родителя">
+                    <input className={inputCls} value={newEn.parent_name} placeholder="Ольга"
+                      onChange={(e) => setNewEn((p) => ({ ...p, parent_name: e.target.value }))} />
+                  </Field>
+                  <Field label="Контакт (телефон или ник в MAX)">
+                    <input className={inputCls} value={newEn.phone} placeholder="+7 … или @nick"
+                      onChange={(e) => setNewEn((p) => ({ ...p, phone: e.target.value }))} />
+                  </Field>
+                  <Field label="Возраст ребёнка">
+                    <input className={inputCls} value={newEn.child_age} placeholder="7 лет"
+                      onChange={(e) => setNewEn((p) => ({ ...p, child_age: e.target.value }))} />
+                  </Field>
+                  <Field label="Направление">
+                    <input className={inputCls} list="admin-program-titles" value={newEn.interest} placeholder="Подготовка к школе"
+                      onChange={(e) => setNewEn((p) => ({ ...p, interest: e.target.value }))} />
+                    <datalist id="admin-program-titles">
+                      {programs.map((pr) => <option key={pr.id ?? pr.slug ?? pr.title} value={pr.title} />)}
+                    </datalist>
+                  </Field>
+                  <Field label="Откуда пришла">
+                    <select className={inputCls} value={newEn.source} onChange={(e) => setNewEn((p) => ({ ...p, source: e.target.value }))}>
+                      {EN_SOURCES.map((s) => <option key={s.value} value={s.value}>{s.label}</option>)}
+                    </select>
+                  </Field>
+                  <Field label="Стадия">
+                    <select className={inputCls} value={newEn.status} onChange={(e) => setNewEn((p) => ({ ...p, status: e.target.value }))}>
+                      <option value="new">новая</option>
+                      <option value="contacted">связались</option>
+                      <option value="enrolled">записан</option>
+                    </select>
+                  </Field>
+                </div>
+                <Field label="О чём договорились / что нужно">
+                  <textarea className={inputCls} rows={2} value={newEn.comment} placeholder="Спросила про субботу, записали на пробное 12-го"
+                    onChange={(e) => setNewEn((p) => ({ ...p, comment: e.target.value }))} />
+                </Field>
+                <div className="flex gap-2">
+                  <button onClick={addEnrollment} disabled={savingEn} className={btnCls}>
+                    {savingEn ? "Записываю…" : "Записать заявку"}
+                  </button>
+                  <button onClick={() => { setShowAddEn(false); setNewEn(emptyEn); }} disabled={savingEn} className={btnSecondaryCls}>
+                    Отмена
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {enrollments.length === 0 && (
+              <p className="text-sm text-muted-foreground">
+                Заявок пока нет. Появятся, когда кто-то отправит форму на сайте или вы заведёте обращение вручную.
+              </p>
+            )}
+            {enrollments.map((en) => {
+              const src = sourceOfEnrollment(en);
+              return (
               <div key={en.id} className="bg-card rounded-2xl border border-border/60 p-3 sm:p-4">
                 <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 sm:gap-3">
                   <div className="flex-1 min-w-0">
-                    <p className="font-semibold text-sm">{en.parent_name ?? "—"} · {en.phone ?? "—"}</p>
-                    <p className="text-xs text-muted-foreground mt-0.5">
-                      {en.child_age && <>ребёнок: {en.child_age} · </>}
-                      {en.interest ?? "—"} ·{en.created_at ? " " + new Date(en.created_at).toLocaleString("ru-RU") : ""}
+                    <p className="font-semibold text-sm flex flex-wrap items-center gap-2">
+                      <span>{en.parent_name ?? "—"} · {en.phone ?? "—"}</span>
+                      <span
+                        data-en-source={src}
+                        className={
+                          "rounded-full px-2 py-0.5 text-[10px] font-semibold ring-1 " +
+                          (src === "max" ? "bg-primary/10 ring-primary/25 text-primary"
+                            : src === "phone" ? "bg-brand-warm/12 ring-brand-warm/25 text-brand-warm-ink"
+                            : src === "vk" ? "bg-brand-teal/12 ring-brand-teal/25 text-brand-teal-ink"
+                            : "bg-accent ring-border text-muted-foreground")
+                        }
+                      >
+                        {EN_SOURCE_LABEL[src]}
+                      </span>
                     </p>
-                    {en.comment && <p className="text-sm mt-2">{en.comment}</p>}
+                    <p className="text-xs text-muted-foreground mt-0.5">
+                      {en.child_age && en.child_age !== "—" && <>ребёнок: {en.child_age} · </>}
+                      {(en.interest_label || en.interest || "—")} ·{en.created_at ? " " + new Date(en.created_at).toLocaleString("ru-RU") : ""}
+                    </p>
+                    {(() => {
+                      // Метку канала из комментария убираем: она служебная, её уже
+                      // показывает бейдж над строкой.
+                      const raw = String(en.comment ?? "");
+                      const tag = EN_SOURCE_TAG[src];
+                      const body = tag && raw.toUpperCase().startsWith(tag) ? raw.slice(tag.length).trim() : raw;
+                      return body ? <p className="text-sm mt-2">{body}</p> : null;
+                    })()}
                   </div>
                   <div className="flex items-center gap-2 shrink-0">
                     <select className={inputCls + " flex-1 sm:w-36"} value={en.status ?? "new"} onChange={(e) => setEnrollmentStatus(en.id, e.target.value)}>
@@ -2420,7 +2581,8 @@ export default function AdminPage() {
                   </div>
                 </div>
               </div>
-            ))}
+              );
+            })}
           </div>
         )}
 
