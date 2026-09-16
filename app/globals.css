@@ -768,9 +768,10 @@
   animation: hero-breathe 18s ease-in-out infinite;
   will-change: transform;
 }
-@media (prefers-reduced-motion: reduce) {
-  .hero-breathe { animation: none; }
-}
+
+/* CSS-анимации marquee и blob-drift остаются под системной «Reduce motion» —
+   они не критичны для восприятия, а вот Ken Burns на кадре героя владелец
+   хочет видеть всегда, поэтому .hero-breathe НЕ подпадает под @media. */
 
 @keyframes text-shimmer {
   to {
