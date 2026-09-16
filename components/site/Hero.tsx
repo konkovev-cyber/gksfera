@@ -98,16 +98,6 @@ export function Hero() {
     if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
   };
 
-  // Гидрация-безопасная проверка: анимации только для тех, кто не просит их убирать
-  const [fineMotion, setFineMotion] = useState(false);
-  useEffect(() => {
-    const mq = window.matchMedia("(prefers-reduced-motion: no-preference)");
-    setFineMotion(mq.matches);
-    const onChange = (e: MediaQueryListEvent) => setFineMotion(e.matches);
-    mq.addEventListener("change", onChange);
-    return () => mq.removeEventListener("change", onChange);
-  }, []);
-
   // Прожектор, следующий за курсором
   const sx = useMotionValue(-600);
   const sy = useMotionValue(-600);
@@ -138,7 +128,6 @@ export function Hero() {
   const tealY = useSpring(useTransform(ty, [-0.5, 0.5], [-12, 12]), spring);
 
   const onTiltMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (!fineMotion) return;
     const r = e.currentTarget.getBoundingClientRect();
     tx.set((e.clientX - r.left) / r.width - 0.5);
     ty.set((e.clientY - r.top) / r.height - 0.5);
@@ -181,7 +170,6 @@ export function Hero() {
     <section
       className="relative py-20 md:py-28 lg:py-32 pt-24 md:pt-32 overflow-hidden mesh-hero"
       onMouseMove={(e) => {
-        if (!fineMotion) return;
         const r = e.currentTarget.getBoundingClientRect();
         sx.set(e.clientX - r.left);
         sy.set(e.clientY - r.top);
@@ -195,17 +183,17 @@ export function Hero() {
       <div className="absolute inset-0 pointer-events-none" aria-hidden="true">
         <motion.div
           className="absolute -top-24 -right-24 w-[420px] h-[420px] rounded-full bg-brand-warm/15 blur-3xl"
-          animate={fineMotion ? { x: [0, 40, -20, 0], y: [0, -30, 20, 0] } : undefined}
+          animate={{ x: [0, 40, -20, 0], y: [0, -30, 20, 0] }}
           transition={{ duration: 18, repeat: Infinity, ease: "easeInOut" }}
         />
         <motion.div
           className="absolute top-1/3 -left-28 w-[380px] h-[380px] rounded-full bg-brand-teal/15 blur-3xl"
-          animate={fineMotion ? { x: [0, -35, 25, 0], y: [0, 25, -20, 0] } : undefined}
+          animate={{ x: [0, -35, 25, 0], y: [0, 25, -20, 0] }}
           transition={{ duration: 22, repeat: Infinity, ease: "easeInOut" }}
         />
         <motion.div
           className="absolute bottom-0 right-1/4 w-[300px] h-[300px] rounded-full bg-brand-sand/50 blur-3xl"
-          animate={fineMotion ? { x: [0, 20, -15, 0], y: [0, -18, 12, 0] } : undefined}
+          animate={{ x: [0, 20, -15, 0], y: [0, -18, 12, 0] }}
           transition={{ duration: 26, repeat: Infinity, ease: "easeInOut" }}
         />
       </div>
@@ -219,13 +207,11 @@ export function Hero() {
       />
 
       {/* Прожектор за курсором */}
-      {fineMotion && (
-        <motion.div
-          aria-hidden="true"
-          className="pointer-events-none absolute inset-0"
-          style={{ background: spotlight }}
-        />
-      )}
+      <motion.div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0"
+        style={{ background: spotlight }}
+      />
 
       <div className="container-max w-full px-4 sm:px-6 lg:px-8 relative z-10">
         <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center">
@@ -273,7 +259,7 @@ export function Hero() {
               transition={{ delay: 0.55, duration: 0.5 }}
               className={cn(
                 "mt-4 text-lg sm:text-xl font-display font-semibold bg-gradient-to-r from-brand-teal via-brand-warm to-brand-teal bg-clip-text text-transparent",
-                fineMotion && "text-shimmer"
+                "text-shimmer"
               )}
             >
               {content.heroContent.tagline}
@@ -317,7 +303,7 @@ export function Hero() {
             transition={{ duration: 0.7, delay: 0.25, ease: [0.22, 1, 0.36, 1] }}
             onMouseMove={onTiltMove}
             onMouseLeave={onTiltLeave}
-            style={fineMotion ? { rotateX: rotX, rotateY: rotY, transformPerspective: 1200 } : undefined}
+            style={{ rotateX: rotX, rotateY: rotY, transformPerspective: 1200 }}
             /* Соотношение кадра задаётся только классом и не зависит от
                ориентации снимка: на телефоне квадрат, начиная с sm — 5:4.
                Переход по aspect-ratio был нужен живой подгонке под фото; с
@@ -338,7 +324,7 @@ export function Hero() {
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
-                  transition={{ duration: fineMotion ? 1.4 : 0, ease: "easeInOut" }}
+                  transition={{ duration: 1.2, ease: "easeInOut" }}
                 >
                   <div className="absolute inset-0 hero-breathe">
                     <Image
@@ -362,9 +348,7 @@ export function Hero() {
                 ("pill") — она перекликается с бейджем над заголовком. Подпись
                 «Дошкольники и школьники» с плашки убрана: возраст 5–15 лет
                 указан и в карточках направлений, а в тесной пилюле он только
-                мешал.
-                style с x/y/z применяется только при fineMotion: при
-                «уменьшить движение» кадр стоит ровно, и трогать его нечем. */}
+                мешал. Карточки всегда наклоняются вместе с кадром. */}
             <CornerCard
               tone="warm"
               variant="pill"
@@ -372,7 +356,7 @@ export function Hero() {
               value="5–15 лет"
               delay={0.7}
               className="-bottom-4 left-0 sm:-bottom-6 sm:-left-6"
-              style={fineMotion ? { x: warmX, y: warmY, z: 46 } : undefined}
+              style={{ x: warmX, y: warmY, z: 46 }}
             />
             <CornerCard
               tone="teal"
@@ -381,7 +365,7 @@ export function Hero() {
               value="более 15 лет"
               delay={0.85}
               className="-top-3 right-0 sm:-top-5 sm:-right-5"
-              style={fineMotion ? { x: tealX, y: tealY, z: 62 } : undefined}
+              style={{ x: tealX, y: tealY, z: 62 }}
             />
           </motion.div>
         </div>
