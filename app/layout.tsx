@@ -3,6 +3,7 @@ import type { Metadata, Viewport } from 'next';
 import { Manrope } from 'next/font/google';
 import { MotionProvider } from '@/components/site/MotionProvider';
 import { AnalyticsTracker } from '@/components/site/AnalyticsTracker';
+import { CursorFollower } from '@/components/site/CursorFollower';
 import { getContent } from '@/lib/content';
 import { ldScript } from '@/lib/utils';
 import { SITE_ORIGIN, siteConfig } from '@/data/site';
@@ -140,6 +141,7 @@ export default function RootLayout({
       <body className="font-sans antialiased">
         <MotionProvider>
           <AnalyticsTracker />
+          <CursorFollower />
           {children}
         </MotionProvider>
       </body>

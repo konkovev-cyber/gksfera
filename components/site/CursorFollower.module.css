@@ -1,0 +1,17 @@
+.cursor {
+  position: fixed;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+  z-index: 9999;
+  /* Центрируем SVG относительно курсора */
+  transform: translate(-50%, -50%);
+  color: hsl(var(--brand-warm));
+  mix-blend-mode: multiply;
+}
+
+@media (hover: none) {
+  .cursor {
+    display: none;
+  }
+}
