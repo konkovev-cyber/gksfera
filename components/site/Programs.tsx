@@ -156,7 +156,7 @@ function ProgramCard({ program, dotColor = "bg-brand-warm" }: { program: Program
           </button>
           <Link
             href={`/programs/${slugify(program.title)}`}
-            className="inline-flex items-center gap-1.5 min-h-[44px] px-2 text-sm font-medium text-foreground/60 hover:text-brand-warm-ink transition-colors"
+            className="inline-flex items-center gap-1.5 min-h-[44px] px-2 text-sm font-medium text-muted-foreground hover:text-brand-warm-ink transition-colors"
           >
             Подробнее
             <ArrowRight className="w-4 h-4" />

@@ -63,6 +63,16 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         priority: 0.8,
       });
     }
+    // Хаб направлений: без него адрес /programs (его печатают в браузере и дают
+    // в ссылках) отдавал 404, хотя отдельные страницы направлений в индексе есть.
+    if (data.programs.length) {
+      entries.push({
+        url: `${baseUrl}/programs`,
+        lastModified,
+        changeFrequency: 'weekly',
+        priority: 0.9,
+      });
+    }
     for (const p of data.programs) {
       entries.push({
         url: `${baseUrl}/programs/${slugify(p.title)}`,
