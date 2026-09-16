@@ -372,6 +372,16 @@ node ../pptr-check/revalidate-nested-proof.js # правка в админке �
 node ../pptr-check/admin-enrollments-manual.js # ручная заявка из MAX: завелась, пережила перезагрузку, канал не врёт, при 500 не притворяется успехом
 node ../pptr-check/admin-upload-honesty.js    # загрузка честна при отказе подписи, при отказе хранилища и в успехе
 node ../pptr-check/storage-cyrillic-name.js   # русское имя файла → ключ хранилища: ASCII с транслитерацией, расширение целое
+# --- пробы производственного аудита (DSH_BASE=прод|локалка; ничего не меняют) ---
+node ../pptr-check/prod-audit-meta.js         # canonical/og:title/og:url постранично + sitemap/robots: всё на живой хост, canonical не дублируется
+node ../pptr-check/prod-audit-hero.js         # H1/подзаголовок/CTA героя, типы JSON-LD, NAP и телефон как их видит прод
+node ../pptr-check/prod-audit-jsonld.js       # что реально в JSON-LD: org(url/logo/image), FAQ, честный Course без выдуманной цены, BreadcrumbList
+node ../pptr-check/prod-audit-images.js       # после включения оптимизатора: ни одна <Image> не битая, часть идёт через /_next/image
+node ../pptr-check/prod-audit-bytes.js        # вес страниц по типам (главная 6.5→3.9 МБ после оптимизации картинок)
+node ../pptr-check/prod-audit-mobile.js       # ширины 320..1440: переполнение, iOS-зум инпутов (<16px), тач-цели (<24), перекрытие низа панелью
+node ../pptr-check/prod-audit-overflow.js     # кто именно вылезает за правый край на узкой ширине (вклад в scrollWidth)
+node ../pptr-check/prod-audit-console.js      # чистая консоль на всех маршрутах (pageerror/warn/reqfail; 404-лог на несуществующем пути — норма)
+node ../pptr-check/prod-audit-analytics.js    # события трекера попадают в dataLayer: клики по href, faq_open, gallery_open, form_start
 ```
 
 Аудит считает подложку текста честным Porter–Duff по всей цепочке предков
