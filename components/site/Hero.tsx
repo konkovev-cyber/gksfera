@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Image from "next/image";
-import { ArrowRight, Sparkles, Pause, Play } from "lucide-react";
+import { ArrowRight, Sparkles } from "lucide-react";
 import {
   motion,
   AnimatePresence,
@@ -12,9 +12,7 @@ import {
   useMotionTemplate,
 } from "framer-motion";
 import { useContent } from "./ContentContext";
-import { HeroBanners } from "./HeroBanners";
 import { cn } from "@/lib/utils";
-import { isMotionPaused, subscribeMotion } from "@/lib/motion";
 
 const NOISE =
   "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='2'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)' opacity='0.55'/%3E%3C/svg%3E";
@@ -152,35 +150,21 @@ export function Hero() {
 
   // Заголовок по словам
   const words = content.heroContent.title.split(" ");
-  const marqueeItems = content.programs.map((p) => p.title);
-  // Бегущую строку можно остановить кнопкой — это требование WCAG 2.2.2
-  // (движущийся контент должен останавливаться по запросу) и просто удобство:
-  // при системном «уменьшить движение» строка едет медленно, а при желании
-  // останавливается совсем.
-  const [marqueePaused, setMarqueePaused] = useState(false);
 
-  // Смена фото в герое вернулась: кадры листаются сами каждые 7 секунд, НО без
-  // единой кнопки на кадре — так просил владелец. Право на авто-смену даёт
-  // рубильник «пауза анимаций» в шапке (lib/motion.ts): WCAG 2.2.2 требует
-  // механизм остановки, а приём G186 разрешает ему стоять в начале страницы, а
-  // не поверх движущегося содержимого. Под «уменьшить движение» смена остаётся,
-  // но без кроссфейда — меняется содержимое, а не положение в пространстве.
+  // Смена фото в герое: кадры листаются каждые 7 секунд кроссфейдом.
+  // При системном «уменьшить движение» переход мгновенный (transition:0),
+  // ротация сохраняется — глазу достаточно смены без анимации.
   const heroImages = (
     content.heroContent.images && content.heroContent.images.length > 0
       ? content.heroContent.images
       : [content.heroContent.image]
   ).filter(Boolean) as string[];
   const [activeImg, setActiveImg] = useState(0);
-  const [motionStopped, setMotionStopped] = useState(false);
   useEffect(() => {
-    setMotionStopped(isMotionPaused());
-    return subscribeMotion(setMotionStopped);
-  }, []);
-  useEffect(() => {
-    if (heroImages.length <= 1 || motionStopped) return;
+    if (heroImages.length <= 1) return;
     const id = window.setInterval(() => setActiveImg((i) => (i + 1) % heroImages.length), 7000);
     return () => window.clearInterval(id);
-  }, [heroImages.length, motionStopped]);
+  }, [heroImages.length]);
   // Набор могли поменять в админке — не выходим за границы.
   const safeIdx = heroImages.length > 0 ? activeImg % heroImages.length : 0;
   const heroPhoto = heroImages[safeIdx];
@@ -324,11 +308,6 @@ export function Hero() {
                 {content.heroContent.secondaryCta}
               </button>
             </motion.div>
-
-            {/* Промо-лента («Расписание / Пробное / Направления») — настраивается
-                в админке. Отдельную строку «5–15 лет · небольшие группы · …»
-                убрали: те же факты уже читаются в ленте и на карточках фото. */}
-            <HeroBanners />
           </motion.div>
 
           {/* Изображение с 3D-наклоном */}
@@ -406,65 +385,6 @@ export function Hero() {
             />
           </motion.div>
         </div>
-      </div>
-
-      {/* Бегущая строка направлений */}
-      {/* Бегущая строка направлений — без рамки. Раньше под ней висела полоса
-          (две линии-градиента, подложка from-brand-warm/5 via-card и внутренние
-          тени) — получался «конверт». Теперь бегёт только текст, а по краям
-          он растворяется маскированием (.fade-edges: linear-gradient mask),
-          поэтому косынка-градиент справа больше не нужен. */}
-      <div className="mt-12 md:mt-14 relative z-10">
-        <div className="relative py-6 overflow-hidden fade-edges">
-          <div className={cn("flex w-max animate-marquee", marqueePaused && "marquee-paused")} aria-hidden="true">
-            {(() => {
-              const N = marqueeItems.length || 1;
-              const WAVE_PERIOD = 7; // сек — совпадает с @keyframes marquee-wave
-              return [...marqueeItems, ...marqueeItems].map((t, i) => {
-                // Фаза синусоиды по позиции элемента. Отрицательная задержка,
-                // чтобы волна была «в разгаре» сразу при рендере, и повторялась
-                // каждые N элементов — бесшовно на стыке дубля строки.
-                const delay = -((i % N) / N) * WAVE_PERIOD;
-                return (
-                  <span
-                    key={i}
-                    className={cn("flex items-center whitespace-nowrap", fineMotion && "marquee-wave")}
-                    style={{ animationDelay: `${delay}s` }}
-                  >
-                    <span className="text-sm sm:text-base font-display font-bold uppercase tracking-wide text-brand-warm-ink dark:[text-shadow:0_0_20px_hsl(var(--brand-warm)/0.45)]">
-                      {t}
-                    </span>
-                    <span
-                      className="mx-5 sm:mx-7 flex items-center gap-1"
-                      aria-hidden="true"
-                    >
-                      <span className="w-1 h-1 rounded-full bg-brand-teal" />
-                      <span className="w-1.5 h-1.5 rounded-full bg-brand-warm" />
-                      <span className="w-1 h-1 rounded-full bg-brand-teal" />
-                    </span>
-                  </span>
-                );
-              });
-            })()}
-          </div>
-        </div>
-
-        {/* Пауза/пуск. WCAG 2.2.2: у бесконечной ленты обязан быть выключатель,
-            поэтому кнопку оставляем — но без рамок и подложек-полос. */}
-        <button
-          type="button"
-          onClick={() => setMarqueePaused((v) => !v)}
-          aria-pressed={marqueePaused}
-          aria-label={marqueePaused ? "Запустить бегущую строку" : "Остановить бегущую строку"}
-          title={marqueePaused ? "Запустить бегущую строку" : "Остановить бегущую строку"}
-          className="glass absolute right-3 sm:right-6 top-1/2 -translate-y-1/2 z-20 w-11 h-11 rounded-full text-muted-foreground hover:text-brand-warm-ink transition-colors flex items-center justify-center"
-        >
-          {marqueePaused ? (
-            <Play className="w-3.5 h-3.5 fill-current ml-0.5" />
-          ) : (
-            <Pause className="w-4 h-4" />
-          )}
-        </button>
       </div>
     </section>
   );
