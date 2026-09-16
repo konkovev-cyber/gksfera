@@ -1,8 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  eslint: {
-    ignoreDuringBuilds: true,
-  },
+  // eslint.ignoreDuringBuilds снят: линт проходит чисто (next lint — 0 warnings),
+  // а отключённая проверка на сборке позволяла предупреждениям копиться незаметно.
   // Оптимизация изображений включена: с unoptimized:true главная тянула ~5.7 МБ
   // оригиналов (геро-ротация — фото по 800–980 КБ), что роняло LCP на мобильном.
   // На Vercel это даёт AVIF/WebP + srcset под реальный размер блока. Разрешены

@@ -30,7 +30,9 @@ export function CursorFollower() {
       document.body.style.cursor = "";
       document.removeEventListener("mousemove", onMove);
     };
-  }, []);
+    // x и y — стабильные ссылки из useMotionValue: в зависимостях нужны только
+    // чтобы линтер не считал эффект «висящим» на изменяемых значениях.
+  }, [x, y]);
 
   return (
     <motion.div
