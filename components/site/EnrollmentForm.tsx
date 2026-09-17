@@ -20,7 +20,6 @@ import { useContent } from "./ContentContext";
 import { Reveal } from "./Reveal";
 import { cn } from "@/lib/utils";
 import { trackEvent } from "@/lib/analytics";
-import { FloatingDecorations } from "./FloatingDecorations";
 
 type FormState = {
   parentName: string;
@@ -233,7 +232,6 @@ export function EnrollmentForm() {
 
   return (
     <section id="enrollment" className="section-padding relative overflow-hidden">
-      <FloatingDecorations />
       <div
         className="absolute top-1/4 -left-32 w-80 h-80 rounded-full bg-brand-warm/8 blur-3xl pointer-events-none"
         aria-hidden="true"
