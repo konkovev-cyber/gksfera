@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Image from "next/image";
-import { ArrowRight, Sparkles } from "lucide-react";
+import { ArrowRight, Sparkles, Star, ChevronDown } from "lucide-react";
 import {
   motion,
   AnimatePresence,
@@ -168,18 +168,14 @@ export function Hero() {
 
   return (
     <section
-      className="relative py-20 md:py-28 lg:py-32 pt-24 md:pt-32 overflow-hidden mesh-hero"
+      className="relative pt-16 sm:pt-20 md:pt-24 pb-4 sm:pb-6 md:pb-8 overflow-hidden mesh-hero"
       onMouseMove={(e) => {
         const r = e.currentTarget.getBoundingClientRect();
         sx.set(e.clientX - r.left);
         sy.set(e.clientY - r.top);
       }}
     >
-      {/* Mesh-градиент: четыре радиальных пятна (два тёплых, два бирюзовых)
-          заданы слоем .mesh-hero на самой секции — они не двигаются и потому
-          не «плывут» при скролле. Поверх них — три медленных пятных круга
-          ниже, они и дают живость. */}
-      {/* Дрейфующие градиентные пятна */}
+      {/* Mesh-градиент: четыре радиальных пятна */}
       <div className="absolute inset-0 pointer-events-none" aria-hidden="true">
         <motion.div
           className="absolute -top-24 -right-24 w-[420px] h-[420px] rounded-full bg-brand-warm/15 blur-3xl"
@@ -198,8 +194,7 @@ export function Hero() {
         />
       </div>
 
-      {/* Текстура шума. В светлой теме домножаем (заметно на кремовом),
-          в тёмной — overlay: multiply по графиту невидим и только глушит. */}
+      {/* Текстура шума */}
       <div
         aria-hidden="true"
         className="pointer-events-none absolute inset-0 opacity-[0.04] mix-blend-multiply dark:opacity-[0.05] dark:mix-blend-overlay"
@@ -222,18 +217,22 @@ export function Hero() {
             transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
             className="max-w-xl"
           >
+            {/* Живой бейдж со статус-индикатором */}
             <motion.div
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1, duration: 0.45 }}
               data-hero-badge
-              className="glass inline-flex items-center gap-2 px-4 py-2 rounded-full ring-1 ring-brand-warm/20 text-foreground text-sm font-semibold mb-6"
+              className="glass inline-flex items-center gap-2.5 px-3.5 py-1.5 rounded-full ring-1 ring-brand-warm/25 text-foreground text-xs sm:text-sm font-semibold mb-3 sm:mb-4 shadow-sm"
             >
-              <Sparkles className="w-4 h-4 text-brand-warm-ink" aria-hidden="true" />
-              {content.heroContent.badge}
+              <span className="relative flex h-2 w-2 shrink-0" aria-hidden="true">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
+              </span>
+              <span className="text-foreground/90">{content.heroContent.badge}</span>
             </motion.div>
 
-            <h1 className="font-display font-extrabold text-3xl sm:text-4xl md:text-5xl lg:text-[2.75rem] xl:text-5xl leading-[1.15] text-foreground">
+            <h1 className="font-display font-extrabold text-2xl sm:text-3xl md:text-4xl lg:text-[2.65rem] xl:text-[2.85rem] leading-[1.12] text-foreground text-balance">
               {words.map((w, i) => (
                 <motion.span
                   key={i}
@@ -258,7 +257,7 @@ export function Hero() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.55, duration: 0.5 }}
               className={cn(
-                "mt-4 text-lg sm:text-xl font-display font-semibold bg-gradient-to-r from-brand-teal via-brand-warm to-brand-teal bg-clip-text text-transparent",
+                "mt-2.5 sm:mt-3 text-base sm:text-lg font-display font-semibold bg-gradient-to-r from-brand-teal via-brand-warm to-brand-teal bg-clip-text text-transparent",
                 "text-shimmer"
               )}
             >
@@ -269,34 +268,59 @@ export function Hero() {
               initial={{ opacity: 0, y: 14 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.65, duration: 0.5 }}
-              className="mt-6 text-base sm:text-lg text-muted-foreground leading-relaxed max-w-lg"
+              className="mt-3 sm:mt-4 text-sm sm:text-base text-muted-foreground leading-relaxed max-w-lg"
             >
               {content.heroContent.description}
             </motion.p>
 
+            {/* Кнопки действий + Social Proof */}
             <motion.div
               initial={{ opacity: 0, y: 14 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.75, duration: 0.5 }}
-              className="mt-8 flex flex-col sm:flex-row sm:flex-wrap gap-3"
+              className="mt-5 sm:mt-6 flex flex-col gap-4"
             >
-              <button
-                onClick={() => scrollTo("#tasks")}
-                className="btn-cta group h-12 sm:h-13 px-7 font-semibold text-base"
-              >
-                {content.heroContent.primaryCta}
-                <ArrowRight className="btn-arrow w-5 h-5" />
-              </button>
-              <button
-                onClick={() => scrollTo("#programs")}
-                className="btn-outline h-12 sm:h-13 px-7 font-semibold text-base"
-              >
-                {content.heroContent.secondaryCta}
-              </button>
+              <div className="flex flex-col sm:flex-row sm:flex-wrap gap-3">
+                <button
+                  onClick={() => scrollTo("#tasks")}
+                  className="btn-cta group h-11 sm:h-12 px-6 font-semibold text-sm sm:text-base shadow-lg shadow-brand-warm/20"
+                >
+                  {content.heroContent.primaryCta}
+                  <ArrowRight className="btn-arrow w-4 h-4 sm:w-5 sm:h-5" />
+                </button>
+                <button
+                  onClick={() => scrollTo("#programs")}
+                  className="btn-outline h-11 sm:h-12 px-6 font-semibold text-sm sm:text-base"
+                >
+                  {content.heroContent.secondaryCta}
+                </button>
+              </div>
+
+              {/* Полоса доверия (Social Proof) */}
+              <div className="flex items-center gap-3 pt-1">
+                <div className="flex -space-x-2 shrink-0">
+                  {["/images/gallery-1.jpg", "/images/PF6A7844_resized.jpg", "/images/studio-07.jpg", "/images/PF6A8152_resized.jpg"].map((src, i) => (
+                    <div key={i} className="w-7 h-7 sm:w-8 sm:h-8 rounded-full border-2 border-background overflow-hidden relative shadow-sm">
+                      <Image src={src} alt="Ученик студии" fill sizes="32px" className="object-cover" />
+                    </div>
+                  ))}
+                </div>
+                <div className="flex flex-col text-left">
+                  <div className="flex items-center gap-1">
+                    {[...Array(5)].map((_, i) => (
+                      <Star key={i} className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
+                    ))}
+                    <span className="text-xs font-bold text-foreground ml-1 tabular-nums">4.9</span>
+                  </div>
+                  <p className="text-[11px] sm:text-xs text-muted-foreground">
+                    Более 80 довольных семей · Горячий Ключ
+                  </p>
+                </div>
+              </div>
             </motion.div>
           </motion.div>
 
-          {/* Изображение с 3D-наклоном */}
+          {/* Изображение с 3D-наклоном и компактным кадрированием */}
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
@@ -304,18 +328,9 @@ export function Hero() {
             onMouseMove={onTiltMove}
             onMouseLeave={onTiltLeave}
             style={{ rotateX: rotX, rotateY: rotY, transformPerspective: 1200 }}
-            /* Соотношение кадра задаётся только классом и не зависит от
-               ориентации снимка: на телефоне квадрат, начиная с sm — 5:4.
-               Переход по aspect-ratio был нужен живой подгонке под фото; с
-               фиксированным кадром он только смазывал бы смену брейкпоинта. */
-            className="relative aspect-square sm:aspect-[5/4] will-change-transform [transform-style:preserve-3d]"
+            className="relative aspect-[4/3] max-h-[350px] sm:max-h-[390px] w-full will-change-transform [transform-style:preserve-3d]"
           >
             <div className="absolute inset-0 rounded-3xl overflow-hidden shadow-2xl ring-1 ring-hairline/60 bg-muted" data-hero-frame>
-              {/* Снимки листаются кроссфейдом внутри фиксированного кадра:
-                  ориентация фото влияет только на то, какая часть кадра
-                  отрезана, но не на размер блока. «Дыхание» (hero-breathe) —
-                  отдельная CSS-анимация, её выключает prefers-reduced-motion, а
-                  рубильник в шапке ставит на паузу. */}
               <AnimatePresence>
                 <motion.div
                   key={heroPhoto}
@@ -340,15 +355,33 @@ export function Hero() {
               </AnimatePresence>
               {/* Блик-градиент поверх фото */}
               <div className="absolute inset-0 bg-gradient-to-tr from-brand-teal/15 via-transparent to-brand-warm/10 mix-blend-overlay pointer-events-none" />
+
+              {/* Stories-индикатор фотослайдов */}
+              {heroImages.length > 1 && (
+                <div className="absolute bottom-3 inset-x-4 flex items-center justify-center gap-1.5 z-20">
+                  {heroImages.map((_, idx) => (
+                    <button
+                      key={idx}
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setActiveImg(idx);
+                      }}
+                      aria-label={`Перейти к фото ${idx + 1}`}
+                      className={cn(
+                        "h-1.5 rounded-full transition-all duration-300",
+                        idx === safeIdx
+                          ? "w-7 bg-white shadow-sm"
+                          : "w-1.5 bg-white/50 hover:bg-white/80"
+                      )}
+                    />
+                  ))}
+                </div>
+              )}
             </div>
             <div className="absolute -inset-3 rounded-[2rem] border-2 border-brand-warm/20 -z-10 hidden sm:block" />
-            {/* Две карточки-факта по углам кадра. Размещение то же, что было,
-                но подложки light: справа-сверху матовое стекло (variant
-                "frost"), слева-снизу белая пилюля в фирменном тёплом контуре
-                ("pill") — она перекликается с бейджем над заголовком. Подпись
-                «Дошкольники и школьники» с плашки убрана: возраст 5–15 лет
-                указан и в карточках направлений, а в тесной пилюле он только
-                мешал. Карточки всегда наклоняются вместе с кадром. */}
+
+            {/* Карточки-факты по углам кадра */}
             <CornerCard
               tone="warm"
               variant="pill"
@@ -368,6 +401,19 @@ export function Hero() {
               style={{ x: tealX, y: tealY, z: 62 }}
             />
           </motion.div>
+        </div>
+
+        {/* Микро-подсказка скролла к блоку преимуществ */}
+        <div className="mt-5 sm:mt-6 flex justify-center">
+          <button
+            type="button"
+            onClick={() => scrollTo("#truststats")}
+            className="group inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium text-muted-foreground/80 hover:text-foreground hover:bg-foreground/5 transition-colors"
+            aria-label="Перейти к преимуществам"
+          >
+            <span>Коротко, по делу</span>
+            <ChevronDown className="w-3.5 h-3.5 transition-transform group-hover:translate-y-0.5 animate-bounce" />
+          </button>
         </div>
       </div>
     </section>

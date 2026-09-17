@@ -66,7 +66,7 @@ export function TrustStats() {
   const motto = content.studioMotto ?? "";
 
   return (
-    <section className="section-padding relative overflow-hidden">
+    <section id="truststats" className="px-4 pt-4 sm:pt-6 md:pt-8 pb-16 sm:px-6 md:pb-24 lg:px-8 relative overflow-hidden">
       {/* Световые пятна за карточками — глубина фона. Без них ряд лежал на
           плоском цвете, и стеклу не за что было «зацепить» взгляд. */}
       <div aria-hidden className="pointer-events-none absolute inset-0">
@@ -76,7 +76,7 @@ export function TrustStats() {
 
       <div className="container-max relative z-10">
         <Reveal>
-          <p className="text-sm font-semibold uppercase tracking-widest text-brand-warm-ink mb-3 text-center">
+          <p className="text-sm font-semibold uppercase tracking-widest text-brand-warm-ink mb-2 sm:mb-3 text-center">
             Почему родители выбирают нас
           </p>
           <h2 className="font-display font-extrabold text-3xl sm:text-4xl md:text-5xl text-foreground text-balance max-w-3xl mx-auto leading-[1.12] text-center">
@@ -84,7 +84,7 @@ export function TrustStats() {
           </h2>
         </Reveal>
 
-        <Stagger className="mt-12 grid grid-cols-2 lg:grid-cols-4 gap-3.5 sm:gap-5">
+        <Stagger className="mt-8 sm:mt-10 grid grid-cols-2 lg:grid-cols-4 gap-3.5 sm:gap-5">
           {stats.map((s, i) => {
             // Чередование акцентов: тёплый/холодный, чтобы ряд не выглядел
             // четырьмя копипастами
