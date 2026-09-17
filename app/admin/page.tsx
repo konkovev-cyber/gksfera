@@ -13,33 +13,54 @@ import { gallery as defaultGallery } from "@/data/site";
 import { compressImageFile, isVideoSrc, humanSize, IMAGE_MAX, VIDEO_MAX } from "@/lib/compress";
 import { slugifyRu, uniqueSlug, newsKey, newsUrl, isVkNews } from "@/lib/news";
 import { NewsBody, NewsSourceBadge } from "@/components/site/NewsArticle";
+import { ThemeToggle } from "@/components/site/ThemeToggle";
 import { cn } from "@/lib/utils";
 
 type Tab = "settings" | "hero" | "visibility" | "programs" | "gallery" |
   "teachers" | "reviews" | "learning" | "faq" | "news" | "seo" | "io" | "inbox" | "blocks" | "schedule" | "banners";
+
+type TabCategory = "all" | "leads" | "home" | "study" | "media" | "system";
+
+const CATEGORIES: { id: TabCategory; label: string; icon: any }[] = [
+  { id: "all", label: "Все", icon: LayoutDashboard },
+  { id: "leads", label: "Заявки", icon: Inbox },
+  { id: "home", label: "Главная", icon: Sparkles },
+  { id: "study", label: "Учёба", icon: School },
+  { id: "media", label: "Медиа", icon: ImageIcon },
+  { id: "system", label: "Настройки", icon: Settings },
+];
 
 /** Куда в редакторе прикладывается картинка — из медиатеки или с компьютера. */
 type FieldKind = "program" | "hero" | "heroList" | "step" | "teacher" | "schedule" | "news" | "newsBody";
 /** Ключ занятости загрузки: одно поле показывает спиннер, остальные ждут. */
 const busyKey = (kind: FieldKind, index: number) => `${kind}:${index}`;
 
-const TABS: { id: Tab; label: string; icon: any; hint: string }[] = [
-  { id: "settings", label: "Настройки", icon: Settings, hint: "Реквизиты студии: название, телефон, адрес, соцсети, часы работы. Используются в шапке, подвале и на контактах." },
-  { id: "hero", label: "Экран", icon: LayoutDashboard, hint: "Первый экран главной страницы: заголовок, подзаголовок, кнопки и ротация фотографий (показывается со сменой кадров)." },
-  { id: "banners", label: "Баннеры", icon: Sparkles, hint: "Небольшие «облачные» промо-баннеры в первом экране (карточки-ссылки: Расписание, Пробное занятие и т.п.). Текст, иконка, ссылка, цвет и порядок — настраиваются здесь." },
-  { id: "visibility", label: "Порядок", icon: Eye, hint: "Включать/скрывать целые блоки главной И переставлять их местами вверх/вниз (порядок секций). Контент при этом не удаляется." },
-  { id: "blocks", label: "Контент", icon: LayoutDashboard, hint: "Дополнительные блоки главной: «с какой задачей пришли», результаты занятий, цифры доверия и девиз студии." },
-  { id: "programs", label: "Направления", icon: School, hint: "Карточки учебных и творческих направлений (страницы /programs/…). Название, описание, возраст, цена, фото." },
-  { id: "schedule", label: "Расписание", icon: CalendarDays, hint: "Расписание занятий по группам (страница /raspisanie, пункт меню «Расписание» во вкладке-выпадашке «О студии»). Дни, уроки, время и картинка для печати. Показ/скрытие самого раздела — на вкладке «Порядок». На главной не показывается." },
-  { id: "gallery", label: "Галерея", icon: ImageIcon, hint: "Фото и видео для галереи. Здесь загрузка (можно сразу несколько), порядок и подпись. Полная коллекция — на странице /gallery (пункт меню «Галерея»), на главной показывается карусель + ссылка «Вся галерея»." },
-  { id: "teachers", label: "Педагоги", icon: GraduationCap, hint: "Карточки преподавателей: имя, роль, описание, опыт и фото (блок на главной и страница педагогов)." },
-  { id: "reviews", label: "Отзывы", icon: Star, hint: "Отзывы родителей — свои или импорт из группы ВКонтакте. Показываются в блоке отзывов и на /reviews." },
-  { id: "learning", label: "Занятия", icon: BookOpen, hint: "Секция «Как проходят занятия» на главной: заголовок и пошаговый путь (шаги с описанием и фото). Это не расписание, а как устроены занятия." },
-  { id: "faq", label: "Вопросы", icon: HelpCircle, hint: "Частые вопросы и ответы (раскрывающийся список на главной и страница вопросов)." },
-  { id: "news", label: "Новости", icon: Newspaper, hint: "Новости студии: пишутся прямо здесь (текст, фото, форматирование) и подтягиваются из группы ВКонтакте. Лента на главной и архив /news." },
-  { id: "seo", label: "SEO", icon: Search, hint: "Метаданные для поиска и соцсетей: title, description, Open Graph — чтобы сайт красиво открывался по ссылке и ранжировался." },
-  { id: "io", label: "Импорт", icon: Download, hint: "Резервная копия и перенос всего контента в JSON (или отдельно только новостей). Для бэкапа или миграции на другой проект." },
-  { id: "inbox", label: "Заявки", icon: Inbox, hint: "Обращения с формы «Записаться»: имя, телефон, направление, комментарий. Приходит из формы на сайте и из Telegram." },
+const TABS: { id: Tab; label: string; icon: any; category: TabCategory; hint: string }[] = [
+  // Заявки
+  { id: "inbox", label: "Заявки", icon: Inbox, category: "leads", hint: "Обращения с формы «Записаться»: имя, телефон, направление, комментарий. Приходит из формы на сайте и из мессенджеров." },
+
+  // Главная страница
+  { id: "hero", label: "Первый экран", icon: LayoutDashboard, category: "home", hint: "Первый экран главной страницы: заголовок, подзаголовок, кнопки и ротация фотографий." },
+  { id: "banners", label: "Баннеры", icon: Sparkles, category: "home", hint: "Небольшие «облачные» промо-баннеры в первом экране (карточки-ссылки: Расписание, Пробное занятие и т.п.)." },
+  { id: "visibility", label: "Порядок секций", icon: Eye, category: "home", hint: "Включать/скрывать целые блоки главной И переставлять их местами вверх/вниз." },
+  { id: "blocks", label: "Блоки контента", icon: List, category: "home", hint: "Дополнительные блоки главной: «с какой задачей пришли», результаты занятий, цифры доверия и девиз студии." },
+
+  // Учебный процесс
+  { id: "programs", label: "Направления", icon: School, category: "study", hint: "Карточки учебных и творческих направлений (страницы /programs/…). Название, описание, возраст, цена, фото." },
+  { id: "schedule", label: "Расписание", icon: CalendarDays, category: "study", hint: "Расписание занятий по группам (страница /raspisanie). Дни, уроки, время и картинка для печати." },
+  { id: "teachers", label: "Педагоги", icon: GraduationCap, category: "study", hint: "Карточки преподавателей: имя, роль, описание, опыт и фото." },
+  { id: "learning", label: "Как учим", icon: BookOpen, category: "study", hint: "Секция «Как проходят занятия» на главной: пошаговый путь (шаги с описанием и фото)." },
+
+  // Медиа и статьи
+  { id: "gallery", label: "Галерея", icon: ImageIcon, category: "media", hint: "Фото и видео для галереи. Загрузка, порядок и подписи. Полная коллекция — на странице /gallery." },
+  { id: "news", label: "Новости", icon: Newspaper, category: "media", hint: "Новости студии: пишутся прямо здесь и подтягиваются из группы ВКонтакте. Лента на главной и архив /news." },
+  { id: "reviews", label: "Отзывы", icon: Star, category: "media", hint: "Отзывы родителей — свои или импорт из группы ВКонтакте. Показываются на главной и на /reviews." },
+  { id: "faq", label: "Вопросы", icon: HelpCircle, category: "media", hint: "Частые вопросы и ответы (раскрывающийся список на главной и страница вопросов)." },
+
+  // Настройки и система
+  { id: "settings", label: "Реквизиты", icon: Settings, category: "system", hint: "Реквизиты студии: название, телефон, адрес, соцсети, часы работы." },
+  { id: "seo", label: "SEO", icon: Search, category: "system", hint: "Метаданные для поиска и соцсетей: title, description, Open Graph." },
+  { id: "io", label: "Резервные копии", icon: Download, category: "system", hint: "Резервная копия и перенос всего контента в JSON (бэкап или миграция)." },
 ];
 
 const VIS_LABELS: Record<string, string> = {
@@ -240,6 +261,8 @@ export default function AdminPage() {
   const [password, setPassword] = useState("");
   const [loginErr, setLoginErr] = useState("");
   const [tab, setTab] = useState<Tab>("settings");
+  const [catFilter, setCatFilter] = useState<TabCategory>("all");
+  const [tabSearch, setTabSearch] = useState("");
   const [saving, setSaving] = useState(false);
   const [msg, setMsg] = useState("");
   const [msgBad, setMsgBad] = useState(false);
@@ -1197,37 +1220,159 @@ export default function AdminPage() {
   );
 
   const cfgEntries = Object.entries(siteConfig).filter(([, v]) => ["string", "number", "boolean"].includes(typeof v));
+  const newEnrollmentsCount = enrollments.filter((e) => (e.status ?? "new") === "new").length;
+  const filteredTabs = TABS.filter((t) => {
+    const matchCat = catFilter === "all" || t.category === catFilter;
+    if (!tabSearch.trim()) return matchCat;
+    const q = tabSearch.toLowerCase().trim();
+    const matchSearch = t.label.toLowerCase().includes(q) || t.hint.toLowerCase().includes(q) || t.id.toLowerCase().includes(q);
+    return (catFilter === "all" || matchCat) && matchSearch;
+  });
 
   return (
     <div className="min-h-screen bg-background">
-      <header className="sticky top-0 z-20 bg-card/90 backdrop-blur border-b border-border">
+      <header className="sticky top-0 z-30 bg-card/90 backdrop-blur-md border-b border-border shadow-sm">
         <div className="max-w-5xl mx-auto px-3 sm:px-4 h-14 flex items-center justify-between gap-2">
-          <span className="font-display font-extrabold text-sm sm:text-base truncate">Админка «Сферы»</span>
+          <div className="flex items-center gap-2.5 min-w-0">
+            <span className="font-display font-extrabold text-sm sm:text-base truncate">Админка «Сферы»</span>
+            {newEnrollmentsCount > 0 && (
+              <button
+                onClick={() => { setTab("inbox"); setCatFilter("leads"); }}
+                className={cn(
+                  "inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold transition-all shrink-0",
+                  tab === "inbox"
+                    ? "bg-primary text-primary-foreground"
+                    : "bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30 hover:bg-amber-500/25"
+                )}
+                title="Перейти к новым заявкам"
+              >
+                <Inbox className="w-3.5 h-3.5" />
+                <span className="hidden min-[400px]:inline">Заявки:</span>
+                <span className="font-extrabold">{newEnrollmentsCount}</span>
+              </button>
+            )}
+          </div>
           <div className="flex items-center gap-2 sm:gap-3 shrink-0">
             {msg && (
               <span
                 data-admin-msg={msgBad ? "bad" : "ok"}
-                className={"text-xs sm:text-sm font-medium max-w-[60ch] break-words " + (msgBad ? "text-destructive" : "text-primary")}
+                className={"text-xs sm:text-sm font-medium max-w-[40ch] truncate " + (msgBad ? "text-destructive" : "text-primary")}
               >
                 {msg}
               </span>
             )}
-            <a href="/" target="_blank" className="text-xs sm:text-sm text-muted-foreground hover:text-foreground hidden sm:inline">Сайт ↗</a>
-            <button onClick={logout} className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-destructive"><LogOut className="w-4 h-4" /> Выйти</button>
+            <ThemeToggle />
+            <a href="/" target="_blank" className="text-xs sm:text-sm text-muted-foreground hover:text-foreground hidden sm:inline-flex items-center gap-1">
+              Сайт <ExternalLink className="w-3.5 h-3.5" />
+            </a>
+            <button onClick={logout} className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-destructive">
+              <LogOut className="w-4 h-4" /> <span className="hidden sm:inline">Выйти</span>
+            </button>
           </div>
         </div>
       </header>
 
       <div className="max-w-5xl mx-auto px-3 sm:px-4 py-4 sm:py-6">
-        {/* Навигация по вкладкам: сетка, которая переносится на всех
-            размерах экрана — ни одна вкладка не прячется за скроллом. */}
-        <nav className="flex flex-wrap gap-1.5 sm:gap-2 mb-4">
-          {TABS.map((t) => (
-            <button key={t.id} onClick={() => setTab(t.id)} title={t.hint}
-              className={"inline-flex items-center gap-1.5 h-9 px-2.5 sm:px-3 rounded-full text-xs sm:text-sm font-medium transition-colors whitespace-nowrap shrink-0 " + (tab === t.id ? "bg-primary text-primary-foreground" : "bg-card border border-border hover:bg-accent")}>
-              <t.icon className="w-4 h-4 shrink-0" /><span>{t.label}</span>
-            </button>
-          ))}
+        {/* Панель фильтрации по категориям + быстрый поиск */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 mb-3">
+          <div className="flex items-center gap-1 overflow-x-auto pb-1 sm:pb-0 scrollbar-hide">
+            {CATEGORIES.map((cat) => {
+              const active = catFilter === cat.id;
+              const hasBadge = cat.id === "leads" && newEnrollmentsCount > 0;
+              return (
+                <button
+                  key={cat.id}
+                  onClick={() => {
+                    setCatFilter(cat.id);
+                    if (cat.id !== "all") {
+                      const inCat = TABS.filter((t) => t.category === cat.id);
+                      if (!inCat.some((t) => t.id === tab) && inCat[0]) {
+                        setTab(inCat[0].id);
+                      }
+                    }
+                  }}
+                  className={cn(
+                    "inline-flex items-center gap-1.5 h-8 px-2.5 sm:px-3 rounded-xl text-xs font-semibold whitespace-nowrap transition-all",
+                    active
+                      ? "bg-foreground text-background shadow-sm"
+                      : "bg-muted/60 text-muted-foreground hover:text-foreground hover:bg-muted"
+                  )}
+                >
+                  <cat.icon className="w-3.5 h-3.5" />
+                  <span>{cat.label}</span>
+                  {hasBadge && (
+                    <span className="ml-0.5 px-1.5 py-0.2 rounded-full text-[10px] font-bold bg-amber-500 text-white">
+                      {newEnrollmentsCount}
+                    </span>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+
+          <div className="relative w-full sm:w-56 shrink-0">
+            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground pointer-events-none" />
+            <input
+              type="text"
+              value={tabSearch}
+              onChange={(e) => setTabSearch(e.target.value)}
+              placeholder="Поиск по разделам…"
+              className="w-full h-8 pl-8 pr-7 text-xs rounded-xl bg-card border border-border/80 text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+            />
+            {tabSearch && (
+              <button
+                onClick={() => setTabSearch("")}
+                className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground p-0.5"
+                title="Очистить поиск"
+              >
+                <X className="w-3 h-3" />
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* Навигация по вкладкам: кнопки с иконками, бейджами и активным состоянием */}
+        <nav className="flex flex-wrap gap-1.5 sm:gap-2 mb-4 p-2 rounded-2xl bg-card/60 border border-border/60">
+          {filteredTabs.map((t) => {
+            const active = tab === t.id;
+            const isInbox = t.id === "inbox";
+            return (
+              <button
+                key={t.id}
+                onClick={() => setTab(t.id)}
+                title={t.hint}
+                className={cn(
+                  "inline-flex items-center gap-1.5 h-9 px-3 rounded-xl text-xs sm:text-sm font-medium transition-all whitespace-nowrap shrink-0",
+                  active
+                    ? "bg-primary text-primary-foreground shadow-sm font-semibold ring-1 ring-primary/30"
+                    : "bg-background/80 border border-border/60 hover:bg-accent text-foreground/80 hover:text-foreground"
+                )}
+              >
+                <t.icon className="w-4 h-4 shrink-0" />
+                <span>{t.label}</span>
+                {isInbox && newEnrollmentsCount > 0 && (
+                  <span
+                    className={cn(
+                      "ml-1 px-1.5 py-0.5 rounded-full text-[10px] font-bold leading-none",
+                      active
+                        ? "bg-white text-primary"
+                        : "bg-amber-500 text-white animate-pulse"
+                    )}
+                  >
+                    {newEnrollmentsCount}
+                  </span>
+                )}
+              </button>
+            );
+          })}
+          {filteredTabs.length === 0 && (
+            <div className="w-full py-4 text-center text-xs text-muted-foreground">
+              Ничего не найдено по запросу «{tabSearch}».{" "}
+              <button onClick={() => { setTabSearch(""); setCatFilter("all"); }} className="text-primary underline font-medium">
+                Сбросить поиск
+              </button>
+            </div>
+          )}
         </nav>
 
         {/* Подсказка: что редактирует текущий раздел и где это на сайте */}

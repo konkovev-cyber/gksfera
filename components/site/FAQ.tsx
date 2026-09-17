@@ -9,7 +9,7 @@ import { cn, ldScript } from "@/lib/utils";
 function FAQItem({ question, answer, index }: { question: string; answer: string; index: number }) {
   const [open, setOpen] = useState(false);
   return (
-    <div className="border border-border/60 rounded-xl overflow-hidden">
+    <div className={cn("glass rounded-xl overflow-hidden transition-colors", open && "border-brand-warm/40")}>
       <button
         onClick={() => setOpen(!open)}
         data-track="faq_open"
