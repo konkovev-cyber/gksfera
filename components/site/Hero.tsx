@@ -202,7 +202,8 @@ export function Hero() {
 
   return (
     <section
-      className="relative pt-16 sm:pt-20 md:pt-24 pb-4 sm:pb-6 md:pb-8 overflow-hidden mesh-hero"
+      id="hero"
+      className="relative min-h-[100dvh] lg:h-screen lg:max-h-screen flex flex-col justify-between pt-16 sm:pt-20 md:pt-20 pb-3 sm:pb-4 lg:pb-5 overflow-hidden mesh-hero"
       onMouseMove={(e) => {
         const r = e.currentTarget.getBoundingClientRect();
         sx.set(e.clientX - r.left);
@@ -242,8 +243,8 @@ export function Hero() {
         style={{ background: spotlight }}
       />
 
-      <div className="container-max w-full px-4 sm:px-6 lg:px-8 relative z-10">
-        <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center">
+      <div className="container-max w-full px-4 sm:px-6 lg:px-8 relative z-10 flex-1 flex flex-col justify-between my-auto">
+        <div className="grid lg:grid-cols-2 gap-6 xl:gap-10 items-center my-auto">
           {/* Текстовая часть */}
           <motion.div
             initial={{ opacity: 0, y: 24 }}
@@ -257,7 +258,7 @@ export function Hero() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1, duration: 0.45 }}
               data-hero-badge
-              className="glass inline-flex items-center gap-2.5 px-3.5 py-1.5 rounded-full ring-1 ring-brand-warm/25 text-foreground text-xs sm:text-sm font-semibold mb-3 sm:mb-4 shadow-sm"
+              className="glass inline-flex items-center gap-2.5 px-3.5 py-1 rounded-full ring-1 ring-brand-warm/25 text-foreground text-xs sm:text-sm font-semibold mb-2 sm:mb-3 shadow-sm"
             >
               <span className="relative flex h-2 w-2 shrink-0" aria-hidden="true">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
@@ -266,7 +267,7 @@ export function Hero() {
               <span className="text-foreground/90">{content.heroContent.badge}</span>
             </motion.div>
 
-            <h1 className="font-display font-extrabold text-2xl sm:text-3xl md:text-4xl lg:text-[2.65rem] xl:text-[2.85rem] leading-[1.12] text-foreground text-balance">
+            <h1 className="font-display font-extrabold text-2xl sm:text-3xl md:text-4xl lg:text-[2.35rem] xl:text-[2.75rem] leading-[1.12] text-foreground text-balance">
               {words.map((w, i) => (
                 <motion.span
                   key={i}
@@ -291,7 +292,7 @@ export function Hero() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.55, duration: 0.5 }}
               className={cn(
-                "mt-2.5 sm:mt-3 text-base sm:text-lg font-display font-semibold bg-gradient-to-r from-brand-teal via-brand-warm to-brand-teal bg-clip-text text-transparent",
+                "mt-2 text-sm sm:text-base font-display font-semibold bg-gradient-to-r from-brand-teal via-brand-warm to-brand-teal bg-clip-text text-transparent",
                 "text-shimmer"
               )}
             >
@@ -302,7 +303,7 @@ export function Hero() {
               initial={{ opacity: 0, y: 14 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.65, duration: 0.5 }}
-              className="mt-3 sm:mt-4 text-sm sm:text-base text-muted-foreground leading-relaxed max-w-lg"
+              className="mt-2 sm:mt-2.5 text-xs sm:text-sm md:text-base text-muted-foreground leading-relaxed max-w-lg"
             >
               {content.heroContent.description}
             </motion.p>
@@ -312,41 +313,41 @@ export function Hero() {
               initial={{ opacity: 0, y: 14 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.75, duration: 0.5 }}
-              className="mt-5 sm:mt-6 flex flex-col gap-4"
+              className="mt-3.5 sm:mt-4 flex flex-col gap-3"
             >
-              <div className="flex flex-col sm:flex-row sm:flex-wrap gap-3">
+              <div className="flex flex-col sm:flex-row sm:flex-wrap gap-2.5">
                 <button
                   onClick={() => scrollTo("#tasks")}
-                  className="btn-cta group h-11 sm:h-12 px-6 font-semibold text-sm sm:text-base shadow-lg shadow-brand-warm/20"
+                  className="btn-cta group h-10 sm:h-11 px-5 font-semibold text-xs sm:text-sm shadow-md shadow-brand-warm/20"
                 >
                   {content.heroContent.primaryCta}
-                  <ArrowRight className="btn-arrow w-4 h-4 sm:w-5 sm:h-5" />
+                  <ArrowRight className="btn-arrow w-4 h-4" />
                 </button>
                 <button
                   onClick={() => scrollTo("#programs")}
-                  className="btn-outline h-11 sm:h-12 px-6 font-semibold text-sm sm:text-base"
+                  className="btn-outline h-10 sm:h-11 px-5 font-semibold text-xs sm:text-sm"
                 >
                   {content.heroContent.secondaryCta}
                 </button>
               </div>
 
               {/* Полоса доверия (Social Proof) */}
-              <div className="flex items-center gap-3 pt-1">
-                <div className="flex -space-x-2 shrink-0">
+              <div className="flex items-center gap-2.5 pt-0.5">
+                <div className="flex -space-x-1.5 shrink-0">
                   {["/images/gallery-1.jpg", "/images/PF6A7844_resized.jpg", "/images/studio-07.jpg", "/images/PF6A8152_resized.jpg"].map((src, i) => (
-                    <div key={i} className="w-7 h-7 sm:w-8 sm:h-8 rounded-full border-2 border-background overflow-hidden relative shadow-sm">
-                      <Image src={src} alt="Ученик студии" fill sizes="32px" className="object-cover" />
+                    <div key={i} className="w-6 h-6 sm:w-7 sm:h-7 rounded-full border-2 border-background overflow-hidden relative shadow-sm">
+                      <Image src={src} alt="Ученик студии" fill sizes="28px" className="object-cover" />
                     </div>
                   ))}
                 </div>
                 <div className="flex flex-col text-left">
                   <div className="flex items-center gap-1">
                     {[...Array(5)].map((_, i) => (
-                      <Star key={i} className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
+                      <Star key={i} className="w-3 h-3 fill-amber-400 text-amber-400" />
                     ))}
-                    <span className="text-xs font-bold text-foreground ml-1 tabular-nums">4.9</span>
+                    <span className="text-xs font-bold text-foreground ml-0.5 tabular-nums">4.9</span>
                   </div>
-                  <p className="text-[11px] sm:text-xs text-muted-foreground">
+                  <p className="text-[10px] sm:text-xs text-muted-foreground">
                     Более 80 довольных семей · Горячий Ключ
                   </p>
                 </div>
@@ -362,7 +363,7 @@ export function Hero() {
             onMouseMove={onTiltMove}
             onMouseLeave={onTiltLeave}
             style={{ rotateX: rotX, rotateY: rotY, transformPerspective: 1200 }}
-            className="relative aspect-[4/3] max-h-[350px] sm:max-h-[390px] w-full will-change-transform [transform-style:preserve-3d]"
+            className="relative aspect-[16/11] max-h-[260px] sm:max-h-[300px] lg:max-h-[320px] xl:max-h-[360px] w-full will-change-transform [transform-style:preserve-3d]"
           >
             <div className="absolute inset-0 rounded-3xl overflow-hidden shadow-2xl ring-1 ring-hairline/60 bg-muted" data-hero-frame>
               <AnimatePresence>
@@ -392,7 +393,7 @@ export function Hero() {
 
               {/* Stories-индикатор фотослайдов */}
               {heroImages.length > 1 && (
-                <div className="absolute bottom-3 inset-x-4 flex items-center justify-center gap-1.5 z-20">
+                <div className="absolute bottom-2.5 inset-x-4 flex items-center justify-center gap-1.5 z-20">
                   {heroImages.map((_, idx) => (
                     <button
                       key={idx}
@@ -413,7 +414,7 @@ export function Hero() {
                 </div>
               )}
             </div>
-            <div className="absolute -inset-3 rounded-[2rem] border-2 border-brand-warm/20 -z-10 hidden sm:block" />
+            <div className="absolute -inset-2.5 rounded-[2rem] border-2 border-brand-warm/20 -z-10 hidden sm:block" />
 
             {/* Карточки-факты по углам кадра */}
             <CornerCard
@@ -422,7 +423,7 @@ export function Hero() {
               label="Возраст детей"
               value="5–15 лет"
               delay={0.7}
-              className="-bottom-4 left-0 sm:-bottom-6 sm:-left-6"
+              className="-bottom-2 left-2 sm:-bottom-3 sm:left-2 lg:-bottom-2 lg:left-2"
               style={{ x: warmX, y: warmY, z: 46 }}
             />
             <CornerCard
@@ -431,19 +432,19 @@ export function Hero() {
               label="Опыт работы"
               value="более 15 лет"
               delay={0.85}
-              className="-top-3 right-0 sm:-top-5 sm:-right-5"
+              className="-top-2 right-2 sm:-top-3 sm:right-2 lg:-top-2 lg:right-2"
               style={{ x: tealX, y: tealY, z: 62 }}
             />
           </motion.div>
         </div>
 
-        {/* Интегрированные карточки фактов прямо в Hero */}
+        {/* Интегрированные карточки фактов прямо в Hero — стильный центрированный dock */}
         {content.trustStats && content.trustStats.length > 0 && (
           <motion.div
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.85, duration: 0.5 }}
-            className="mt-8 sm:mt-10 pt-5 sm:pt-6 border-t border-hairline/60 grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-3.5"
+            className="mt-4 sm:mt-5 pt-3 sm:pt-4 border-t border-hairline/60 grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-3.5 lg:gap-4 w-full"
           >
             {content.trustStats.slice(0, 4).map((s, i) => {
               const warm = i % 2 === 0;
@@ -451,64 +452,102 @@ export function Hero() {
               const label = String(s.label ?? "").trim();
               const desc = String(s.description ?? "").trim();
               const Icon = pickStatIcon(s, i);
+              const isNumeric = /^\d/.test(value);
 
               return (
-                <div
+                <motion.div
                   key={`${value}-${label}-${i}`}
+                  whileHover={{ y: -3, transition: { duration: 0.2 } }}
                   className={cn(
-                    "glass group relative flex flex-col justify-center rounded-2xl p-3 sm:p-3.5 overflow-hidden",
-                    "transition-[transform,box-shadow,border-color] duration-300 ease-out",
-                    "hover:-translate-y-0.5 hover:border-brand-warm/40",
+                    "group relative flex flex-col items-center justify-center text-center",
+                    "rounded-2xl sm:rounded-3xl p-3 sm:p-3.5 lg:p-4 overflow-hidden",
+                    // Премиум-стекло (glassmorphism нового поколения)
+                    "backdrop-blur-xl bg-white/75 dark:bg-card/45",
+                    "border border-white/60 dark:border-white/10",
+                    "shadow-[0_4px_20px_-6px_rgba(0,0,0,0.05),0_1px_4px_-1px_rgba(0,0,0,0.03)]",
+                    "transition-[box-shadow,border-color] duration-300",
                     warm
-                      ? "hover:shadow-[0_16px_30px_-12px_hsl(var(--shadow-tint-warm)/0.35)]"
-                      : "hover:shadow-[0_16px_30px_-12px_hsl(var(--shadow-tint-teal)/0.35)]"
+                      ? "hover:border-brand-warm/45 hover:shadow-[0_16px_36px_-10px_hsl(var(--shadow-tint-warm)/0.4)]"
+                      : "hover:border-brand-teal/45 hover:shadow-[0_16px_36px_-10px_hsl(var(--shadow-tint-teal)/0.4)]"
                   )}
                 >
-                  {/* Фоновый мягкий блик */}
+                  {/* Фоновый мягкий градиентный блик */}
                   <span
                     aria-hidden
                     className={cn(
-                      "pointer-events-none absolute -top-6 -right-6 w-16 h-16 rounded-full blur-xl opacity-30 transition-opacity group-hover:opacity-70",
+                      "pointer-events-none absolute -top-10 -right-10 w-24 h-24 rounded-full blur-2xl opacity-30 transition-opacity duration-300 group-hover:opacity-75",
                       warm ? "bg-brand-warm/30" : "bg-brand-teal/30"
                     )}
                   />
+                  <span
+                    aria-hidden
+                    className={cn(
+                      "pointer-events-none absolute -bottom-10 -left-10 w-20 h-20 rounded-full blur-2xl opacity-20 transition-opacity duration-300 group-hover:opacity-50",
+                      warm ? "bg-brand-teal/20" : "bg-brand-warm/20"
+                    )}
+                  />
 
-                  <div className="flex items-center gap-2 mb-1">
-                    <span
-                      className={cn(
-                        "grid place-items-center w-7 h-7 rounded-lg ring-1 shrink-0",
-                        "transition-transform duration-300 group-hover:scale-105",
-                        warm
-                          ? "bg-brand-warm/15 text-brand-warm-ink ring-brand-warm/30"
-                          : "bg-brand-teal/15 text-brand-teal-ink ring-brand-teal/30"
-                      )}
-                    >
-                      <Icon className="w-3.5 h-3.5" />
-                    </span>
-                    <div className="flex items-baseline gap-1 min-w-0">
-                      <span
-                        className={cn(
-                          "font-display font-extrabold text-base sm:text-lg md:text-xl tabular-nums leading-none tracking-tight",
-                          warm
-                            ? "bg-brand-gradient-warm bg-clip-text text-transparent"
-                            : "bg-brand-gradient-teal bg-clip-text text-transparent"
-                        )}
-                      >
-                        {value}
-                      </span>
-                      {label && (
-                        <span className="text-[11px] sm:text-xs font-semibold text-foreground/80 truncate">
-                          {label}
-                        </span>
-                      )}
-                    </div>
+                  {/* Иконка: центрирована, в светящемся бейдже */}
+                  <div
+                    className={cn(
+                      "relative grid place-items-center w-8 h-8 sm:w-9 sm:h-9 rounded-xl sm:rounded-2xl ring-1 mb-2",
+                      "transition-all duration-300 group-hover:scale-110",
+                      warm
+                        ? "bg-brand-warm/15 text-brand-warm-ink ring-brand-warm/25 group-hover:shadow-[0_0_16px_hsl(var(--brand-warm)/0.4)]"
+                        : "bg-brand-teal/15 text-brand-teal-ink ring-brand-teal/25 group-hover:shadow-[0_0_16px_hsl(var(--brand-teal)/0.4)]"
+                    )}
+                  >
+                    <Icon className="w-4 h-4 sm:w-4.5 sm:h-4.5" strokeWidth={2.2} />
                   </div>
+
+                  {/* Значение и заголовок: строго центрированы */}
+                  <div className="flex items-baseline justify-center gap-1.5 leading-none">
+                    {isNumeric ? (
+                      <>
+                        <span
+                          className={cn(
+                            "font-display font-black text-xl sm:text-2xl lg:text-[1.65rem] tabular-nums tracking-tight",
+                            warm
+                              ? "bg-brand-gradient-warm bg-clip-text text-transparent"
+                              : "bg-brand-gradient-teal bg-clip-text text-transparent"
+                          )}
+                        >
+                          {value}
+                        </span>
+                        {label && (
+                          <span className="text-xs sm:text-sm font-bold uppercase tracking-wider text-foreground/75">
+                            {label}
+                          </span>
+                        )}
+                      </>
+                    ) : (
+                      <>
+                        <span className="font-display font-black text-base sm:text-lg lg:text-xl text-foreground tracking-tight">
+                          {value}
+                        </span>
+                        {label && (
+                          <span
+                            className={cn(
+                              "text-xs sm:text-sm font-bold uppercase tracking-wider",
+                              warm
+                                ? "text-brand-warm-ink dark:text-brand-warm-muted"
+                                : "text-brand-teal-ink dark:text-brand-teal-muted"
+                            )}
+                          >
+                            {label}
+                          </span>
+                        )}
+                      </>
+                    )}
+                  </div>
+
+                  {/* Описание: центрировано */}
                   {desc && (
-                    <p className="text-[11px] text-muted-foreground leading-snug line-clamp-2 pl-0.5">
+                    <p className="mt-1 sm:mt-1.5 text-[11px] sm:text-xs text-muted-foreground font-medium leading-tight text-center max-w-[200px] line-clamp-2">
                       {desc}
                     </p>
                   )}
-                </div>
+                </motion.div>
               );
             })}
           </motion.div>
@@ -517,3 +556,4 @@ export function Hero() {
     </section>
   );
 }
+
