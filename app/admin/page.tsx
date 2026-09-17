@@ -1232,12 +1232,17 @@ export default function AdminPage() {
   return (
     <div className="min-h-screen bg-background">
       <header className="sticky top-0 z-30 bg-card/90 backdrop-blur-md border-b border-border shadow-sm">
-        <div className="max-w-5xl mx-auto px-3 sm:px-4 h-14 flex items-center justify-between gap-2">
+        <div className="max-w-[1280px] mx-auto px-3 sm:px-4 h-14 flex items-center justify-between gap-2">
           <div className="flex items-center gap-2.5 min-w-0">
-            <span className="font-display font-extrabold text-sm sm:text-base truncate">Админка «Сферы»</span>
+            <div className="flex items-center gap-2">
+              <div className="w-7 h-7 rounded-lg bg-primary/15 flex items-center justify-center shrink-0">
+                <LayoutDashboard className="w-4 h-4 text-primary" />
+              </div>
+              <span className="font-display font-extrabold text-sm sm:text-base truncate">Сфера · Админ</span>
+            </div>
             {newEnrollmentsCount > 0 && (
               <button
-                onClick={() => { setTab("inbox"); setCatFilter("leads"); }}
+                onClick={() => { setTab("inbox"); }}
                 className={cn(
                   "inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold transition-all shrink-0",
                   tab === "inbox"
@@ -1252,139 +1257,192 @@ export default function AdminPage() {
               </button>
             )}
           </div>
-          <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+          <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
             {msg && (
               <span
                 data-admin-msg={msgBad ? "bad" : "ok"}
-                className={"text-xs sm:text-sm font-medium max-w-[40ch] truncate " + (msgBad ? "text-destructive" : "text-primary")}
+                className={"text-xs sm:text-sm font-medium max-w-[32ch] truncate " + (msgBad ? "text-destructive" : "text-emerald-500 dark:text-emerald-400")}
               >
                 {msg}
               </span>
             )}
-            <ThemeToggle />
-            <a href="/" target="_blank" className="text-xs sm:text-sm text-muted-foreground hover:text-foreground hidden sm:inline-flex items-center gap-1">
+            <a href="/" target="_blank" rel="noopener" title="Открыть сайт"
+              className="inline-flex items-center gap-1 h-8 px-2 rounded-lg text-xs text-muted-foreground hover:text-foreground hover:bg-accent transition-colors hidden sm:inline-flex">
               Сайт <ExternalLink className="w-3.5 h-3.5" />
             </a>
-            <button onClick={logout} className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-destructive">
+            <ThemeToggle />
+            <button onClick={logout}
+              className="inline-flex items-center gap-1.5 h-8 px-2 rounded-lg text-xs sm:text-sm text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors">
               <LogOut className="w-4 h-4" /> <span className="hidden sm:inline">Выйти</span>
             </button>
           </div>
         </div>
       </header>
 
-      <div className="max-w-5xl mx-auto px-3 sm:px-4 py-4 sm:py-6">
-        {/* Панель фильтрации по категориям + быстрый поиск */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 mb-3">
-          <div className="flex items-center gap-1 overflow-x-auto pb-1 sm:pb-0 scrollbar-hide">
-            {CATEGORIES.map((cat) => {
-              const active = catFilter === cat.id;
-              const hasBadge = cat.id === "leads" && newEnrollmentsCount > 0;
-              return (
-                <button
-                  key={cat.id}
-                  onClick={() => {
-                    setCatFilter(cat.id);
-                    if (cat.id !== "all") {
-                      const inCat = TABS.filter((t) => t.category === cat.id);
-                      if (!inCat.some((t) => t.id === tab) && inCat[0]) {
-                        setTab(inCat[0].id);
-                      }
-                    }
-                  }}
-                  className={cn(
-                    "inline-flex items-center gap-1.5 h-8 px-2.5 sm:px-3 rounded-xl text-xs font-semibold whitespace-nowrap transition-all",
-                    active
-                      ? "bg-foreground text-background shadow-sm"
-                      : "bg-muted/60 text-muted-foreground hover:text-foreground hover:bg-muted"
-                  )}
-                >
-                  <cat.icon className="w-3.5 h-3.5" />
-                  <span>{cat.label}</span>
-                  {hasBadge && (
-                    <span className="ml-0.5 px-1.5 py-0.2 rounded-full text-[10px] font-bold bg-amber-500 text-white">
-                      {newEnrollmentsCount}
-                    </span>
-                  )}
-                </button>
-              );
-            })}
-          </div>
+      {/* Двухколонный layout: сайдбар + контент */}
+      <div className="max-w-[1280px] mx-auto flex gap-0">
 
-          <div className="relative w-full sm:w-56 shrink-0">
-            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground pointer-events-none" />
+        {/* ── Сайдбар: фиксированная навигация (только md+) ── */}
+        <aside className="hidden md:flex flex-col w-52 lg:w-60 shrink-0 sticky top-14 h-[calc(100vh-3.5rem)] overflow-y-auto border-r border-border/60 bg-card/40 py-4 px-2">
+          {/* Поиск */}
+          <div className="relative mb-3 px-1">
+            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground pointer-events-none" />
             <input
               type="text"
               value={tabSearch}
               onChange={(e) => setTabSearch(e.target.value)}
-              placeholder="Поиск по разделам…"
-              className="w-full h-8 pl-8 pr-7 text-xs rounded-xl bg-card border border-border/80 text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+              placeholder="Поиск…"
+              className="w-full h-8 pl-8 pr-6 text-xs rounded-lg bg-background border border-border/60 text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
             />
             {tabSearch && (
-              <button
-                onClick={() => setTabSearch("")}
-                className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground p-0.5"
-                title="Очистить поиск"
-              >
-                <X className="w-3 h-3" />
-              </button>
+              <button onClick={() => setTabSearch("")}
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+              ><X className="w-3 h-3" /></button>
             )}
+          </div>
+
+          {/* Группы и вкладки */}
+          <nav className="flex flex-col gap-0.5">
+            {tabSearch.trim() ? (
+              // Режим поиска: плоский список
+              filteredTabs.length > 0 ? filteredTabs.map((t) => {
+                const active = tab === t.id;
+                const isInbox = t.id === "inbox";
+                return (
+                  <button key={t.id} onClick={() => setTab(t.id)} title={t.hint}
+                    className={cn(
+                      "flex items-center gap-2.5 w-full h-9 px-3 rounded-lg text-sm transition-all text-left",
+                      active
+                        ? "bg-primary text-primary-foreground font-semibold"
+                        : "text-muted-foreground hover:text-foreground hover:bg-accent"
+                    )}
+                  >
+                    <t.icon className="w-4 h-4 shrink-0" />
+                    <span className="truncate flex-1">{t.label}</span>
+                    {isInbox && newEnrollmentsCount > 0 && (
+                      <span className={cn("shrink-0 px-1.5 py-0.5 rounded-full text-[10px] font-bold leading-none",
+                        active ? "bg-white text-primary" : "bg-amber-500 text-white")}>
+                        {newEnrollmentsCount}
+                      </span>
+                    )}
+                  </button>
+                );
+              }) : (
+                <div className="px-3 py-6 text-center text-xs text-muted-foreground">
+                  Ничего не найдено<br />
+                  <button onClick={() => setTabSearch("")} className="mt-1 text-primary underline">Сбросить</button>
+                </div>
+              )
+            ) : (
+              // Обычный режим: категории-группы
+              CATEGORIES.filter((c) => c.id !== "all").map((cat) => {
+                const catTabs = TABS.filter((t) => t.category === cat.id);
+                const hasBadge = cat.id === "leads" && newEnrollmentsCount > 0;
+                return (
+                  <div key={cat.id} className="mb-1">
+                    <div className="flex items-center gap-1.5 px-3 py-1.5">
+                      <cat.icon className="w-3.5 h-3.5 text-muted-foreground/70" />
+                      <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/70">{cat.label}</span>
+                      {hasBadge && (
+                        <span className="ml-auto px-1.5 py-0.5 rounded-full text-[9px] font-bold bg-amber-500 text-white">{newEnrollmentsCount}</span>
+                      )}
+                    </div>
+                    {catTabs.map((t) => {
+                      const active = tab === t.id;
+                      const isInbox = t.id === "inbox";
+                      return (
+                        <button key={t.id} onClick={() => setTab(t.id)} title={t.hint}
+                          className={cn(
+                            "flex items-center gap-2.5 w-full h-9 px-3 rounded-lg text-sm transition-all text-left mb-0.5",
+                            active
+                              ? "bg-primary text-primary-foreground font-semibold shadow-sm"
+                              : "text-foreground/70 hover:text-foreground hover:bg-accent"
+                          )}
+                        >
+                          <t.icon className="w-4 h-4 shrink-0" />
+                          <span className="truncate flex-1">{t.label}</span>
+                          {isInbox && newEnrollmentsCount > 0 && (
+                            <span className={cn("shrink-0 px-1.5 py-0.5 rounded-full text-[10px] font-bold leading-none",
+                              active ? "bg-white text-primary" : "bg-amber-500 text-white animate-pulse")}>
+                              {newEnrollmentsCount}
+                            </span>
+                          )}
+                        </button>
+                      );
+                    })}
+                  </div>
+                );
+              })
+            )}
+          </nav>
+        </aside>
+
+        {/* ── Контент ── */}
+        <main className="flex-1 min-w-0 px-3 sm:px-4 md:px-5 py-4 sm:py-5">
+
+        {/* Мобильная навигация (только < md) */}
+        <div className="md:hidden mb-4">
+          <div className="flex flex-col gap-2">
+            <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-hide">
+              {CATEGORIES.map((cat) => {
+                const active = catFilter === cat.id;
+                const hasBadge = cat.id === "leads" && newEnrollmentsCount > 0;
+                return (
+                  <button key={cat.id} onClick={() => {
+                    setCatFilter(cat.id);
+                    if (cat.id !== "all") {
+                      const inCat = TABS.filter((t) => t.category === cat.id);
+                      if (!inCat.some((t) => t.id === tab) && inCat[0]) setTab(inCat[0].id);
+                    }
+                  }}
+                    className={cn(
+                      "inline-flex items-center gap-1.5 h-8 px-2.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all shrink-0",
+                      active ? "bg-foreground text-background" : "bg-muted/60 text-muted-foreground hover:bg-muted"
+                    )}
+                  >
+                    <cat.icon className="w-3.5 h-3.5" />
+                    <span>{cat.label}</span>
+                    {hasBadge && <span className="ml-0.5 px-1.5 rounded-full text-[10px] font-bold bg-amber-500 text-white">{newEnrollmentsCount}</span>}
+                  </button>
+                );
+              })}
+            </div>
+            <div className="flex gap-1.5 overflow-x-auto pb-1 scrollbar-hide">
+              {filteredTabs.map((t) => {
+                const active = tab === t.id;
+                const isInbox = t.id === "inbox";
+                return (
+                  <button key={t.id} onClick={() => setTab(t.id)}
+                    className={cn(
+                      "inline-flex items-center gap-1.5 h-8 px-2.5 rounded-lg text-xs font-medium whitespace-nowrap shrink-0 transition-all",
+                      active ? "bg-primary text-primary-foreground" : "bg-card border border-border/60 text-foreground/70"
+                    )}
+                  >
+                    <t.icon className="w-3.5 h-3.5 shrink-0" />
+                    {t.label}
+                    {isInbox && newEnrollmentsCount > 0 && (
+                      <span className={cn("px-1.5 rounded-full text-[10px] font-bold",
+                        active ? "bg-white text-primary" : "bg-amber-500 text-white")}>
+                        {newEnrollmentsCount}
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
           </div>
         </div>
 
-        {/* Навигация по вкладкам: кнопки с иконками, бейджами и активным состоянием */}
-        <nav className="flex flex-wrap gap-1.5 sm:gap-2 mb-4 p-2 rounded-2xl bg-card/60 border border-border/60">
-          {filteredTabs.map((t) => {
-            const active = tab === t.id;
-            const isInbox = t.id === "inbox";
-            return (
-              <button
-                key={t.id}
-                onClick={() => setTab(t.id)}
-                title={t.hint}
-                className={cn(
-                  "inline-flex items-center gap-1.5 h-9 px-3 rounded-xl text-xs sm:text-sm font-medium transition-all whitespace-nowrap shrink-0",
-                  active
-                    ? "bg-primary text-primary-foreground shadow-sm font-semibold ring-1 ring-primary/30"
-                    : "bg-background/80 border border-border/60 hover:bg-accent text-foreground/80 hover:text-foreground"
-                )}
-              >
-                <t.icon className="w-4 h-4 shrink-0" />
-                <span>{t.label}</span>
-                {isInbox && newEnrollmentsCount > 0 && (
-                  <span
-                    className={cn(
-                      "ml-1 px-1.5 py-0.5 rounded-full text-[10px] font-bold leading-none",
-                      active
-                        ? "bg-white text-primary"
-                        : "bg-amber-500 text-white animate-pulse"
-                    )}
-                  >
-                    {newEnrollmentsCount}
-                  </span>
-                )}
-              </button>
-            );
-          })}
-          {filteredTabs.length === 0 && (
-            <div className="w-full py-4 text-center text-xs text-muted-foreground">
-              Ничего не найдено по запросу «{tabSearch}».{" "}
-              <button onClick={() => { setTabSearch(""); setCatFilter("all"); }} className="text-primary underline font-medium">
-                Сбросить поиск
-              </button>
-            </div>
-          )}
-        </nav>
-
-        {/* Подсказка: что редактирует текущий раздел и где это на сайте */}
+        {/* Подсказка: что редактирует текущий раздел */}
         {(() => {
           const cur = TABS.find((t) => t.id === tab);
           if (!cur) return null;
           return (
-            <div className="flex items-start gap-3 mb-5 rounded-2xl border border-border/60 bg-accent/50 px-4 py-3">
-              <span className="mt-0.5 inline-flex w-8 h-8 rounded-xl bg-primary/10 text-primary items-center justify-center shrink-0">
-                <cur.icon className="w-5 h-5" />
+            <div className="flex items-start gap-3 mb-4 rounded-xl border border-border/60 bg-accent/30 px-4 py-3">
+              <span className="mt-0.5 inline-flex w-8 h-8 rounded-lg bg-primary/10 text-primary items-center justify-center shrink-0">
+                <cur.icon className="w-4 h-4" />
               </span>
-              <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed pt-1">
+              <p className="text-xs text-muted-foreground leading-relaxed pt-1">
                 <span className="font-semibold text-foreground">{cur.label}. </span>
                 {cur.hint}
               </p>
@@ -2813,6 +2871,7 @@ export default function AdminPage() {
             </div>
           </div>
         )}
+        </main>
       </div>
 
       {/* Плавающая кнопка «наверх» */}
