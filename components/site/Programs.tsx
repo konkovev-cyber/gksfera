@@ -7,7 +7,7 @@ import { Backpack, ArrowRight, BookOpen, Sparkles } from "lucide-react";
 import { useContent } from "./ContentContext";
 import { type Program } from "@/data/site";
 import { iconMap } from "./program-icons";
-import { slugify } from "@/lib/utils";
+import { cn, slugify } from "@/lib/utils";
 
 import { Reveal, Stagger, StaggerItem } from "./Reveal";
 
@@ -51,6 +51,7 @@ export function Programs() {
           title="Какие творческие факультативы у нас есть"
           description="Сцена, слово и творчество — то, что не измеряется оценками, но сильно влияет на уверенность ребёнка и его умение говорить о себе. Записаться можно на несколько сразу."
           accent="creative"
+          isSecondary={educational.length > 0}
         />
       )}
     </div>
@@ -63,12 +64,14 @@ function ProgramsSection({
   title,
   description,
   accent = "educational",
+  isSecondary = false,
 }: {
   programs: Program[];
   subtitle: string;
   title: string;
   description: string;
   accent?: "educational" | "creative";
+  isSecondary?: boolean;
 }) {
   const isEducational = accent === "educational";
   const IconBadge = isEducational ? BookOpen : Sparkles;
@@ -76,25 +79,25 @@ function ProgramsSection({
   const dotColor = isEducational ? "bg-brand-warm" : "bg-brand-teal";
 
   return (
-    <section className="section-padding relative overflow-hidden bg-brand-cream/50">
+    <section className={cn("section-padding relative overflow-hidden bg-brand-cream/50", isSecondary && "!pt-2 md:!pt-4")}>
       <div
         className="absolute bottom-0 left-0 w-80 h-80 rounded-full bg-brand-teal/5 blur-3xl pointer-events-none"
         aria-hidden="true"
       />
       <div className="container-max relative z-10">
         <Reveal>
-          <p className={`text-sm font-semibold uppercase tracking-widest ${badgeColor} mb-3`}>
+          <p className={`text-sm font-semibold uppercase tracking-widest ${badgeColor} mb-2 sm:mb-3`}>
             {subtitle}
           </p>
           <h2 className="font-display font-extrabold text-3xl sm:text-4xl md:text-5xl text-foreground text-balance max-w-3xl leading-[1.15]">
             {title}
           </h2>
-          <p className="mt-6 text-lg text-muted-foreground max-w-2xl leading-relaxed">
+          <p className="mt-3 sm:mt-4 text-base sm:text-lg text-muted-foreground max-w-2xl leading-relaxed">
             {description}
           </p>
         </Reveal>
 
-        <Stagger className="mt-12 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 lg:gap-6">
+        <Stagger className="mt-7 sm:mt-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 lg:gap-6">
           {programs.map((program) => (
             <StaggerItem key={program.id}>
               <ProgramCard program={program} dotColor={dotColor} />

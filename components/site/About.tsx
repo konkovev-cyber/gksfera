@@ -24,18 +24,18 @@ export function About() {
 
       <div className="container-max relative z-10">
         <Reveal>
-          <p className="text-sm font-semibold uppercase tracking-widest text-brand-warm-ink mb-3">
+          <p className="text-sm font-semibold uppercase tracking-widest text-brand-warm-ink mb-2 sm:mb-3">
             {content.aboutContent.subtitle}
           </p>
           <h2 className="font-display font-extrabold text-3xl sm:text-4xl md:text-5xl text-foreground text-balance max-w-3xl leading-[1.15]">
             {content.aboutContent.title}
           </h2>
-          <p className="mt-6 text-lg text-muted-foreground max-w-2xl leading-relaxed">
+          <p className="mt-3 sm:mt-4 text-base sm:text-lg text-muted-foreground max-w-2xl leading-relaxed">
             {content.aboutContent.intro}
           </p>
         </Reveal>
 
-        <Stagger className="mt-12 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+        <Stagger className="mt-7 sm:mt-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
           {content.aboutContent.principles.map((principle) => {
             const Icon = iconMap[principle.icon] ?? Sparkles;
             return (

@@ -47,18 +47,18 @@ export function TaskPicker() {
     <section id="tasks" className="section-padding relative bg-background overflow-hidden">
       <div className="container-max relative z-10">
         <Reveal>
-          <p className="text-sm font-semibold uppercase tracking-widest text-brand-warm-ink mb-3">
+          <p className="text-sm font-semibold uppercase tracking-widest text-brand-warm-ink mb-2 sm:mb-3">
             С чего начать
           </p>
           <h2 className="font-display font-extrabold text-3xl sm:text-4xl md:text-5xl text-foreground text-balance leading-[1.15] max-w-3xl">
             С какой задачей вы пришли?
           </h2>
-          <p className="mt-5 text-lg text-muted-foreground max-w-2xl leading-relaxed">
+          <p className="mt-3 sm:mt-4 text-base sm:text-lg text-muted-foreground max-w-2xl leading-relaxed">
             Нажмите на то, что похоже на вашу ситуацию — покажем, как именно «Сфера» это решает. Если пока не понимаете, что выбрать — напишите, поможем разобраться.
           </p>
         </Reveal>
 
-        <Stagger className="mt-10 grid sm:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-5">
+        <Stagger className="mt-7 sm:mt-8 grid sm:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-5">
           {pains.map((pain) => {
             const tone = TONE_BY_COLOR[pain.color] ?? "warm";
             const Icon = iconMap[pain.icon] ?? Sparkles;

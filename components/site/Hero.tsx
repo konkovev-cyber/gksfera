@@ -2,7 +2,19 @@
 
 import { useState, useEffect } from "react";
 import Image from "next/image";
-import { ArrowRight, Sparkles, Star, ChevronDown } from "lucide-react";
+import {
+  ArrowRight,
+  Sparkles,
+  Star,
+  Award,
+  Users,
+  HeartHandshake,
+  MapPin,
+  Compass,
+  CalendarCheck,
+  GraduationCap,
+  type LucideIcon,
+} from "lucide-react";
 import {
   motion,
   AnimatePresence,
@@ -13,6 +25,28 @@ import {
 } from "framer-motion";
 import { useContent } from "./ContentContext";
 import { cn } from "@/lib/utils";
+
+type Stat = { value?: string; label?: string; description?: string };
+
+const STAT_ICON_RULES: [RegExp, LucideIcon][] = [
+  [/возраст|ученик|школьник|дет/i, Users],
+  [/работ|опыт|лет|год/i, Award],
+  [/групп|каждый ребёнок|вниман/i, HeartHandshake],
+  [/город|адрес|пер\.|ул\.|центр|наход/i, MapPin],
+  [/направл|программ|предмет|курс/i, Compass],
+  [/пробн|бесплатн|знак|пробовать/i, Sparkles],
+  [/распис|занят|час|дней|график/i, CalendarCheck],
+  [/отзыв|родител|сем|довольн/i, Star],
+  [/препода|педаго|учит|образов/i, GraduationCap],
+];
+
+const FALLBACK_STAT_ICONS: LucideIcon[] = [Sparkles, Award, Users, MapPin];
+
+function pickStatIcon(stat: Stat, index: number): LucideIcon {
+  const hay = `${stat.value ?? ""} ${stat.label ?? ""} ${stat.description ?? ""}`;
+  for (const [re, icon] of STAT_ICON_RULES) if (re.test(hay)) return icon;
+  return FALLBACK_STAT_ICONS[index % FALLBACK_STAT_ICONS.length];
+}
 
 const NOISE =
   "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='2'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)' opacity='0.55'/%3E%3C/svg%3E";
@@ -403,18 +437,82 @@ export function Hero() {
           </motion.div>
         </div>
 
-        {/* Микро-подсказка скролла к блоку преимуществ */}
-        <div className="mt-5 sm:mt-6 flex justify-center">
-          <button
-            type="button"
-            onClick={() => scrollTo("#truststats")}
-            className="group inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium text-muted-foreground/80 hover:text-foreground hover:bg-foreground/5 transition-colors"
-            aria-label="Перейти к преимуществам"
+        {/* Интегрированные карточки фактов прямо в Hero */}
+        {content.trustStats && content.trustStats.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.85, duration: 0.5 }}
+            className="mt-8 sm:mt-10 pt-5 sm:pt-6 border-t border-hairline/60 grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-3.5"
           >
-            <span>Коротко, по делу</span>
-            <ChevronDown className="w-3.5 h-3.5 transition-transform group-hover:translate-y-0.5 animate-bounce" />
-          </button>
-        </div>
+            {content.trustStats.slice(0, 4).map((s, i) => {
+              const warm = i % 2 === 0;
+              const value = String(s.value ?? "").trim();
+              const label = String(s.label ?? "").trim();
+              const desc = String(s.description ?? "").trim();
+              const Icon = pickStatIcon(s, i);
+
+              return (
+                <div
+                  key={`${value}-${label}-${i}`}
+                  className={cn(
+                    "glass group relative flex flex-col justify-center rounded-2xl p-3 sm:p-3.5 overflow-hidden",
+                    "transition-[transform,box-shadow,border-color] duration-300 ease-out",
+                    "hover:-translate-y-0.5 hover:border-brand-warm/40",
+                    warm
+                      ? "hover:shadow-[0_16px_30px_-12px_hsl(var(--shadow-tint-warm)/0.35)]"
+                      : "hover:shadow-[0_16px_30px_-12px_hsl(var(--shadow-tint-teal)/0.35)]"
+                  )}
+                >
+                  {/* Фоновый мягкий блик */}
+                  <span
+                    aria-hidden
+                    className={cn(
+                      "pointer-events-none absolute -top-6 -right-6 w-16 h-16 rounded-full blur-xl opacity-30 transition-opacity group-hover:opacity-70",
+                      warm ? "bg-brand-warm/30" : "bg-brand-teal/30"
+                    )}
+                  />
+
+                  <div className="flex items-center gap-2 mb-1">
+                    <span
+                      className={cn(
+                        "grid place-items-center w-7 h-7 rounded-lg ring-1 shrink-0",
+                        "transition-transform duration-300 group-hover:scale-105",
+                        warm
+                          ? "bg-brand-warm/15 text-brand-warm-ink ring-brand-warm/30"
+                          : "bg-brand-teal/15 text-brand-teal-ink ring-brand-teal/30"
+                      )}
+                    >
+                      <Icon className="w-3.5 h-3.5" />
+                    </span>
+                    <div className="flex items-baseline gap-1 min-w-0">
+                      <span
+                        className={cn(
+                          "font-display font-extrabold text-base sm:text-lg md:text-xl tabular-nums leading-none tracking-tight",
+                          warm
+                            ? "bg-brand-gradient-warm bg-clip-text text-transparent"
+                            : "bg-brand-gradient-teal bg-clip-text text-transparent"
+                        )}
+                      >
+                        {value}
+                      </span>
+                      {label && (
+                        <span className="text-[11px] sm:text-xs font-semibold text-foreground/80 truncate">
+                          {label}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                  {desc && (
+                    <p className="text-[11px] text-muted-foreground leading-snug line-clamp-2 pl-0.5">
+                      {desc}
+                    </p>
+                  )}
+                </div>
+              );
+            })}
+          </motion.div>
+        )}
       </div>
     </section>
   );

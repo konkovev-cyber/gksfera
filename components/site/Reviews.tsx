@@ -21,18 +21,18 @@ export function Reviews() {
       />
       <div className="container-max relative z-10">
         <Reveal>
-          <p className="text-sm font-semibold uppercase tracking-widest text-brand-warm-ink mb-3">
+          <p className="text-sm font-semibold uppercase tracking-widest text-brand-warm-ink mb-2 sm:mb-3">
             Отзывы
           </p>
           <h2 className="font-display font-extrabold text-3xl sm:text-4xl md:text-5xl text-foreground text-balance leading-[1.15]">
             Что говорят родители
           </h2>
-          <p className="mt-6 text-lg text-muted-foreground max-w-2xl leading-relaxed">
+          <p className="mt-2.5 sm:mt-3 text-base sm:text-lg text-muted-foreground max-w-2xl leading-relaxed">
             Реальные отзывы из публичных источников — VK и Zoon.
           </p>
         </Reveal>
 
-        <Stagger className="mt-12 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 lg:gap-6 items-start">
+        <Stagger className="mt-7 sm:mt-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 lg:gap-6 items-start">
           {content.reviews.map((review) => (
             <StaggerItem key={review.id}>
               <ReviewCard
