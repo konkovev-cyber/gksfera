@@ -2,14 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 import { revalidatePath } from "next/cache";
 import { checkAdmin } from "@/lib/admin-auth";
 import { getContent } from "@/lib/content";
-import { createClient } from "@supabase/supabase-js";
+import { serviceClient } from "@/lib/supabase-server";
 
-const service = () =>
-  createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
-    { auth: { persistSession: false } }
-  );
+const service = serviceClient;
 
 export async function GET() {
   const denied = await checkAdmin();
@@ -59,7 +54,6 @@ export async function PUT(req: NextRequest) {
 
   const db = service();
   const rows: { key: string; value: unknown }[] = [];
-  if (body.settings) rows.push({ key: "settings", value: body.settings });
   if (body.hero) rows.push({ key: "hero", value: body.hero });
   if (body.visibility) rows.push({ key: "visibility", value: body.visibility });
 
@@ -72,7 +66,9 @@ export async function PUT(req: NextRequest) {
     }
   }
 
-  // Для ключа settings храним плоские поля siteConfig по отдельным ключам
+  // settings: пишем только плоские ключи siteConfig — без промежуточного upsert объекта
+  // 'settings', который нет в switch-цепочке content.ts и поэтому при
+  // следующем чтении просто игнорируется.
   if (body.settings) {
     for (const [k, v] of Object.entries(body.settings)) {
       const { error } = await db
@@ -82,7 +78,6 @@ export async function PUT(req: NextRequest) {
         return NextResponse.json({ error: error.message }, { status: 500 });
       }
     }
-    await db.from("site_settings").delete().eq("key", "settings");
   }
 
   if (body.learningExperience && typeof body.learningExperience === "object") {

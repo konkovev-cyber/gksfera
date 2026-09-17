@@ -1,4 +1,5 @@
-import { createClient } from "@supabase/supabase-js";
+import { unstable_cache } from "next/cache";
+import { serviceClient } from "./supabase-server";
 import * as defaults from "@/data/site";
 import type { Program, GalleryItem, Review, NewsItem, FAQItem, ScheduleGroup, HeroBanner, NavItem } from "@/data/site";
 
@@ -21,18 +22,13 @@ export type Visibility = {
   raspisanie: boolean;
 };
 
-const service = () =>
-  createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
-    { auth: { persistSession: false } }
-  );
+const service = serviceClient;
 
 /**
  * Собирает снапшот контента: значения из Supabase поверх статических по умолчанию.
  * Вызывается на сервере (page.tsx, layout.tsx), результат передаётся в ContentProvider.
  */
-export async function getContent(): Promise<{
+async function _getContent(): Promise<{
   data: SiteData;
   visibility: Visibility;
 }> {
@@ -225,6 +221,17 @@ export async function getContent(): Promise<{
 
   return { data: data as SiteData, visibility };
 }
+
+/**
+ * Кэшированная версия _getContent (TTL 60 с, тег «content»).
+ * После сохранения в админке revalidatePath('/', 'layout') сбрасывает кэш немедленно.
+ */
+export const getContent = unstable_cache(
+  _getContent,
+  ["site-content"],
+  { revalidate: 60, tags: ["content"] },
+);
+
 
 /**
  * Рекурсивно убирает пункты, чей блок видимости отключён. Родитель с выпадающим

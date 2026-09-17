@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { checkAdmin } from "@/lib/admin-auth";
-import { createClient } from "@supabase/supabase-js";
+import { serviceClient } from "@/lib/supabase-server";
 import { safePhotoKey } from "@/lib/photo-key";
 
 const BUCKET = "media";
@@ -60,11 +60,7 @@ export async function POST(req: NextRequest) {
   // не читается. Подробно — lib/photo-key.ts.
   const path = `gallery/${Date.now()}-${safePhotoKey(filename)}`;
 
-  const db = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
-    { auth: { persistSession: false } },
-  );
+  const db = serviceClient();
   const { data, error } = await db.storage.from(BUCKET).createSignedUploadUrl(path);
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
   const { data: pub } = db.storage.from(BUCKET).getPublicUrl(path);

@@ -1,5 +1,5 @@
 import crypto from "crypto";
-import { createClient } from "@supabase/supabase-js";
+import { serviceClient } from "./supabase-server";
 
 /**
  * Зеркалирование картинок из VK в наш Supabase Storage.
@@ -19,12 +19,7 @@ const FOLDER = "news";
 const MAX_BYTES = 15 * 1024 * 1024;
 const FETCH_TIMEOUT_MS = 20_000;
 
-const service = () =>
-  createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
-    { auth: { persistSession: false } },
-  );
+const service = serviceClient;
 
 /** Чужая ли это ссылка (т.е. висит на стороне VK и может отвалиться). */
 export function isForeignMediaUrl(u: unknown): boolean {
@@ -54,13 +49,27 @@ const EXT_BY_TYPE: Record<string, string> = {
   "image/avif": "avif",
 };
 
-/** Имена уже загруженных файлов читаем один раз за процесс синхронизации. */
 let cachedFiles: string[] | null = null;
+let filesPromise: Promise<string[]> | null = null;
+
 async function folderFiles(db: ReturnType<typeof service>): Promise<string[]> {
   if (cachedFiles) return cachedFiles;
-  const { data } = await db.storage.from(BUCKET).list(FOLDER, { limit: 1000, sortBy: { column: "name", order: "asc" } });
-  cachedFiles = (data ?? []).map((f) => String(f.name));
-  return cachedFiles;
+  if (!filesPromise) {
+    filesPromise = db.storage
+      .from(BUCKET)
+      .list(FOLDER, { limit: 1000, sortBy: { column: "name", order: "asc" } })
+      .then(({ data }) => {
+        cachedFiles = (data ?? []).map((f) => String(f.name));
+        return cachedFiles;
+      });
+  }
+  return filesPromise;
+}
+
+/** Сбрасывает кэш файлов (вызывать перед/после каждой синхронизации). */
+export function resetFilesCache() {
+  cachedFiles = null;
+  filesPromise = null;
 }
 
 function publicUrl(db: ReturnType<typeof service>, path: string): string {
@@ -109,8 +118,7 @@ export async function mirrorVkImage(
       upsert: true, // перезапись допустима: имя выведено из адреса
     });
     if (error) return null;
-
-    if (cachedFiles) cachedFiles.push(path.slice(FOLDER.length + 1));
+    if (cachedFiles) cachedFiles.push(`${hash}.${ext}`);
     return { url: publicUrl(db, path), downloaded: true };
   } catch {
     return null; // сеть/VK/Storage — не повод ронять синхронизацию

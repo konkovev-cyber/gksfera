@@ -1,12 +1,9 @@
-import { createClient } from "@supabase/supabase-js";
 import { NextResponse } from "next/server";
 import { sendTelegramNotification } from "@/lib/telegram";
-
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
+import { serviceClient } from "@/lib/supabase-server";
 
 // Server-side client with service_role — bypasses RLS (insert allowed regardless of policy)
-const supabaseAdmin = createClient(supabaseUrl, serviceRoleKey);
+const supabaseAdmin = serviceClient();
 
 /* ────────────────────────── Защита от спама ──────────────────────────
  * Слои (большинство атак — примитивные POST-скрипты мимо формы):
@@ -71,9 +68,11 @@ type Clean = {
   comment: string;
 };
 
-function validate(body: any): { ok: true; data: Clean } | { ok: false; status: number; error: string } {
+function validate(body: unknown): { ok: true; data: Clean } | { ok: false; status: number; error: string } {
+  // Приводим к Record для безопасного доступа по ключу
+  const b = (typeof body === "object" && body !== null ? body : {}) as Record<string, unknown>;
   // 1. Honeypot — тихо «принимаем», чтобы бот не понял, что его спалили
-  if (strip(body.company_website, 100).length > 0) {
+  if (strip(b.company_website, 100).length > 0) {
     return { ok: false, status: 200, error: "" }; // молча дропаем (см. вызывающий код)
   }
 
@@ -81,16 +80,16 @@ function validate(body: any): { ok: true; data: Clean } | { ok: false; status: n
   //    была открыта) — не абсолютную метку, чтобы расхождение часов клиента
   //    с сервером не блокировало честных отправителей и не тривиализировало
   //    проверку «значением из прошлого».
-  const elapsed = Number(body.elapsed);
+  const elapsed = Number(b.elapsed);
   if (!Number.isFinite(elapsed) || elapsed < MIN_FILL_MS) {
     return { ok: false, status: 400, error: "Слишком быстро. Попробуйте ещё раз." };
   }
 
-  const parent_name = strip(body.parent_name, 100);
-  const child_age = strip(body.child_age, 40);
-  const interest = strip(body.interest, 120);
-  const phoneRaw = strip(body.phone, 40);
-  const comment = strip(body.comment, 1000);
+  const parent_name = strip(b.parent_name, 100);
+  const child_age = strip(b.child_age, 40);
+  const interest = strip(b.interest, 120);
+  const phoneRaw = strip(b.phone, 40);
+  const comment = strip(b.comment, 1000);
 
   // 5. Обязательные поля и разумные длины
   if (parent_name.length < 2 || parent_name.length > 100) {
@@ -113,7 +112,7 @@ function validate(body: any): { ok: true; data: Clean } | { ok: false; status: n
   }
   // Согласие на обработку ПДн проверяем и на сервере (не только в браузере):
   // это данные о детях, одобрение должно подтверждаться на бэкенде.
-  if (body.consent !== true) {
+  if (b.consent !== true) {
     return { ok: false, status: 400, error: "Необходимо согласие на обработку данных." };
   }
   // Спам-маркеры в свободных полях: ссылки/URL почти всегда = бот-рассылка
@@ -156,7 +155,7 @@ export async function POST(request: Request) {
       );
     }
 
-    let body: any;
+    let body: unknown;
     try {
       body = await request.json();
     } catch {

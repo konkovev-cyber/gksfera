@@ -14,8 +14,10 @@ function timingEq(a: string, b: string): boolean {
  * Vercel сам шлёт заголовок `Authorization: Bearer ${CRON_SECRET}`,
  * когда CRON_SECRET задан в переменных проекта. Без него эндпоинт
  * fail-CLOSED (500): не оставляем публичный триггер чужих VK-вызовов.
+ * Экспортируем и GET, и POST: старые версии Vercel Crons используют GET,
+ * новые — POST; обработчик один и тот же.
  */
-export async function POST(req: NextRequest) {
+async function handleCron(req: NextRequest): Promise<NextResponse> {
   const secret = process.env.CRON_SECRET;
   if (!secret) {
     return NextResponse.json(
@@ -36,3 +38,6 @@ export async function POST(req: NextRequest) {
   revalidateNews();
   return NextResponse.json(syncPayload(result));
 }
+
+export const GET = handleCron;
+export const POST = handleCron;

@@ -3,14 +3,9 @@ import { checkAdmin } from "@/lib/admin-auth";
 import { slugifyRu } from "@/lib/news";
 import { revalidateNews } from "@/lib/news-cache";
 import { setPinnedNewsKey } from "@/lib/news-lock";
-import { createClient } from "@supabase/supabase-js";
+import { serviceClient } from "@/lib/supabase-server";
 
-const service = () =>
-  createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
-    { auth: { persistSession: false } }
-  );
+const service = serviceClient;
 
 /**
  * Сколько новостей тянет админский список. 100 было маловато: при 150 записей

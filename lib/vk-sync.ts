@@ -1,15 +1,10 @@
-import { createClient } from "@supabase/supabase-js";
+import { serviceClient } from "./supabase-server";
 // Внутри lib держим относительные пути (как в markdown.ts → ./utils):
 // так файл можно использовать и из скриптов вне сборщика.
 import { getPinnedNewsKeys } from "./news-lock";
-import { mirrorVkImage } from "./mirror-media";
+import { mirrorVkImage, resetFilesCache } from "./mirror-media";
 
-const service = () =>
-  createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
-    { auth: { persistSession: false } }
-  );
+const service = serviceClient;
 
 const VK_VERSION = "5.199";
 
@@ -163,36 +158,62 @@ export async function syncVkNews(
   let mirrored = 0;
   let reused = 0;
 
-  for (const p of parsed) {
-    const { data: existing } = await db
-      .from("news")
-      .select("id")
-      .eq("vk_post_id", p.vk_post_id)
-      .maybeSingle();
+  // Сбрасываем кэш зеркала картинок перед синхронизацией:
+  // будем писать новые файлы, поэтому кэш станет устаревшим.
+  resetFilesCache();
 
-    // Закреплённые студией записи не трогаем вовсе: админ мог поправить текст,
-    // заменить обложку или дату — синхронизация это вернула бы к виду из поста.
-    if (existing?.id && pinned.includes(String(p.vk_post_id))) {
-      skipped++;
-      continue;
-    }
+  // Батч-запрос существующих постов — один SELECT вместо N.
+  const allIds = parsed.map((p) => p.vk_post_id);
+  const { data: existingRows } = await db
+    .from("news")
+    .select("id,vk_post_id")
+    .in("vk_post_id", allIds);
+  const existingMap = new Map<string, string>(
+    (existingRows ?? []).map((r) => [String(r.vk_post_id), String(r.id)])
+  );
 
-    // Фото забираем к себе: ссылки sun9-*.userapi.com живут на стороне VK
-    // и могут быть отозваны — тогда у новостей не останется иллюстраций.
-    const mine = await mirrorVkImage(p.image_url);
-    if (mine) {
-      if (mine.url !== p.image_url) p.image_url = mine.url;
-      if (mine.downloaded) mirrored++;
-      else reused++;
-    }
+  // Параллельное зеркалирование картинок: все посты одновременно,
+  // а не последовательно один за другим.
+  const mirrored_parsed = await Promise.all(
+    parsed.map(async (p) => {
+      // Закреплённые студией записи не трогаем вовсе:
+      // админ мог поправить текст, заменить обложку или дату.
+      if (existingMap.has(p.vk_post_id) && pinned.includes(p.vk_post_id)) {
+        skipped++;
+        return null; // пропускаем
+      }
 
-    if (existing?.id) {
-      await db.from("news").update(p).eq("id", existing.id);
-      updated++;
-    } else {
-      await db.from("news").insert({ ...p, visible: true });
-      imported++;
-    }
+      const mine = await mirrorVkImage(p.image_url);
+      if (mine) {
+        if (mine.url !== p.image_url) p.image_url = mine.url;
+        if (mine.downloaded) mirrored++;
+        else reused++;
+      }
+      return p;
+    })
+  );
+
+  const toProcess = mirrored_parsed.filter((p): p is typeof parsed[0] => p !== null);
+  const toInsert = toProcess.filter((p) => !existingMap.has(p.vk_post_id));
+  const toUpdate = toProcess.filter((p) => existingMap.has(p.vk_post_id));
+
+  // Батч-upsert новых постов — один INSERT вместо N.
+  if (toInsert.length > 0) {
+    await db.from("news").insert(toInsert.map((p) => ({ ...p, visible: true })));
+    imported = toInsert.length;
+  }
+
+  // Обновления существующих записей по их первичному ключу id
+  if (toUpdate.length > 0) {
+    await Promise.all(
+      toUpdate.map(async (p) => {
+        const id = existingMap.get(p.vk_post_id);
+        if (id) {
+          await db.from("news").update(p).eq("id", id);
+        }
+      })
+    );
+    updated = toUpdate.length;
   }
 
   return { ok: true, imported, updated, skipped, mirrored, reused, total: parsed.length };
