@@ -203,7 +203,7 @@ export function Hero() {
   return (
     <section
       id="hero"
-      className="relative min-h-[100dvh] lg:min-h-screen flex flex-col justify-center pt-20 sm:pt-22 lg:pt-24 pb-6 sm:pb-8 lg:pb-10 overflow-hidden mesh-hero"
+      className="relative min-h-[100dvh] lg:min-h-screen flex flex-col justify-center pt-20 sm:pt-22 lg:pt-24 pb-4 sm:pb-6 lg:pb-8 overflow-hidden mesh-hero"
       onMouseMove={(e) => {
         const r = e.currentTarget.getBoundingClientRect();
         sx.set(e.clientX - r.left);
@@ -243,8 +243,8 @@ export function Hero() {
         style={{ background: spotlight }}
       />
 
-      <div className="container-max max-w-[1400px] w-full px-4 sm:px-6 lg:px-8 xl:px-10 relative z-10 flex-1 flex flex-col justify-center my-auto">
-        <div className="grid lg:grid-cols-2 gap-8 xl:gap-14 items-center my-auto">
+      <div className="container-max max-w-[1360px] w-full px-4 sm:px-6 lg:px-8 xl:px-10 relative z-10 flex-1 flex flex-col justify-center gap-4 sm:gap-5 lg:gap-6 my-auto">
+        <div className="grid lg:grid-cols-2 gap-8 xl:gap-12 items-center">
           {/* Текстовая часть */}
           <motion.div
             initial={{ opacity: 0, y: 24 }}
@@ -258,7 +258,7 @@ export function Hero() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1, duration: 0.45 }}
               data-hero-badge
-              className="glass inline-flex items-center gap-2.5 px-4 py-1.5 rounded-full ring-1 ring-brand-warm/25 text-foreground text-xs sm:text-sm font-semibold mb-3 sm:mb-4 shadow-sm"
+              className="glass inline-flex items-center gap-2.5 px-4 py-1.5 rounded-full ring-1 ring-brand-warm/25 text-foreground text-xs sm:text-sm font-semibold mb-3.5 sm:mb-4.5 shadow-sm"
             >
               <span className="relative flex h-2.5 w-2.5 shrink-0" aria-hidden="true">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
@@ -267,16 +267,16 @@ export function Hero() {
               <span className="text-foreground/90">{content.heroContent.badge}</span>
             </motion.div>
 
-            <h1 className="font-display font-extrabold text-2xl sm:text-3xl md:text-4xl lg:text-[2.5rem] xl:text-[2.95rem] 2xl:text-[3.25rem] leading-[1.2] sm:leading-[1.22] text-foreground text-balance">
+            <h1 className="font-display font-extrabold text-2xl sm:text-3xl md:text-4xl lg:text-[2.35rem] xl:text-[2.75rem] leading-[1.32] sm:leading-[1.35] lg:leading-[1.38] tracking-[-0.015em] text-foreground text-balance">
               {words.map((w, i) => (
                 <motion.span
                   key={i}
-                  className="inline-block will-change-transform"
-                  initial={{ opacity: 0, y: 18 }}
+                  className="inline-block will-change-transform align-baseline"
+                  initial={{ opacity: 0, y: 16 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{
-                    delay: 0.2 + i * 0.045,
-                    duration: 0.5,
+                    delay: 0.2 + i * 0.04,
+                    duration: 0.45,
                     ease: [0.22, 1, 0.36, 1],
                   }}
                 >
@@ -292,7 +292,7 @@ export function Hero() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.55, duration: 0.5 }}
               className={cn(
-                "mt-3 text-base sm:text-lg xl:text-xl font-display font-bold bg-gradient-to-r from-brand-teal via-brand-warm to-brand-teal bg-clip-text text-transparent",
+                "mt-3.5 sm:mt-4 text-base sm:text-lg xl:text-xl font-display font-bold bg-gradient-to-r from-brand-teal via-brand-warm to-brand-teal bg-clip-text text-transparent",
                 "text-shimmer"
               )}
             >
@@ -303,7 +303,7 @@ export function Hero() {
               initial={{ opacity: 0, y: 14 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.65, duration: 0.5 }}
-              className="mt-3 text-sm sm:text-base xl:text-lg text-muted-foreground leading-relaxed max-w-xl"
+              className="mt-3 sm:mt-3.5 text-sm sm:text-base xl:text-lg text-muted-foreground leading-relaxed max-w-xl"
             >
               {content.heroContent.description}
             </motion.p>
@@ -313,7 +313,7 @@ export function Hero() {
               initial={{ opacity: 0, y: 14 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.75, duration: 0.5 }}
-              className="mt-5 sm:mt-6 flex flex-col gap-4"
+              className="mt-5 sm:mt-6 flex flex-col gap-3.5"
             >
               <div className="flex flex-col sm:flex-row sm:flex-wrap gap-3 xl:gap-4">
                 <button
@@ -438,13 +438,13 @@ export function Hero() {
           </motion.div>
         </div>
 
-        {/* Интегрированные карточки фактов прямо в Hero — стильный центрированный dock БЕЗ разделительной полосы */}
+        {/* Интегрированные карточки фактов прямо в Hero — компактный стильный dock */}
         {content.trustStats && content.trustStats.length > 0 && (
           <motion.div
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.85, duration: 0.5 }}
-            className="mt-6 sm:mt-7 lg:mt-8 grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 xl:gap-5 w-full"
+            className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-3 xl:gap-4 w-full"
           >
             {content.trustStats.slice(0, 4).map((s, i) => {
               const warm = i % 2 === 0;
@@ -457,81 +457,74 @@ export function Hero() {
               return (
                 <motion.div
                   key={`${value}-${label}-${i}`}
-                  whileHover={{ y: -3, transition: { duration: 0.2 } }}
+                  whileHover={{ y: -2, transition: { duration: 0.2 } }}
                   className={cn(
                     "group relative flex flex-col items-center justify-center text-center",
-                    "rounded-2xl sm:rounded-3xl py-3 px-3 sm:py-3.5 sm:px-4 overflow-hidden",
-                    // Премиум-стекло (аккуратное, легкое, современное)
-                    "backdrop-blur-xl bg-white/75 dark:bg-card/45",
-                    "border border-white/65 dark:border-white/10",
-                    "shadow-[0_4px_20px_-8px_rgba(0,0,0,0.05)]",
+                    "rounded-xl sm:rounded-2xl py-2 px-2.5 sm:py-2.5 sm:px-3.5 overflow-hidden",
+                    // Премиум-стекло с поддержкой светлой и тёмной тем
+                    "backdrop-blur-md bg-white/75 dark:bg-card/55",
+                    "border border-hairline/70 dark:border-white/10",
+                    "shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)] dark:shadow-[0_4px_16px_-6px_rgba(0,0,0,0.5)]",
                     "transition-all duration-300 ease-out",
                     warm
-                      ? "hover:border-brand-warm/40 hover:shadow-[0_12px_28px_-8px_hsl(var(--shadow-tint-warm)/0.35)]"
-                      : "hover:border-brand-teal/40 hover:shadow-[0_12px_28px_-8px_hsl(var(--shadow-tint-teal)/0.35)]"
+                      ? "hover:border-brand-warm/40 dark:hover:border-brand-warm/40 hover:shadow-[0_8px_20px_-6px_hsl(var(--shadow-tint-warm)/0.3)]"
+                      : "hover:border-brand-teal/40 dark:hover:border-brand-teal/40 hover:shadow-[0_8px_20px_-6px_hsl(var(--shadow-tint-teal)/0.3)]"
                   )}
                 >
                   {/* Фоновый мягкий градиентный блик */}
                   <span
                     aria-hidden
                     className={cn(
-                      "pointer-events-none absolute -top-10 -right-10 w-28 h-28 rounded-full blur-2xl opacity-30 transition-opacity duration-300 group-hover:opacity-75",
+                      "pointer-events-none absolute -top-8 -right-8 w-20 h-20 rounded-full blur-xl opacity-20 dark:opacity-30 transition-opacity duration-300 group-hover:opacity-60",
                       warm ? "bg-brand-warm/30" : "bg-brand-teal/30"
                     )}
                   />
-                  <span
-                    aria-hidden
-                    className={cn(
-                      "pointer-events-none absolute -bottom-10 -left-10 w-24 h-24 rounded-full blur-2xl opacity-20 transition-opacity duration-300 group-hover:opacity-50",
-                      warm ? "bg-brand-teal/20" : "bg-brand-warm/20"
-                    )}
-                  />
 
-                  {/* Иконка: центрирована, в светящемся бейдже */}
+                  {/* Иконка: компактная, центрирована */}
                   <div
                     className={cn(
-                      "relative grid place-items-center w-8 h-8 sm:w-9 sm:h-9 rounded-xl sm:rounded-2xl ring-1 mb-1.5 sm:mb-2",
-                      "transition-all duration-300 group-hover:scale-110",
+                      "relative grid place-items-center w-6.5 h-6.5 sm:w-7 sm:h-7 rounded-lg ring-1 mb-1",
+                      "transition-all duration-300 group-hover:scale-105",
                       warm
-                        ? "bg-brand-warm/15 text-brand-warm-ink ring-brand-warm/25 group-hover:shadow-[0_0_16px_hsl(var(--brand-warm)/0.4)]"
-                        : "bg-brand-teal/15 text-brand-teal-ink ring-brand-teal/25 group-hover:shadow-[0_0_16px_hsl(var(--brand-teal)/0.4)]"
+                        ? "bg-brand-warm/15 text-brand-warm-ink dark:text-brand-warm ring-brand-warm/25"
+                        : "bg-brand-teal/15 text-brand-teal-ink dark:text-brand-teal ring-brand-teal/25"
                     )}
                   >
-                    <Icon className="w-4 h-4 sm:w-4.5 sm:h-4.5" strokeWidth={2.2} />
+                    <Icon className="w-3.5 h-3.5 sm:w-4 sm:h-4" strokeWidth={2.2} />
                   </div>
 
                   {/* Значение и заголовок: строго центрированы */}
-                  <div className="flex items-baseline justify-center gap-1.5 leading-none">
+                  <div className="flex items-baseline justify-center gap-1 leading-tight">
                     {isNumeric ? (
                       <>
                         <span
                           className={cn(
-                            "font-display font-extrabold text-xl sm:text-2xl tabular-nums tracking-tight",
+                            "font-display font-extrabold text-base sm:text-lg lg:text-xl tabular-nums tracking-tight",
                             warm
-                              ? "bg-brand-gradient-warm bg-clip-text text-transparent"
-                              : "bg-brand-gradient-teal bg-clip-text text-transparent"
+                              ? "bg-brand-gradient-warm bg-clip-text text-transparent dark:text-brand-warm"
+                              : "bg-brand-gradient-teal bg-clip-text text-transparent dark:text-brand-teal"
                           )}
                         >
                           {value}
                         </span>
                         {label && (
-                          <span className="text-xs sm:text-sm font-bold uppercase tracking-wider text-foreground/75">
+                          <span className="text-[11px] sm:text-xs font-bold uppercase tracking-wider text-foreground/75 dark:text-foreground/85">
                             {label}
                           </span>
                         )}
                       </>
                     ) : (
                       <>
-                        <span className="font-display font-extrabold text-base sm:text-lg text-foreground tracking-tight">
+                        <span className="font-display font-extrabold text-sm sm:text-base text-foreground tracking-tight">
                           {value}
                         </span>
                         {label && (
                           <span
                             className={cn(
-                              "text-xs sm:text-sm font-bold uppercase tracking-wider",
+                              "text-[11px] sm:text-xs font-bold uppercase tracking-wider",
                               warm
-                                ? "text-brand-warm-ink dark:text-brand-warm-muted"
-                                : "text-brand-teal-ink dark:text-brand-teal-muted"
+                                ? "text-brand-warm-ink dark:text-brand-warm"
+                                : "text-brand-teal-ink dark:text-brand-teal"
                             )}
                           >
                             {label}
@@ -541,9 +534,9 @@ export function Hero() {
                     )}
                   </div>
 
-                  {/* Описание: центрировано */}
+                  {/* Описание: центрировано, аккуратное и компактное */}
                   {desc && (
-                    <p className="mt-1 text-[11px] sm:text-xs text-muted-foreground font-medium leading-snug text-center max-w-[210px] line-clamp-2">
+                    <p className="mt-0.5 text-[10px] sm:text-[11px] text-muted-foreground dark:text-muted-foreground/90 font-medium leading-tight text-center max-w-[190px] truncate">
                       {desc}
                     </p>
                   )}
