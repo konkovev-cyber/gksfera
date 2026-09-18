@@ -671,6 +671,8 @@ export const footerLinks = {
   legal: [
     { label: "Политика конфиденциальности", href: "/privacy" },
     { label: "Согласие на обработку персональных данных", href: "/consent" },
+    { label: "Публичная оферта", href: "/terms" },
+    { label: "Лицензия и реквизиты", href: "/license" },
   ],
 };
 

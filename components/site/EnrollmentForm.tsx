@@ -401,10 +401,16 @@ export function EnrollmentForm() {
                   className="mt-0.5 w-[18px] h-[18px] rounded-md border-border cursor-pointer flex-shrink-0 accent-[hsl(var(--brand-warm))]"
                 />
                 <span className="text-xs text-foreground/70 leading-relaxed">
-                  Согласен(на) на обработку персональных данных согласно{" "}
+                  Даю согласие на обработку моих персональных данных и персональных данных
+                  моего ребёнка в соответствии с{" "}
                   <a href="/privacy" target="_blank" rel="noopener noreferrer" className="text-brand-warm-ink underline decoration-brand-warm/40 decoration-1 underline-offset-2 hover:decoration-brand-warm">
-                    политике конфиденциальности
+                    политикой конфиденциальности
                   </a>
+                  {` `}и{" "}
+                  <a href="/terms" target="_blank" rel="noopener noreferrer" className="text-brand-warm-ink underline decoration-brand-warm/40 decoration-1 underline-offset-2 hover:decoration-brand-warm">
+                    публичной офертой
+                  </a>
+                  .
                 </span>
               </label>
 
