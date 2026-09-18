@@ -21,19 +21,23 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { data } = await getContent();
   const program = data.programs.find((p) => slugify(p.title) === params.id);
   if (!program) return { title: "Направление не найдено", robots: { index: false } };
+  const title = `${program.title} — студия «Сфера», Горячий Ключ`;
+  const desc = `${program.title} в студии «Сфера» (${program.ageRange}). ${program.description.slice(0, 160)}. Запишитесь на бесплатное пробное занятие.`;
   return {
-    title: { absolute: `${program.title} — студия «Сфера», Горячий Ключ` },
-    description: `${program.title} в студии «Сфера» (${program.ageRange}). ${program.description.slice(0, 160)} Пробное занятие бесплатно.`.slice(0, 300),
+    title,
+    description: desc.slice(0, 300),
     alternates: { canonical: `/programs/${params.id}` },
     openGraph: {
       type: "website",
-      // og:url раньше не задавался и доставался из layout — то есть указывал на
-      // главную. У страницы направления должен быть свой адрес, иначе репост в
-      // MAX или VK ведёт не туда.
       url: `${SITE_ORIGIN}/programs/${slugify(program.title)}`,
-      title: `${program.title} — «Сфера»`,
-      description: program.description,
-      images: program.image ? [{ url: program.image }] : undefined,
+      title,
+      description: desc,
+      images: program.image
+        ? [
+            { url: program.image.startsWith("http") ? program.image : `${SITE_ORIGIN}${program.image}` },
+            { url: `${SITE_ORIGIN}/og-image.png`, width: 1200, height: 630, alt: `OG «Сфера»` },
+          ]
+        : [{ url: `${SITE_ORIGIN}/og-image.png`, width: 1200, height: 630, alt: `OG «Сфера»` }],
     },
   };
 }

@@ -35,6 +35,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const news = await getNewsByKey(params.id);
   if (!news) return { title: "Новость не найдена", robots: { index: false } };
   const siteUrl = SITE_ORIGIN;
+  const ogImg = ogImage(news, siteUrl);
   return {
     title: news.title,
     description: news.excerpt,
@@ -46,7 +47,12 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       publishedTime: news.published_at,
       modifiedTime: news.published_at,
       url: `${siteUrl}${newsUrl(news)}`,
-      images: ogImage(news, siteUrl) ? [{ url: ogImage(news, siteUrl)! }] : undefined,
+      images: ogImg
+        ? [
+            { url: ogImg },
+            { url: `${siteUrl}/og-image.png`, width: 1200, height: 630, alt: "Студия «Сфера»" },
+          ]
+        : [{ url: `${siteUrl}/og-image.png`, width: 1200, height: 630, alt: "Студия «Сфера»" }],
     },
   };
 }

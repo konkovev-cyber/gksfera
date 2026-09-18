@@ -4,6 +4,7 @@ import { Manrope } from 'next/font/google';
 import Script from 'next/script';
 import { MotionProvider } from '@/components/site/MotionProvider';
 import { AnalyticsTracker } from '@/components/site/AnalyticsTracker';
+import { CookieConsent } from '@/components/site/CookieConsent';
 import { getContent } from '@/lib/content';
 import { ldScript } from '@/lib/utils';
 import { SITE_ORIGIN, siteConfig } from '@/data/site';
@@ -36,6 +37,8 @@ export async function generateMetadata(): Promise<Metadata> {
     // Canonical задаётся каждой страницей отдельно. В корневом layout его быть
     // не должно: значение наследовалось всеми маршрутами без своего canonical,
     // и /privacy со /consent официально считались дублями главной.
+    // OG-изображение берётся из /og-image.png: мы не генерируем картинку
+    // динамически, поэтому универсальный превью-образ подходит всем разделам.
     openGraph: {
       type: 'website',
       locale: 'ru_RU',
@@ -138,11 +141,19 @@ export default function RootLayout({
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: ldScript(jsonLd) }}
         />
+        {/* Метрика ставится только после явного согласия пользователя —
+            требование Яндекса с мая 2023 и практика соответствия 152-ФЗ.
+            Баннер CookieConsent (client component) записывает выбор в
+            localStorage; здесь мы читаем его через check() и, если
+            согласия нет, просто не вызываем ym(). Скрипт tag.js всё равно
+            загружается (lazyOnload), но без init счётчик не работает. */}
         <Script
           id="yandex-metrika"
           strategy="lazyOnload"
           dangerouslySetInnerHTML={{
-            __html: `(function(m,e,t,r,i,k,a){m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};m[i].l=1*new Date();for(var j=0;j<document.scripts.length;j++){if(document.scripts[j].src===r){return;}}k=e.createElement(t);a=e.getElementsByTagName(t)[0];k.async=1;k.src=r;a.parentNode.insertBefore(k,a)})(window,document,'script','https://mc.yandex.ru/metrika/tag.js?id=112781836','ym');ym(112781836,'init',{ssr:true,webvisor:true,clickmap:true,ecommerce:"dataLayer",referrer:document.referrer,url:location.href,accurateTrackBounce:true,trackLinks:true});`,
+            __html: `(function(m,e,t,r,i,k,a){m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};m[i].l=1*new Date();for(var j=0;j<document.scripts.length;j++){if(document.scripts[j].src===r){return;}}k=e.createElement(t);a=e.getElementsByTagName(t)[0];k.async=1;k.src=r;a.parentNode.insertBefore(k,a)})(window,document,'script','https://mc.yandex.ru/metrika/tag.js?id=112781836','ym');try{if(localStorage.getItem('sfera_cookie_consent')){var c=JSON.parse(localStorage.getItem('sfera_cookie_consent'));if(c&&c.accept)ym(112781836,'init',{ssr:true,webvisor:true,clickmap:true,ecommerce:"dataLayer",referrer:document.referrer,url:location.href,accurateTrackBounce:true,trackLinks:true});}}catch(e){}
+
+`,
           }}
         />
       </head>
@@ -150,6 +161,7 @@ export default function RootLayout({
         <MotionProvider>
           <AnalyticsTracker />
           {children}
+          <CookieConsent />
         </MotionProvider>
       </body>
     </html>

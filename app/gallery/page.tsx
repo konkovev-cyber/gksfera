@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { ArrowLeft, Phone, Images } from "lucide-react";
 import { getContent } from "@/lib/content";
 import { ldScript } from "@/lib/utils";
+import { SITE_ORIGIN } from "@/data/site";
 import { ContentProvider } from "@/components/site/ContentContext";
 import { Header } from "@/components/site/Header";
 import { Footer } from "@/components/site/Footer";
@@ -11,10 +12,13 @@ import { MobileCTA } from "@/components/site/MobileCTA";
 import { GalleryPageView } from "@/components/site/GalleryPageView";
 
 export const metadata: Metadata = {
-  title: "Галерея — фото и видео занятий",
+  title: "Галерея — фото и видео занятий в «Сфере»",
   description:
-    "Фотографии и видео учебно-развивающей студии «Сфера» в Горячем Ключе: занятия, творчество, праздники и спектакли.",
+    "Фотографии занятий, творческих работ, праздников и спектаклей учебно-развивающей студии «Сфера» в Горячем Ключе. Движение в деле.",
   alternates: { canonical: "/gallery" },
+  openGraph: {
+    images: [{ url: `${SITE_ORIGIN}/og-image.png`, width: 1200, height: 630, alt: "Галерея «Сфера» — Горячий Ключ" }],
+  },
 };
 
 // Галерея обновляется из админки — показываем свежие файлы без устаревшего кэша.
@@ -33,11 +37,11 @@ export default async function GalleryPage() {
     name: `Галерея — ${data.siteConfig.fullName}`,
     description:
       "Фотографии и видео занятий, творческих работ, праздников и спектаклей студии «Сфера».",
-    url: "https://sfera-goryachiy-klyuch.ru/gallery",
+    url: `${SITE_ORIGIN}/gallery`,
     numberOfItems: items.length,
     image: items.map((i) => ({
       "@type": "ImageObject",
-      contentUrl: `https://sfera-goryachiy-klyuch.ru${i.src.startsWith("/") ? "" : "/"}${i.src}`,
+      contentUrl: `${SITE_ORIGIN}${i.src.startsWith("/") ? "" : "/"}${i.src}`,
       caption: i.alt,
     })),
   };

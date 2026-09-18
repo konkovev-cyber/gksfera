@@ -11,10 +11,13 @@ import { MobileCTA } from "@/components/site/MobileCTA";
 import type { NewsItem } from "@/data/site";
 
 export const metadata: Metadata = {
-  title: "Новости и события",
+  title: "Новости и события студии «Сфера» — Горячий Ключ",
   description:
-    "Новости учебно-развивающей студии «Сфера» в Горячем Ключе: события, объявления, достижения наших учеников.",
+    "Новости учебно-развивающей студии «Сфера» в Горячем Ключе: события, объявления, достижения учеников, отчеты со спектаклей и праздников. Обновления каждую неделю.",
   alternates: { canonical: "/news" },
+  openGraph: {
+    images: [{ url: "https://gksfera.vercel.app/og-image.png", width: 1200, height: 630, alt: "Студия «Сфера» — новости" }],
+  },
 };
 
 function fmtDate(iso: string): string {

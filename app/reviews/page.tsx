@@ -9,10 +9,13 @@ import { Footer } from "@/components/site/Footer";
 import { MobileCTA } from "@/components/site/MobileCTA";
 
 export const metadata: Metadata = {
-  title: "Отзывы родителей",
+  title: "Отзывы родителей — студия «Сфера» Горячий Ключ",
   description:
-    "Отзывы родителей об учебно-развивающей студии «Сфера» в Горячем Ключе. Реальные мнения о занятиях для детей от 5 до 15 лет.",
+    "Отзывы родителей об учебно-развивающей студии «Сфера» в Горячем Ключе. Реальные мнения о подготовке к школе, помощи с уроками, английском и творчестве. Рейтинг 5 из 5.",
   alternates: { canonical: "/reviews" },
+  openGraph: {
+    images: [{ url: "https://gksfera.vercel.app/og-image.png", width: 1200, height: 630, alt: "Отзывы о студии «Сфера»" }],
+  },
 };
 
 export default async function ReviewsPage() {

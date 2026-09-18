@@ -9,10 +9,13 @@ import { Schedule } from "@/components/site/Schedule";
 import { SchedulePrint } from "@/components/site/SchedulePrint";
 
 export const metadata: Metadata = {
-  title: "Расписание занятий",
+  title: "Расписание занятий в «Сфере» — Горячий Ключ | дни и часы",
   description:
-    "Актуальное расписание занятий учебно-развивающей студии «Сфера» в Горячем Ключе. Уроки по дням недели для каждой группы, версия для печати.",
+    "Актуальное расписание занятий студии «Сфера» в Горячем Ключе: подготовка к школе, помощь школьникам, английский, театр. Дни и время по группам, удобная версия для печати.",
   alternates: { canonical: "/raspisanie" },
+  openGraph: {
+    images: [{ url: "https://gksfera.vercel.app/og-image.png", width: 1200, height: 630, alt: "Расписание «Сфера»" }],
+  },
 };
 
 // Расписание должно отражать правки из админки сразу, без устаревшего кэша.
