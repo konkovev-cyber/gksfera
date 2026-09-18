@@ -158,9 +158,18 @@ export default function RootLayout({
         />
       </head>
       <body className="font-sans antialiased">
+        {/* Skip-link: позволяет пользователю с клавиатурой или скринридером
+            мгновенно перейти к основному контенту, минуя шапку и навигацию.
+            Требование доступности (Приказ Минкульти № 526, ГОСТ Р 52872-2019). */}
+        <a
+          href="#main-content"
+          className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-primary focus:text-primary-foreground focus:rounded-lg focus:shadow-lg"
+        >
+          Перейти к основному содержанию
+        </a>
         <MotionProvider>
           <AnalyticsTracker />
-          {children}
+          <main id="main-content">{children}</main>
           <CookieConsent />
         </MotionProvider>
       </body>

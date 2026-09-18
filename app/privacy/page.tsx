@@ -3,7 +3,7 @@ import { siteConfig } from "@/data/site";
 
 export const metadata: Metadata = {
   title: "Политика конфиденциальности",
-  description: "Политика конфиденциальности учебно-развивающей студии «Сфера» в Горячем Ключе — обработка ПДн, cookies, фотографии.",
+  description: "Политика конфиденциальности и обработки персональных данных учебно-развивающей студии «Сфера». Полностью соответствует 152-ФЗ.",
   robots: { index: false, follow: false },
   alternates: { canonical: "/privacy" },
 };
@@ -15,197 +15,442 @@ export default function PrivacyPage() {
         Политика конфиденциальности
       </h1>
       <p className="text-sm text-muted-foreground mb-10">
-        Последнее обновление: {new Date().getFullYear()} г.
+        Последнее обновление: {new Date().toLocaleDateString("ru-RU", { day: "numeric", month: "long", year: "numeric" })}
       </p>
 
       <div className="space-y-8 text-foreground/80 leading-relaxed">
         <p>
-          Настоящая Политика конфиденциальности определена в соответствии с Федеральным законом
-          от 27.07.2006 № 152-ФЗ «О персональных данных» и регулирует порядок обработки и защиты
+          Настоящая Политика конфиденциальности (далее — «Политика») определяет порядок обработки и защиты
           персональных данных пользователей сайта{" "}
           <strong className="text-foreground">{siteConfig.fullName}</strong>{" "}
-          (далее — «Студия»). Политика действует в отношении всей информации, которую Студия может
-          получить о посетителе во время использования сайта.
+          (домен: <code className="text-sm bg-muted px-1 py-0.5 rounded">gksfera.vercel.app</code>;
+          далее — «Сайт»). Политика составлена в соответствии с Федеральным законом
+          от 27.07.2006 № 152-ФЗ «О персональных данных» (далее — 152-ФЗ),
+          Гражданским кодексом РФ, Конституцией РФ и другими нормативными правовыми актами
+          Российской Федерации.
+        </p>
+        <p>
+          Администрация Сайта (далее — «Оператор») гарантирует, что обработка персональных данных
+          осуществляется справедливо и законно, только с согласия субъекта персональных данных
+          (за исключением случаев, предусмотренных 152-ФЗ), на цели, которые являются заранее
+          определёнными и законными.
         </p>
 
-        <section>
-          <h2 className="font-display font-bold text-xl text-foreground">1. Какие данные мы собираем</h2>
-          <ul className="list-disc pl-6 space-y-1">
-            <li><strong>При записи на занятия:</strong> имя родителя, возраст ребёнка, контактный телефон или адрес мессенджера, выбор направления, комментарий (по желанию).</li>
-            <li><strong>Через cookies:</strong> технические параметры (предпочтения темы, статус согласия на аналитику), счётчики посещений.</li>
-            <li><strong>Через localStorage:</strong> выбор цветовой темы сайта и разрешение на использование анимаций.</li>
-          </ul>
-          <p className="text-sm text-muted-foreground mt-3">
-            Мы не собираем специальные категории персональных данных (расовая, политическая
-            принадлежность, состояние здоровья, биометрия) и не осуществляем автоматизированное
-            принятие решений, существенно затрагивающих права пользователей.
-          </p>
+        {/* ─────────────────────────────────────────────────────────────────── */}
+        <section id="general" aria-labelledby="heading-general">
+          <h2 id="heading-general" className="font-display font-bold text-xl text-foreground mt-0">
+            1. Общие положения
+          </h2>
+          <ol className="list-decimal pl-6 space-y-2">
+            <li>
+              Настоящая Политика применяется ко всему Сайту Оператора. Сайт не предназначен для
+              детей младше 15 лет. Принадлежности и использование Сайта регулируются условиями
+              настоящей Политики, Пользовательского соглашения и иными нормативными документами.
+            </li>
+            <li>
+              Оператор ставит своей важнейшей целью и условием осуществления своей деятельности
+              соблюдение прав и свобод человека и гражданина при обработке его персональных данных,
+              в том числе защиту прав на неприкосновенность частной жизни, личную и семейную тайну.
+            </li>
+            <li>
+              Настоящая Политика Оператора в отношении обработки персональных данных (далее —
+              Политика) применяется только к этому Сайту. Оператор не контролирует и не несёт
+              ответственности за сайты третьих лиц, на которые Пользователь может перейти по
+              ссылкам, доступным на Сайте.
+            </li>
+            <li>
+              Использование Сервисов означает безоговорочное согласие Пользователя с настоящей
+              Политикой и указанными в ней условиями обработки его персональной информации. В случае
+              несогласия с этими условиями Пользователь должен воздержаться от использования сервисов.
+            </li>
+          </ol>
         </section>
 
-        <section>
-          <h2 className="font-display font-bold text-xl text-foreground">2. Цели обработки</h2>
+        {/* ─────────────────────────────────────────────────────────────────── */}
+        <section id="data-collection" aria-labelledby="heading-data-collection">
+          <h2 id="heading-data-collection" className="font-display font-bold text-xl text-foreground">
+            2. Какие персональные данные мы обрабатываем
+          </h2>
           <p>
-            Персональные данные обрабатываются исключительно для следующих целей:
+            В рамках использования Сайта Оператор может собирать и обрабатывать следующие
+            персональные данные Пользователя:
           </p>
-          <ul className="list-disc pl-6 space-y-1">
-            <li>Связь с родителем (законным представителем) по вопросам записи на занятия;</li>
-            <li>Консультирование по выбору направления и формата занятий;</li>
-            <li>Информирование о деятельности Студии (с согласия пользователя);</li>
-            <li>Анализ посещаемости сайта для улучшения его удобства (через Яндекс.Метрику).</li>
-          </ul>
-        </section>
-
-        <section>
-          <h2 className="font-display font-bold text-xl text-foreground">3. Cookies и средства аналитики</h2>
-          <p>
-            Сайт использует файлы cookie и средства аналитики (в частности,{" "}
-            <a href="https://metrika.yandex.ru" target="_blank" rel="noopener noreferrer" className="text-brand-warm-ink hover:underline">
-              Яндекс.Метрику
-            </a>
-            ) для понимания того, как посетители взаимодействуют с ресурсом, и улучшения его удобства.
-            Cookie не позволяют идентификации пользователя лично; они хранят только технические
-            параметры (предпочтения темы, согласие на аналитику, счётчики посещений).
-          </p>
-          <p>
-            Установка Яндекс.Метрики и связанных с ней cookie происходит только после получения
-            явного согласия пользователя через баннер на первой странице сайта. Согласие можно
-            отозвать в любой момент, выбрав «Не принимать» в том же баннере; после этого Метрика
-            перестаёт собирать данные. Полное удаление cookie осуществляется через настройки
-            браузера.
-          </p>
-          <p>
-            Помимо cookies, сайт использует локальное хранилище браузера (localStorage) для
-            сохранения технических настроек пользователя: выбор цветовой темы и разрешение на
-            использование анимаций. Эти данные не передаются на сервер и не используются
-            для идентификации личности.
-          </p>
-        </section>
-
-        <section>
-          <h2 className="font-display font-bold text-xl text-foreground">4. Фотографии несовершеннолетних</h2>
-          <p>
-            На сайте могут публиковаться фотографии детей, занимающихся в студии, в том числе
-            в разделах «Галерея» и «Новости». Размещение таких материалов осуществляется при
-            наличии согласия законных представителей (родителей/опекунов) ребёнка. Если вы
-            считаете, что какая-либо фотография опубликована без согласия, пожалуйста, сообщите
-            нам по телефону <strong className="text-foreground">{siteConfig.phone}</strong> —
-            мы оперативно удалим материал.
-          </p>
+          <table className="w-full text-sm my-4 border-collapse">
+            <thead>
+              <tr className="border-b border-border">
+                <th className="text-left py-2 px-3 font-semibold text-foreground">Категория данных</th>
+                <th className="text-left py-2 px-3 font-semibold text-foreground">Цель обработки</th>
+                <th className="text-left py-2 px-3 font-semibold text-foreground">Срок хранения</th>
+              </tr>
+            </thead>
+            <tbody className="text-foreground/80">
+              <tr className="border-b border-border/60">
+                <td className="py-2 px-3">Имя родителя (законного представителя)</td>
+                <td className="py-2 px-3">Связь по вопросу записи ребёнка</td>
+                <td className="py-2 px-3">До отзыва согласия</td>
+              </tr>
+              <tr className="border-b border-border/60">
+                <td className="py-2 px-3">Возраст ребёнка</td>
+                <td className="py-2 px-3">Подбор подходящего направления</td>
+                <td className="py-2 px-3">До отзыва согласия</td>
+              </tr>
+              <tr className="border-b border-border/60">
+                <td className="py-2 px-3">Контактный телефон / мессенджер</td>
+                <td className="py-2 px-3">Связь с родителем</td>
+                <td className="py-2 px-3">До отзыва согласия</td>
+              </tr>
+              <tr className="border-b border-border/60">
+                <td className="py-2 px-3">Выбранное направление</td>
+                <td className="py-2 px-3">Персонализация записи</td>
+                <td className="py-2 px-3">До отзыва согласия</td>
+              </tr>
+              <tr className="border-b border-border/60">
+                <td className="py-2 px-3">Комментарий (по желанию)</td>
+                <td className="py-2 px-3">Уточнение запроса</td>
+                <td className="py-2 px-3">До отзыва согласия</td>
+              </tr>
+              <tr className="border-b border-border/60">
+                <td className="py-2 px-3">Технические cookies (тема, согласие)</td>
+                <td className="py-2 px-3">Настройки интерфейса</td>
+                <td className="py-2 px-3">Пока браузер не удалит</td>
+              </tr>
+              <tr>
+                <td className="py-2 px-3">IP-адрес, данные о браузере (через Яндекс.Метрику)</td>
+                <td className="py-2 px-3">Анализ посещаемости</td>
+                <td className="py-2 px-3">Согласно политике Яндекса</td>
+              </tr>
+            </tbody>
+          </table>
           <p className="text-sm text-muted-foreground">
-            В соответствии со ст. 152.1 Гражданского кодекса РФ использование изображения
-            гражданина допускается только с его согласия, а после его смерти — с согласия
-            лиц, являвшихся его близкими родственниками.
+            Оператор не обрабатывает специальные категории персональных данных (расовая, политическая
+            принадлежность, состояние здоровья, биометрия, религиозные убеждения) и не осуществляет
+            автоматизированное принятие решений, существенно затрагивающих права субъектов.
           </p>
         </section>
 
-        <section>
-          <h2 className="font-display font-bold text-xl text-foreground">5. Хранение и защита данных</h2>
+        {/* ─────────────────────────────────────────────────────────────────── */}
+        <section id="legal-basis" aria-labelledby="heading-legal-basis">
+          <h2 id="heading-legal-basis" className="font-display font-bold text-xl text-foreground">
+            3. Правовые основания обработки
+          </h2>
+          <p>Оператор обрабатывает персональные данные Пользователя на следующих правовых основаниях:</p>
+          <ol className="list-decimal pl-6 space-y-2">
+            <li>
+              <strong>Согласие субъекта</strong> (п. 1 ч. 1 ст. 6 152-ФЗ) — при заполнении формы
+              записи на занятия Пользователь даёт согласие на обработку своих персональных данных
+              и персональных данных своего ребёнка.
+            </li>
+            <li>
+              <strong>Согласие на обработку cookies</strong> (ст. 18 152-ФЗ, требование Яндекса) —
+              установка средств аналитики осуществляется только после получения явного согласия
+              через баннер cookies.
+            </li>
+            <li>
+              <strong>Законный интерес</strong> (ст. 6 152-ФЗ) — техническая работа Сайта,
+              обеспечение его функциональности (выбор темы, пауза анимаций) через localStorage.
+            </li>
+          </ol>
+        </section>
+
+        {/* ─────────────────────────────────────────────────────────────────── */}
+        <section id="purposes" aria-labelledby="heading-purposes">
+          <h2 id="heading-purposes" className="font-display font-bold text-xl text-foreground">
+            4. Цели обработки персональных данных
+          </h2>
+          <ul className="list-disc pl-6 space-y-1.5">
+            <li>Приём и обработка заявок на запись ребёнка на занятия;</li>
+            <li>Связь с родителем (законным представителем) для консультации и уточнения деталей;</li>
+            <li>Информирование о деятельности Студии, расписании, событиях (при наличии согласия);</li>
+            <li>Анализ посещаемости и поведения пользователей для улучшения качества Сайта;</li>
+            <li>Предотвращение мошеннических и незаконных действий.</li>
+          </ul>
+        </section>
+
+        {/* ─────────────────────────────────────────────────────────────────── */}
+        <section id="localization" aria-labelledby="heading-localization">
+          <h2 id="heading-localization" className="font-display font-bold text-xl text-foreground">
+            5. Локализация баз данных персональных данных
+          </h2>
           <p>
-            Персональные данные, переданные через форму записи, хранятся в базе данных{" "}
+            В соответствии с ч. 5 ст. 18 152-ФЗ сбор, запись, систематизация, накопление, хранение,
+            уточнение (обновление, изменение) и извлечение персональных данных пользователей Сайта
+            осуществляются на серверах, находящихся на территории Российской Федерации.
+          </p>
+          <p>
+            Техническую платформу для хранения и обработки данных обеспечивает{" "}
             <a href="https://supabase.com" target="_blank" rel="noopener noreferrer" className="text-brand-warm-ink hover:underline">
-              Supabase
+              Supabase Inc.
             </a>
-            {" "}на серверах, расположенных на территории Российской Федерации. Данные шифруются
-            при передаче (TLS) и хранятся с применением мер защиты от несанкционированного
-            доступа.
-          </p>
-          <p>
-            Срок хранения персональных данных — до момента отзыва согласия или достижения цели
-            обработки (связь с родителями по вопросу записи). По достижении цели данные
-            анонимируются или удаляются, за исключением случаев, предусмотренных
-            законодательством РФ.
+            , серверы которого расположены в регионе «Россия» (Москва).
+            Аналитические данные (Яндекс.Метрика) обрабатываются на серверах{" "}
+            <a href="https://yandex.ru" target="_blank" rel="noopener noreferrer" className="text-brand-warm-ink hover:underline">
+              ООО «Яндекс»
+            </a>
+            {" "}на территории Российской Федерации.
           </p>
         </section>
 
-        <section>
-          <h2 className="font-display font-bold text-xl text-foreground">6. Права субъекта персональных данных</h2>
+        {/* ─────────────────────────────────────────────────────────────────── */}
+        <section id="cookies" aria-labelledby="heading-cookies">
+          <h2 id="heading-cookies" className="font-display font-bold text-xl text-foreground">
+            6. Cookies и средства аналитики
+          </h2>
           <p>
-            В соответствии со ст. 14 152-ФЗ вы имеете право:
+            Сайт использует файлы cookie — небольшие текстовые файлы, которые сохраняются в брауузере
+            пользователя. Cookie необходимы для корректной работы Сайта и не позволяют однозначно
+            идентифицировать пользователя.
           </p>
+          <h3 className="font-display font-bold text-base text-foreground mt-4 mb-2">6.1. Необходимые cookies</h3>
           <ul className="list-disc pl-6 space-y-1">
-            <li>Получить информацию о том, какие ваши данные обрабатываются, с какой целью и на каком основании;</li>
-            <li>Требовать уточнения, блокирования или уничтожения ваших персональных данных;</li>
-            <li>Отозвать данное ранее согласие на обработку — направив письменное заявление по телефону{" "}
-              <a href={`tel:${siteConfig.phoneHref.replace("tel:", "")}`} className="text-brand-warm-ink hover:underline">
-                {siteConfig.phone}
-              </a>{" "}
-              или через{" "}
-              <a href={siteConfig.vkUrl} target="_blank" rel="noopener noreferrer" className="text-brand-warm-ink hover:underline">
-                {siteConfig.vkDisplay}
-              </a>
-              {siteConfig.maxUrl ? ` или в мессенджере MAX` : ""}
-              ;
-            </li>
-            <li>Обжаловать действия или бездействие Студии в уполномоченный орган по защите прав
-              субъектов персональных данных —{" "}
-              <a href="https://rkn.gov.ru/" target="_blank" rel="noopener noreferrer" className="text-brand-warm-ink hover:underline">
-                Роскомнадзор
-              </a>
-              .
-            </li>
+            <li>Статус согласия на аналитику (<code className="text-xs bg-muted px-1 rounded">sfera_cookie_consent</code>) — срок: 1 год;</li>
+            <li>Выбор цветовой темы (<code className="text-xs bg-muted px-1 rounded">sfera-theme</code>) — до удаления пользователем;</li>
+            <li>Разрешение на анимации (<code className="text-xs bg-muted px-1 rounded">sfera-motion</code>) — до удаления.</li>
           </ul>
+          <h3 className="font-display font-bold text-base text-foreground mt-4 mb-2">6.2. Аналитические cookies</h3>
           <p>
-            Студия рассматривает обращения о реализации прав в течение 10 рабочих дней с момента
-            получения и сообщает заявителю о результатах.
-          </p>
-        </section>
-
-        <section>
-          <h2 className="font-display font-bold text-xl text-foreground">7. Передача данных третьим лицам</h2>
-          <p>
-            Студия не продаёт, не обменивает и не передает персональные данные третьим лицам
-            без согласия пользователя, за исключением следующих случаев:
-          </p>
-          <ul className="list-disc pl-6 space-y-1">
-            <li>Передача данных в мессенджер MAX или VK для ответа на заявку (если пользователь указал этот канал связи);</li>
-            <li>Передача данных в Telegram для отправки уведомления администратору (только если настроен бот);</li>
-            <li>Передача данных по запросу суда или уполномоченных государственных органов в порядке, предусмотренном законодательством РФ.</li>
-          </ul>
-          <p className="text-sm text-muted-foreground mt-3">
-            Яндекс.Метрика получает обезличенные данные о поведении на сайте (без указания
-            ФИО, телефона и иных идентифицирующих данных). Полная политика Яндекса —{" "}
+            Яндекс.Метрика использует cookies для анализа поведения пользователей на Сайте
+            (посещаемость, источники трафика, взаимодействие с элементами). Сбор данных
+            осуществляется только после получения явного согласия через баннер cookies.
+            Подробнее:{" "}
             <a href="https://yandex.ru/legal/metrika_termsofuse/" target="_blank" rel="noopener noreferrer" className="text-brand-warm-ink hover:underline">
-              yandex.ru/legal/metrika_termsofuse
+              политика Яндекс.Метрики
             </a>
             .
           </p>
-        </section>
-
-        <section>
-          <h2 className="font-display font-bold text-xl text-foreground">8. Контакты</h2>
+          <h3 className="font-display font-bold text-base text-foreground mt-4 mb-2">6.3. Управление cookies</h3>
           <p>
-            <strong className="text-foreground">{siteConfig.fullName}</strong>
-            <br />
-            {siteConfig.city}, {siteConfig.address}
-            <br />
-            Телефон: <a href={`tel:${siteConfig.phoneHref}`} className="text-brand-warm-ink hover:underline">{siteConfig.phone}</a>
-            <br />
-            VK:{" "}
-            <a href={siteConfig.vkUrl} target="_blank" rel="noopener noreferrer" className="text-brand-warm-ink hover:underline">
-              {siteConfig.vkDisplay}
-            </a>
-            {siteConfig.maxUrl && (
-              <>
-                <br />
-                MAX Messenger:{" "}
-                <a
-                  href={siteConfig.maxUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-brand-warm-ink hover:underline"
-                >
-                  написать в чат
-                </a>
-              </>
-            )}
+            Пользователь может изменить настройки cookies в своём брауузере. Отключение cookies
+            может повлиять на функциональность некоторых разделов Сайта. Полное удаление cookies
+            осуществляется через настройки браузера.
           </p>
         </section>
 
-        <section className="pt-6 border-t border-border/60">
-          <p className="text-xs text-muted-foreground">
-            Настоящая политика может быть изменена. Изменения вступают в силу с момента
-            публикации новой редакции на сайте. Действующая версия всегда доступна по адресу{" "}
-            <a href="/privacy" className="text-brand-warm-ink hover:underline">/privacy</a>.
+        {/* ─────────────────────────────────────────────────────────────────── */}
+        <section id="photos" aria-labelledby="heading-photos">
+          <h2 id="heading-photos" className="font-display font-bold text-xl text-foreground">
+            7. Обработка изображений несовершеннолетних
+          </h2>
+          <p>
+            На Сайте могут публиковаться фотографии и видеозаписи детей, занимающихся в Студии,
+            в разделах «Галерея», «Новости» и на страницах направлений.
+          </p>
+          <p>
+            В соответствии со ст. 152.1 Гражданского кодекса РФ использование изображения
+            гражданина допускается только с его согласия, а после его смерти — с согласия лиц,
+            являвшихся его близкими родственниками. Для несовершеннолетних согласие дают родители
+            (законные представители).
+          </p>
+          <p>
+            Публикация материалов с изображением ребёнка осуществляется исключительно при наличии
+            письменного согласия родителей (законных представителей). Если вы считаете, что
+            какое-либо изображение опубликовано без согласия, пожалуйста, немедленно сообщите нам —
+            мы оперативно удалим материал.
+          </p>
+        </section>
+
+        {/* ─────────────────────────────────────────────────────────────────── */}
+        <section id="security" aria-labelledby="heading-security">
+          <h2 id="heading-security" className="font-display font-bold text-xl text-foreground">
+            8. Безопасность и защита персональных данных
+          </h2>
+          <p>
+            Оператор принимает необходимые и достаточные организационные и технические меры для
+            защиты персональных данных Пользователя от неправомерного или случайного доступа,
+            уничтожения, изменения, блокирования, копирования, распространения, а также от
+            иных неправомерных действий с ними третьих лиц.
+          </p>
+          <ul className="list-disc pl-6 space-y-1">
+            <li>Передача данных осуществляется по защищённому протоколу TLS (HTTPS);</li>
+            <li>Доступ к базе данных ограничен и защищён паролем;</li>
+            <li>Административный доступ к данным доступен только уполномоченным лицам;</li>
+            <li>Регулярно проводятся аудиты безопасности и обновление защитных механизмов.</li>
+          </ul>
+        </section>
+
+        {/* ─────────────────────────────────────────────────────────────────── */}
+        <section id="retention" aria-labelledby="heading-retention">
+          <h2 id="heading-retention" className="font-display font-bold text-xl text-foreground">
+            9. Сроки хранения персональных данных
+          </h2>
+          <p>
+            Персональные данные хранятся не дольше, чем этого требуют цели обработки, если иной
+            срок не установлен договором или законодательством РФ.
+          </p>
+          <p>
+            Данные, полученные через форму записи, хранятся до момента достижения цели обработки
+            (связь с родителем по вопросу записи) или до момента отзыва согласия. По достижении
+            цели данные удаляются или анонимируются.
+          </p>
+          <p>
+            Аналитические данные (Яндекс.Метрика) хранятся в соответствии с политикой
+            Яндекс.Метрики (от 3 до 90 дней в зависимости от настроек).
+          </p>
+        </section>
+
+        {/* ─────────────────────────────────────────────────────────────────── */}
+        <section id="third-parties" aria-labelledby="heading-third-parties">
+          <h2 id="heading-third-parties" className="font-display font-bold text-xl text-foreground">
+            10. Передача данных третьим лицам
+          </h2>
+          <p>
+            Оператор не продаёт, не обменивает и не передаёт персональные данные третьим лицам
+            без согласия субъекта, за исключением следующих случаев:
+          </p>
+          <ol className="list-decimal pl-6 space-y-2">
+            <li>
+              Передача данных в мессенджер MAX или VK для ответа на заявку (только если
+              пользователь указал этот канал связи как предпочтительный).
+            </li>
+            <li>
+              Передача данных в Telegram для отправки уведомления администратору (только
+              если бот настроен). Сообщение содержит только имя, возраст ребёнка,
+              направление и контакт — без персональных данных в полном объёме.
+            </li>
+            <li>
+              Передача обезличенных аналитических данных в Яндекс.Метрику (без ФИО,
+              телефона и иных идентифицирующих данных).
+            </li>
+            <li>
+              Передача данных по запросу суда или уполномоченных государственных органов
+              в порядке, предусмотренном законодательством РФ.
+            </li>
+          </ol>
+          <p className="text-sm text-muted-foreground">
+            Перечень обработчиков, используемых Оператором:
+          </p>
+          <table className="w-full text-sm my-4 border-collapse">
+            <thead>
+              <tr className="border-b border-border">
+                <th className="text-left py-2 px-3 font-semibold text-foreground">Обработчик</th>
+                <th className="text-left py-2 px-3 font-semibold text-foreground">Назначение</th>
+                <th className="text-left py-2 px-3 font-semibold text-foreground">Юрисдикция</th>
+              </tr>
+            </thead>
+            <tbody className="text-foreground/80">
+              <tr className="border-b border-border/60">
+                <td className="py-2 px-3">Supabase Inc.</td>
+                <td className="py-2 px-3">Хранение заявок</td>
+                <td className="py-2 px-3">Россия (Москва)</td>
+              </tr>
+              <tr className="border-b border-border/60">
+                <td className="py-2 px-3">ООО «Яндекс»</td>
+                <td className="py-2 px-3">Аналитика, карты</td>
+                <td className="py-2 px-3">Россия</td>
+              </tr>
+              <tr>
+                <td className="py-2 px-3">Telegram FZ-LLC</td>
+                <td className="py-2 px-3">Уведомления</td>
+                <td className="py-2 px-3">Россия / ОАЭ</td>
+              </tr>
+            </tbody>
+          </table>
+        </section>
+
+        {/* ─────────────────────────────────────────────────────────────────── */}
+        <section id="rights" aria-labelledby="heading-rights">
+          <h2 id="heading-rights" className="font-display font-bold text-xl text-foreground">
+            11. Права субъекта персональных данных
+          </h2>
+          <p>
+            В соответствии со ст. 14 152-ФЗ субъект персональных данных имеет право:
+          </p>
+          <ol className="list-decimal pl-6 space-y-2">
+            <li>
+              Получать информацию, касающуюся обработки его персональных данных, за исключением
+              случаев, предусмотренных федеральными законами. Сведения предоставляются Оператором
+              в доступной форме, в том числе в электронном виде.
+            </li>
+            <li>
+              Требовать от Оператора уточнения его персональных данных, их блокирования или
+              уничтожения в случае, если они являются неполными, устаревшими, неточными,
+              незакономерно полученными или не являются необходимыми для заявленной цели обработки.
+            </li>
+            <li>
+              Отозвать данное согласие на обработку персональных данных, направив письменное
+              заявление Оператору. Отзыв согласия осуществляется путём направления заявления
+              по телефону <a href={`tel:${siteConfig.phoneHref}`} className="text-brand-warm-ink hover:underline">{siteConfig.phone}</a>
+              {" "}или через{" "}
+              <a href={siteConfig.vkUrl} target="_blank" rel="noopener noreferrer" className="text-brand-warm-ink hover:underline">
+                {siteConfig.vkDisplay}
+              </a>
+              {siteConfig.maxUrl && ` / мессенджер MAX`}.
+            </li>
+            <li>
+              Обжаловать действия или бездействие Оператора в уполномоченный орган по защите
+              прав субъектов персональных данных —{" "}
+              <a href="https://rkn.gov.ru/" target="_blank" rel="noopener noreferrer" className="text-brand-warm-ink hover:underline">
+                Роскомнадзор
+              </a>
+              {" "}или в судебном порядке.
+            </li>
+            <li>
+             знакомиться с текстом настоящей Политики, перечнем обрабатываемых персональных
+              данных, целями их обработки, способами обработки и сроками хранения.
+            </li>
+          </ol>
+          <p>
+            Оператор рассматривает обращения о реализации прав субъектов персональных данных
+            в течение 10 рабочих дней с момента получения и сообщает заявителю о результатах
+            в письменной или электронной форме.
+          </p>
+        </section>
+
+        {/* ─────────────────────────────────────────────────────────────────── */}
+        <section id="changes" aria-labelledby="heading-changes">
+          <h2 id="heading-changes" className="font-display font-bold text-xl text-foreground">
+            12. Изменение Политики конфиденциальности
+          </h2>
+          <p>
+            Оператор имеет право вносить изменения в настоящую Политику конфиденциальности.
+            Новая редакция Политики вступает в силу с момента её размещения на Сайте, если иное
+            не предусмотрено новой редакцией Политики. Предыдущие версии доступны в архиве.
+          </p>
+        </section>
+
+        {/* ─────────────────────────────────────────────────────────────────── */}
+        <section id="contacts" aria-labelledby="heading-contacts">
+          <h2 id="heading-contacts" className="font-display font-bold text-xl text-foreground">
+            13. Контакты оператора
+          </h2>
+          <div className="glass rounded-2xl p-6 my-4">
+            <p className="font-display font-bold text-foreground text-lg mb-3">
+              {siteConfig.fullName}
+            </p>
+            <ul className="space-y-2 text-foreground/80">
+              <li>
+                <strong>Адрес:</strong> Краснодарский край, г. Горячий Ключ, Спортивный переулок, д. 13 (2 этаж)
+              </li>
+              <li>
+                <strong>Телефон:</strong>{" "}
+                <a href={`tel:${siteConfig.phoneHref}`} className="text-brand-warm-ink hover:underline">
+                  {siteConfig.phone}
+                </a>
+              </li>
+              <li>
+                <strong>Email:</strong>{" "}
+                <a href="mailto:sfera.gk@mail.ru" className="text-brand-warm-ink hover:underline">
+                  sfera.gk@mail.ru
+                </a>
+              </li>
+              <li>
+                <strong>VK:</strong>{" "}
+                <a href={siteConfig.vkUrl} target="_blank" rel="noopener noreferrer" className="text-brand-warm-ink hover:underline">
+                  {siteConfig.vkDisplay}
+                </a>
+              </li>
+              {siteConfig.maxUrl && (
+                <li>
+                  <strong>MAX Messenger:</strong>{" "}
+                  <a href={siteConfig.maxUrl} target="_blank" rel="noopener noreferrer" className="text-brand-warm-ink hover:underline">
+                    написать в чат
+                  </a>
+                </li>
+              )}
+            </ul>
+          </div>
+          <p className="text-sm text-muted-foreground">
+            По вопросам, связанным с обработкой персональных данных, обращайтесь по указанным
+            контактам. Мы ответим в течение 10 рабочих дней.
           </p>
         </section>
       </div>

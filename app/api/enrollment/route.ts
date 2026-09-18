@@ -66,6 +66,7 @@ type Clean = {
   interest_label: string;
   phone: string;
   comment: string;
+  photo_consent?: boolean;
 };
 
 function validate(body: unknown): { ok: true; data: Clean } | { ok: false; status: number; error: string } {
@@ -130,6 +131,7 @@ function validate(body: unknown): { ok: true; data: Clean } | { ok: false; statu
       interest_label: interest,
       phone: phoneRaw,
       comment,
+      photo_consent: b.photo_consent === true,
     },
   };
 }
@@ -208,6 +210,7 @@ export async function POST(request: Request) {
       interest_label: d.interest_label,
       phone: d.phone,
       comment: d.comment,
+      photo_consent: d.photo_consent,
     });
 
     if (error) {

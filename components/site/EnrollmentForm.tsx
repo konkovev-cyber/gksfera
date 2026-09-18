@@ -28,6 +28,7 @@ type FormState = {
   contact: string;
   comment: string;
   consent: boolean;
+  photoConsent: boolean;
 };
 
 const initialState: FormState = {
@@ -37,6 +38,7 @@ const initialState: FormState = {
   contact: "",
   comment: "",
   consent: false,
+  photoConsent: false,
 };
 
 type SubmitStatus = "idle" | "loading" | "success" | "error";
@@ -176,6 +178,7 @@ export function EnrollmentForm() {
           phone: form.contact,
           comment: form.comment,
           consent: form.consent,                 // сервер требует согласие
+          photo_consent: form.photoConsent,      // согласие на использование фото (152.1 ГК РФ)
           elapsed: Date.now() - mountedAt.current, // сколько мс форма была открыта (анти-бот, без учёта часов сервера)
           company_website: honeypotRef.current?.value ?? "", // скрытое поле: заполняют только боты
         }),
@@ -411,6 +414,25 @@ export function EnrollmentForm() {
                     публичной офертой
                   </a>
                   .
+                </span>
+              </label>
+
+              <label htmlFor="photoConsent" className="flex items-start gap-2.5 cursor-pointer py-2.5 -my-2.5">
+                <input
+                  type="checkbox"
+                  id="photoConsent"
+                  name="photoConsent"
+                  checked={form.photoConsent}
+                  onChange={handleChange}
+                  className="mt-0.5 w-[18px] h-[18px] rounded-md border-border cursor-pointer flex-shrink-0 accent-[hsl(var(--brand-warm))]"
+                />
+                <span className="text-xs text-foreground/70 leading-relaxed">
+                  Согласен(на) на использование фотографий и видеозаписей с изображением
+                  моего ребёнка в материалах Студии (согласно ст. 152.1 ГК РФ).
+                  {" "}
+                  <a href="/privacy#photos" className="text-brand-warm-ink underline decoration-brand-warm/40 decoration-1 underline-offset-2 hover:decoration-brand-warm">
+                    Подробнее
+                  </a>
                 </span>
               </label>
 
