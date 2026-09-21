@@ -5,6 +5,7 @@ import Script from 'next/script';
 import { MotionProvider } from '@/components/site/MotionProvider';
 import { AnalyticsTracker } from '@/components/site/AnalyticsTracker';
 import { CookieConsent } from '@/components/site/CookieConsent';
+import { FloatContactServer } from '@/components/site/FloatContactServer';
 import { getContent } from '@/lib/content';
 import { ldScript } from '@/lib/utils';
 import { SITE_ORIGIN, siteConfig } from '@/data/site';
@@ -171,6 +172,7 @@ export default function RootLayout({
           <AnalyticsTracker />
           <main id="main-content">{children}</main>
           <CookieConsent />
+          <FloatContactServer />
         </MotionProvider>
       </body>
     </html>
