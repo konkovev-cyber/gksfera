@@ -243,20 +243,31 @@ export const getContent = unstable_cache(
 
 
 /**
- * Рекурсивно убирает пункты, чей блок видимости отключён. Родитель с выпадающим
- * списком остаётся, если живёт хотя бы один потомок (или есть своя ссылка),
- * иначе исчезает целиком.
+ * Рекурсивно убирает пункты, чей блок видимости отключён.
+ *
+ * Для пункта-родителя с `children` (выпадающее меню) логика отличается:
+ *  - `vis` родителя управляет только видимостью его **собственной ссылки** href
+ *    внутри дропдауна (отдельным пунктом «О студии →»), но НЕ существованием
+ *    кнопки-родителя в шапке.
+ *  - Сам пункт-родитель исчезает только если у него нет href И все дочерние
+ *    ссылки тоже скрыты — т.е. дропдаун был бы полностью пустым.
+ *
+ * Это значит: даже когда блок «about» отключён, пункт «О студии» остаётся
+ * в меню, пока хотя бы один из его детей (Направления, Расписание…) активен.
  */
 function filterNav(items: NavItem[], vis: Visibility): NavItem[] {
   const on = (key?: string) => (key ? vis[key as keyof Visibility] !== false : true);
   const out: NavItem[] = [];
   for (const item of items) {
-    if (!on(item.vis)) continue;
     if (item.children?.length) {
+      // Родитель с дропдауном: фильтруем детей; собственный href скрываем
+      // если его блок видимости выключен (но кнопку-родитель не прячем).
       const children = filterNav(item.children, vis);
-      if (children.length === 0 && !item.href) continue; // пустой дропдаун не показываем
-      out.push({ ...item, children });
+      const hrefVisible = on(item.vis) ? item.href : undefined;
+      if (children.length === 0 && !hrefVisible) continue; // пустой дропдаун
+      out.push({ ...item, href: hrefVisible, children });
     } else {
+      if (!on(item.vis)) continue;
       out.push({ ...item });
     }
   }

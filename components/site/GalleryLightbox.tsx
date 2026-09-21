@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, ChevronLeft, ChevronRight, ZoomIn, ZoomOut } from "lucide-react";
+import { X, ChevronLeft, ChevronRight, ZoomIn, ZoomOut, Share2, Check, Copy } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { isVideoSrc } from "@/lib/compress";
 import type { GalleryItem } from "@/data/site";
@@ -27,10 +27,45 @@ export function GalleryLightbox({
   onIndex: (i: number) => void;
 }) {
   const [zoomed, setZoomed] = useState(false);
+  const [shared, setShared] = useState(false);
   const touchRef = useRef<{ startX: number; startY: number } | null>(null);
 
   const open = index !== null && !!items[index];
   const total = items.length;
+  const current = open ? items[index] : null;
+  const video = current ? isVideoSrc(current.src) : false;
+
+  const sharePhoto = useCallback(async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!current) return;
+    const url = current.src;
+    const title = current.alt || "Фото студии «Сфера»";
+    if (typeof window !== "undefined" && typeof navigator !== "undefined") {
+      if (typeof (navigator as Navigator & { share?: (data?: ShareData) => Promise<void> }).share === "function") {
+        try {
+          await navigator.share({ title, url });
+          return;
+        } catch {
+          // пользователь отменил
+          return;
+        }
+      }
+      // Fallback: копируем URL в буфер
+      try {
+        if (navigator.clipboard?.writeText) {
+          await navigator.clipboard.writeText(url);
+        } else {
+          window.prompt("Скопируйте ссылку:", url);
+          return;
+        }
+      } catch {
+        window.prompt("Скопируйте ссылку:", url);
+        return;
+      }
+      setShared(true);
+      setTimeout(() => setShared(false), 2000);
+    }
+  }, [current]);
 
   const close = useCallback(() => {
     setZoomed(false);
@@ -49,9 +84,10 @@ export function GalleryLightbox({
     onIndex((index + 1) % total);
   }, [index, total, onIndex]);
 
-  // Смена кадра — зум сбрасываем, иначе следующий файл откроется увеличенным.
+  // Смена кадра — зум и статус «скопировано» сбрасываем.
   useEffect(() => {
     setZoomed(false);
+    setShared(false);
   }, [index]);
 
   useEffect(() => {
@@ -97,8 +133,6 @@ export function GalleryLightbox({
     touchRef.current = null;
   };
 
-  const current = open ? items[index] : null;
-  const video = current ? isVideoSrc(current.src) : false;
 
   return (
     <AnimatePresence>
@@ -140,6 +174,20 @@ export function GalleryLightbox({
               {zoomed ? <ZoomOut className="w-6 h-6" /> : <ZoomIn className="w-6 h-6" />}
             </button>
           )}
+
+          {/* Кнопка «Поделиться» */}
+          <button
+            className="absolute top-4 right-36 w-12 h-12 rounded-full bg-on-scrim/10 text-on-scrim flex items-center justify-center hover:bg-on-scrim/20 transition-colors z-20"
+            onClick={sharePhoto}
+            aria-label="Поделиться"
+            title={shared ? "Ссылка скопирована!" : "Поделиться"}
+          >
+            {shared
+              ? <Check className="w-5 h-5 text-green-400" />
+              : typeof window !== "undefined" && "share" in navigator
+                ? <Share2 className="w-5 h-5" />
+                : <Copy className="w-5 h-5" />}
+          </button>
 
           {/* Стрелки навигации */}
           {!zoomed && total > 1 && (
