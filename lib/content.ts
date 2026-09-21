@@ -20,6 +20,11 @@ export type Visibility = {
   contacts: boolean;
   /** Страница /raspisanie: отключение убирает пункт из меню и закрывает страницу. */
   raspisanie: boolean;
+  /** Блоки контента (вкладка «Блоки» в админке). */
+  tasks: boolean;
+  results: boolean;
+  truststats: boolean;
+  parentnav: boolean;
 };
 
 const service = serviceClient;
@@ -73,6 +78,10 @@ async function _getContent(): Promise<{
     enrollment: true,
     contacts: true,
     raspisanie: true,
+    tasks: true,
+    results: true,
+    truststats: true,
+    parentnav: true,
   };
 
   try {

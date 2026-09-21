@@ -39,11 +39,11 @@ export const metadata: Metadata = {
  * «Порядок»). Hero закреплён сверху, обвязка — снизу, они не перемещаются.
  */
 const SECTIONS: Record<string, { el: ReactNode; vis?: keyof Visibility }> = {
-  tasks: { el: <TaskPicker /> },
+  tasks: { el: <TaskPicker />, vis: "tasks" },
   about: { el: <About />, vis: "about" },
   programs: { el: <Programs />, vis: "programs" },
-  results: { el: <Results /> },
-  truststats: { el: <TrustStats /> },
+  results: { el: <Results />, vis: "results" },
+  truststats: { el: <TrustStats />, vis: "truststats" },
   learning: { el: <LearningExperience />, vis: "learning" },
   gallery: { el: <Gallery />, vis: "gallery" },
   teachers: { el: <Teachers />, vis: "teachers" },
@@ -51,7 +51,7 @@ const SECTIONS: Record<string, { el: ReactNode; vis?: keyof Visibility }> = {
   events: { el: <Events />, vis: "events" },
   news: { el: <News />, vis: "news" },
   faq: { el: <FAQ />, vis: "faq" },
-  parentnav: { el: <ParentNavigator /> },
+  parentnav: { el: <ParentNavigator />, vis: "parentnav" },
   cta: { el: <CTA />, vis: "cta" },
   enrollment: {
     el: (

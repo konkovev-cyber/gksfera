@@ -64,9 +64,11 @@ const TABS: { id: Tab; label: string; icon: any; category: TabCategory; hint: st
 ];
 
 const VIS_LABELS: Record<string, string> = {
-  about: "О студии", programs: "Направления", learning: "Как проходят занятия",
+  tasks: "С какой задачей пришли", about: "О студии", programs: "Направления",
+  results: "Результаты занятий", truststats: "Цифры доверия", learning: "Как проходят занятия",
   gallery: "Галерея", teachers: "Преподаватели", reviews: "Отзывы", news: "Новости",
-  faq: "Частые вопросы", events: "События", cta: "CTA-баннер", enrollment: "Форма записи", contacts: "Контакты и карта",
+  faq: "Частые вопросы", events: "События", parentnav: "Навигатор для родителей",
+  cta: "CTA-баннер", enrollment: "Форма записи", contacts: "Контакты и карта",
 };
 
 /** Подписи всех переставляемых блоков главной (для вкладки «Порядок»). */
