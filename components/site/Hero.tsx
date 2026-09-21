@@ -13,9 +13,6 @@ import {
   Compass,
   CalendarCheck,
   GraduationCap,
-  Phone,
-  MessageCircle,
-  ChevronRight,
   type LucideIcon,
 } from "lucide-react";
 import {
@@ -128,66 +125,6 @@ function CornerCard({
   );
 }
 
-/** Красивый контактный бейдж — телефон + мессенджеры прямо в Hero */
-function ContactBadge() {
-  const content = useContent();
-  const cfg = content.siteConfig;
-
-  const links = [
-    cfg.phoneHref && {
-      href: cfg.phoneHref,
-      label: cfg.phone,
-      icon: <Phone className="w-4 h-4" />,
-      cls: "bg-brand-warm/10 text-brand-warm-ink hover:bg-brand-warm/20 ring-brand-warm/30",
-    },
-    cfg.maxUrl && {
-      href: cfg.maxUrl,
-      label: "MAX",
-      icon: <MessageCircle className="w-4 h-4" />,
-      cls: "bg-brand-teal/10 text-brand-teal-ink hover:bg-brand-teal/20 ring-brand-teal/30",
-    },
-    cfg.vkUrl && {
-      href: cfg.vkUrl,
-      label: "ВКонтакте",
-      icon: (
-        <svg viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4" aria-hidden="true">
-          <path d="M19.915 13.028c-.388-.49-.277-.708 0-1.146.005-.005 3.851-5.306 4.246-7.107l.002-.007c.194-.65 0-1.128-.947-1.128h-3.135c-.796 0-1.163.414-1.357.874 0 0-1.587 3.782-3.836 6.237-.727.713-1.057.94-1.453.94-.199 0-.487-.227-.487-.877V4.768c0-.783-.232-1.128-.897-1.128H8.708c-.502 0-.803.365-.803.712 0 .75 1.138.924 1.255 3.036v4.588c0 .995-.183 1.175-.579 1.175-1.057 0-3.625-3.802-5.148-8.15C3.143 3.36 2.84 3 2.038 3H-.097C-1 3 -1.2 3.414-1.2 3.874c0 .806 1.057 4.802 4.921 10.088 2.576 3.641 6.203 5.614 9.507 5.614 1.981 0 2.225-.437 2.225-1.19v-2.749c0-.888.19-1.064.832-1.064.472 0 1.28.233 3.169 2.028C21.438 18.378 21.771 19 22.847 19h3.135c.902 0 1.354-.437 1.092-1.302-.285-.862-1.294-2.11-2.636-3.59-.727-.84-1.818-1.742-2.523-2.08z" />
-        </svg>
-      ),
-      cls: "bg-[#0077FF]/10 text-[#0055CC] hover:bg-[#0077FF]/20 ring-[#0077FF]/30 dark:text-[#4DA6FF]",
-    },
-  ].filter(Boolean) as { href: string; label: string; icon: React.ReactNode; cls: string }[];
-
-  if (!links.length) return null;
-
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: 0.9, duration: 0.45 }}
-      className="flex flex-wrap items-center gap-2 pt-1"
-    >
-      <span className="text-xs text-muted-foreground font-medium shrink-0">Связаться:</span>
-      {links.map((l) => (
-        <a
-          key={l.href}
-          href={l.href}
-          target={l.href.startsWith("http") ? "_blank" : undefined}
-          rel={l.href.startsWith("http") ? "noopener noreferrer" : undefined}
-          aria-label={l.label}
-          className={cn(
-            "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold",
-            "ring-1 transition-all duration-200 hover:scale-105 active:scale-95 shadow-sm",
-            l.cls
-          )}
-        >
-          {l.icon}
-          <span>{l.label}</span>
-        </a>
-      ))}
-    </motion.div>
-  );
-}
 
 export function Hero() {
   const content = useContent();
@@ -416,9 +353,6 @@ export function Hero() {
                   </p>
                 </div>
               </div>
-
-              {/* Контактный бейдж — телефон + мессенджеры */}
-              <ContactBadge />
             </motion.div>
           </motion.div>
 

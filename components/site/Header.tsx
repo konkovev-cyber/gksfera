@@ -236,6 +236,32 @@ export function Header() {
             >
               <Phone className="w-[18px] h-[18px]" />
             </a>
+            {content.siteConfig.maxUrl && (
+              <a
+                href={content.siteConfig.maxUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center justify-center w-10 h-10 rounded-full border border-border/70 text-foreground/80 hover:text-brand-teal hover:border-brand-teal/50 hover:bg-accent/50 transition-colors"
+                aria-label="Написать в MAX"
+                title="Написать в MAX"
+              >
+                <MessageCircle className="w-[18px] h-[18px]" />
+              </a>
+            )}
+            {content.siteConfig.vkUrl && (
+              <a
+                href={content.siteConfig.vkUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center justify-center w-10 h-10 rounded-full border border-border/70 text-foreground/80 hover:text-[#0077FF] hover:border-[#0077FF]/50 hover:bg-accent/50 transition-colors"
+                aria-label="ВКонтакте"
+                title="ВКонтакте"
+              >
+                <svg viewBox="0 0 24 24" fill="currentColor" className="w-[18px] h-[18px]" aria-hidden="true">
+                  <path d="M19.915 13.028c-.388-.49-.277-.708 0-1.146.005-.005 3.851-5.306 4.246-7.107l.002-.007c.194-.65 0-1.128-.947-1.128h-3.135c-.796 0-1.163.414-1.357.874 0 0-1.587 3.782-3.836 6.237-.727.713-1.057.94-1.453.94-.199 0-.487-.227-.487-.877V4.768c0-.783-.232-1.128-.897-1.128H8.708c-.502 0-.803.365-.803.712 0 .75 1.138.924 1.255 3.036v4.588c0 .995-.183 1.175-.579 1.175-1.057 0-3.625-3.802-5.148-8.15C3.143 3.36 2.84 3 2.038 3H-.097C-1 3 -1.2 3.414-1.2 3.874c0 .806 1.057 4.802 4.921 10.088 2.576 3.641 6.203 5.614 9.507 5.614 1.981 0 2.225-.437 2.225-1.19v-2.749c0-.888.19-1.064.832-1.064.472 0 1.28.233 3.169 2.028C21.438 18.378 21.771 19 22.847 19h3.135c.902 0 1.354-.437 1.092-1.302-.285-.862-1.294-2.11-2.636-3.59-.727-.84-1.818-1.742-2.523-2.08z" />
+                </svg>
+              </a>
+            )}
             <Link
               href="#enrollment"
               onClick={(e) => handleNavClick(e, "#enrollment")}
