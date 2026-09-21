@@ -772,7 +772,7 @@ export default function AdminPage() {
     try {
       const res = await fetch("/api/admin/news/sync", {
         method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ domain: vkDomain || undefined, count: 10 }),
+        body: JSON.stringify({ domain: vkDomain.trim() || undefined, count: 10 }),
       });
       const j = await res.json().catch(() => ({}));
       if (res.ok) {
@@ -2536,10 +2536,10 @@ export default function AdminPage() {
                 </summary>
                 <div className="mt-2 grid sm:grid-cols-[minmax(0,1fr)_auto] gap-2 items-end">
                   <Field label="VK-домен сообщества (необязательно)">
-                    <input className={inputCls} value={vkDomain} onChange={(e) => setVkDomain(e.target.value)} placeholder="sfera_gk" />
+                    <input className={inputCls} value={vkDomain} onChange={(e) => setVkDomain(e.target.value)} placeholder="sferaznanei" />
                   </Field>
                   <p className="text-[11px] text-muted-foreground pb-2">
-                    Пусто — возьмём из настроек сайта.
+                    Пусто — по умолчанию группа sferaznanei.
                   </p>
                 </div>
               </details>

@@ -78,6 +78,20 @@ export type SyncResult = {
   error?: string;
 };
 
+/** Очищает и извлекает shortname/id домена из строки или URL */
+export function cleanVkDomain(raw?: string | null): string {
+  if (!raw) return "";
+  let d = raw.trim();
+  const match = d.match(/(?:vk\.com|vk\.ru)\/([a-zA-Z0-9_\.-]+)/i);
+  if (match) {
+    d = match[1];
+  }
+  d = d.replace(/^https?:\/\//i, "").replace(/^\/+|\/+$/g, "");
+  d = d.replace(/^@/, "");
+  d = d.split("?")[0].split("#")[0].trim();
+  return d;
+}
+
 /**
  * Тянет последние посты со стены VK и upsert'ит их в таблицу news.
  * Используется и админ-кнопкой, и cron-задачей.
@@ -91,7 +105,12 @@ export async function syncVkNews(
     return { ok: false, error: "VK_SERVICE_KEY не задан" };
   }
 
-  const domain = domainArg || process.env.VK_COMMUNITY_DOMAIN || "sfera_gk";
+  const rawDomain = domainArg || process.env.VK_COMMUNITY_DOMAIN || "sferaznanei";
+  let domain = cleanVkDomain(rawDomain);
+  // Защита: старая заглушка "sfera_gk" не существует в VK и даёт ошибку 100
+  if (!domain || domain.toLowerCase() === "sfera_gk") {
+    domain = "sferaznanei";
+  }
   const count = Math.min(countArg || 10, 100);
 
   const params = new URLSearchParams({
@@ -199,21 +218,30 @@ export async function syncVkNews(
 
   // Батч-upsert новых постов — один INSERT вместо N.
   if (toInsert.length > 0) {
-    await db.from("news").insert(toInsert.map((p) => ({ ...p, visible: true })));
+    const { error: insErr } = await db.from("news").insert(toInsert.map((p) => ({ ...p, visible: true })));
+    if (insErr) {
+      return { ok: false, error: `Ошибка БД при сохранении новостей: ${insErr.message}` };
+    }
     imported = toInsert.length;
   }
 
   // Обновления существующих записей по их первичному ключу id
   if (toUpdate.length > 0) {
-    await Promise.all(
+    const updateResults = await Promise.all(
       toUpdate.map(async (p) => {
         const id = existingMap.get(p.vk_post_id);
         if (id) {
-          await db.from("news").update(p).eq("id", id);
+          const { error: upErr } = await db.from("news").update(p).eq("id", id);
+          if (upErr) {
+            console.error(`Ошибка обновления новости ${id}:`, upErr);
+            return false;
+          }
+          return true;
         }
+        return false;
       })
     );
-    updated = toUpdate.length;
+    updated = updateResults.filter(Boolean).length;
   }
 
   return { ok: true, imported, updated, skipped, mirrored, reused, total: parsed.length };

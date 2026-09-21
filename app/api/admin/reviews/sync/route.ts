@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { checkAdmin } from "@/lib/admin-auth";
+import { cleanVkDomain } from "@/lib/vk-sync";
 
 const VK_VERSION = "5.199";
 
@@ -17,7 +18,11 @@ export async function POST(req: NextRequest) {
     count?: number;
   } | null;
 
-  const domain = body?.domain || process.env.VK_COMMUNITY_DOMAIN || "sferaznanei";
+  const rawDomain = body?.domain || process.env.VK_COMMUNITY_DOMAIN || "sferaznanei";
+  let domain = cleanVkDomain(rawDomain);
+  if (!domain || domain.toLowerCase() === "sfera_gk") {
+    domain = "sferaznanei";
+  }
   const count = Math.min(body?.count || 20, 100);
 
   const params = new URLSearchParams({

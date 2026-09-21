@@ -36,8 +36,8 @@
 
 - `lib/vk-sync.ts` — `syncVkNews()`, upsert в таблицу `news`
 - `app/api/cron/news-sync/route.ts` — вызов по расписанию (Vercel Cron)
-- `app/api/admin/reviews/sync/route.ts` — ручной триггер из админки
+- `app/api/admin/news/sync/route.ts` — ручной триггер из админки
 - `lib/mirror-media.ts` — зеркалирование картинок VK к себе
 
 Ключ VK для этого пути берётся из env `VK_SERVICE_KEY`, домен — из
-`VK_COMMUNITY_DOMAIN` (по умолчанию `sfera_gk`).
+`VK_COMMUNITY_DOMAIN` (по умолчанию `sferaznanei`).
