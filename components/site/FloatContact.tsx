@@ -90,7 +90,7 @@ export function FloatContact() {
 
   return (
     <div
-      className="fixed bottom-6 right-4 sm:right-6 z-[55] flex flex-col items-end gap-2.5"
+      className="fixed bottom-6 left-4 sm:left-6 z-[55] flex flex-col items-start gap-2.5"
       aria-label="Быстрая связь со студией"
     >
       {/* Кнопки каналов */}
@@ -108,7 +108,7 @@ export function FloatContact() {
                 damping: 22,
                 stiffness: 300,
               }}
-              className="flex items-center gap-2.5 group"
+              className="flex items-center flex-row-reverse gap-2.5 group"
             >
               {/* Подпись */}
               <span className="px-3 py-1.5 text-sm font-medium bg-card text-foreground rounded-xl shadow-lg border border-border/60 whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-150 pointer-events-none select-none">
