@@ -46,6 +46,17 @@ function vkVideoEmbed(url: string): string | null {
   return `https://vk.com/video_ext.php?oid=${encodeURIComponent(m[1])}&id=${encodeURIComponent(m[2])}&hd=2`;
 }
 
+/**
+ * Убирает служебный медиа-блок («Изображения:» / «Видео:») из текста —
+ * ссылки из него показываются в галерее и плеере, а не как текст.
+ */
+function stripMediaBlock(content: string): string {
+  return content
+    .replace(/Изображения:[\s\S]*?(?=Видео:|$)/i, "")
+    .replace(/Видео:[\s\S]*?(?=Изображения:|$)/i, "")
+    .trim();
+}
+
 function fmtDate(iso: string): string {
   try {
     return new Date(iso).toLocaleDateString("ru-RU", {
@@ -172,7 +183,10 @@ export default async function NewsDetailPage({ params }: Props) {
             </div>
           )}
 
-          <NewsBody item={news} className="mt-8" />
+          <NewsBody
+            item={{ ...news, content: stripMediaBlock(String(news.content || "")) }}
+            className="mt-8"
+          />
 
           {(videos.length > 0 || galleryImages.length > 0) && (
             <div className="mt-10 space-y-8">

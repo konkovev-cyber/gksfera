@@ -296,6 +296,20 @@ export async function syncVkNews(
   const toInsert = toProcess.filter((p) => !existingMap.has(p.vk_post_id));
   const toUpdate = toProcess.filter((p) => existingMap.has(p.vk_post_id));
 
+  // Медиа-блок в конце тела новости: пока таблицы news_media нет (или для
+  // надёжности), фото/видео дублируем ссылками в текст — страница разложит
+  // их в галерею и плеер и уберёт этот блок из показа. Здесь url уже наши
+  // (зеркалированные), поэтому блок переживает отзыв подписей VK.
+  for (const p of toProcess) {
+    const list = mediaMap.get(p.vk_post_id) ?? [];
+    const photos = list.filter((m) => m.type === "image").map((m) => m.url);
+    const vids = list.filter((m) => m.type === "video").map((m) => m.url);
+    let block = "";
+    if (photos.length > 0) block += "\n\nИзображения:\n" + photos.join("\n");
+    if (vids.length > 0) block += (block ? "\n" : "\n\n") + "Видео:\n" + vids.join("\n");
+    if (block) p.content = (p.content + block).trim();
+  }
+
   // Батч-upsert новых постов — один INSERT вместо N.
   if (toInsert.length > 0) {
     const { data: insertedRows, error: insErr } = await db
