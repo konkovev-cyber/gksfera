@@ -284,6 +284,10 @@ function reconcileOrder(order: string[], base: string[]): string[] {
 
 const NEWS_COLUMNS = "id,vk_post_id,title,content,excerpt,image_url,source_url,published_at";
 
+/** Флаг «таблицы news_media нет в БД» — чтобы не повторять заведомо падающий
+ *  embed-запрос на каждом просмотре новости (PGRST200/PGRST205). */
+let newsMediaUnavailable = false;
+
 function mapNewsRow(n: Record<string, unknown>): NewsItem {
   return {
     id: n.id != null ? (typeof n.id === "number" ? n.id : String(n.id)) : undefined,
@@ -327,33 +331,41 @@ export async function getNewsByKey(id: string): Promise<NewsItem | null> {
   if (!key) return null;
   try {
     const db = service();
-    const withMedia = await db
-      .from("news")
-      .select(`${NEWS_COLUMNS},news_media(media_url,media_type,display_order)`)
-      .eq("vk_post_id", key)
-      .eq("visible", true)
-      .order("display_order", { foreignTable: "news_media", ascending: true })
-      .maybeSingle();
-    if (withMedia.data) {
-      const item = mapNewsRow(withMedia.data as Record<string, unknown>);
-      const rows = (withMedia.data as Record<string, unknown>).news_media as
-        | Array<{ media_url: string; media_type: string }>
-        | null;
-      item.media = (rows ?? [])
-        .filter((m) => Boolean(m.media_url))
-        .map((m) => ({
-          media_url: String(m.media_url),
-          media_type:
-            m.media_type === "video" ? ("video" as const) :
-            m.media_type === "document" ? ("document" as const) :
-            ("image" as const),
-        }));
-      return item;
+
+    if (!newsMediaUnavailable) {
+      const withMedia = await db
+        .from("news")
+        .select(`${NEWS_COLUMNS},news_media(media_url,media_type,display_order)`)
+        .eq("vk_post_id", key)
+        .eq("visible", true)
+        .order("display_order", { foreignTable: "news_media", ascending: true })
+        .maybeSingle();
+      if (withMedia.error) {
+        // news_media нет или связи между таблицами нет (PGRST200/PGRST205) —
+        // запоминаем и дальше читаем без embed-запроса.
+        const code = (withMedia.error as { code?: string }).code;
+        if (code === "PGRST200" || code === "PGRST205") newsMediaUnavailable = true;
+      } else if (withMedia.data) {
+        const item = mapNewsRow(withMedia.data as Record<string, unknown>);
+        const rows = (withMedia.data as Record<string, unknown>).news_media as
+          | Array<{ media_url: string; media_type: string }>
+          | null;
+        item.media = (rows ?? [])
+          .filter((m) => Boolean(m.media_url))
+          .map((m) => ({
+            media_url: String(m.media_url),
+            media_type:
+              m.media_type === "video" ? ("video" as const) :
+              m.media_type === "document" ? ("document" as const) :
+              ("image" as const),
+          }));
+        return item;
+      } else {
+        return null; // пост не найден (в таблице news_media ошибки нет)
+      }
     }
-    // Таблицы news_media нет (или пост не найден) — обычный запрос.
-    if (withMedia.error && (withMedia.error as { code?: string }).code !== "PGRST205") {
-      return null;
-    }
+
+    // Обычный запрос без медиа: страница разложит мультимедиа по URL из текста.
     const { data } = await db
       .from("news")
       .select(NEWS_COLUMNS)
