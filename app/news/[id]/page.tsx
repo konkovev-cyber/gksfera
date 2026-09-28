@@ -14,6 +14,38 @@ import { SITE_ORIGIN } from "@/data/site";
 
 type Props = { params: { id: string } };
 
+type MediaEntry = { type: "image" | "video" | "document"; src: string };
+
+/**
+ * Резервное разложение медиа по URL из текста новости (когда таблицы
+ * news_media ещё нет). VK-видео — страница vk.com/video..., встраивается
+ * через video_ext.php; картинки — по расширению файла.
+ */
+function parseMediaFromContent(content: string): MediaEntry[] {
+  const seen = new Set<string>();
+  const out: MediaEntry[] = [];
+  const urls = content.match(/https?:\/\/[^\s]+/g) ?? [];
+  for (const raw of urls) {
+    const url = raw.replace(/[)\]}.,]+$/g, "");
+    const key = url.toLowerCase();
+    if (seen.has(key)) continue;
+    seen.add(key);
+    if (/\/video(-?\d+)_(\d+)/i.test(url) || /vkvideo\.ru/i.test(url)) {
+      out.push({ type: "video", src: url });
+    } else if (/\.(jpe?g|png|webp|gif|avif)(\?|$)/i.test(url)) {
+      out.push({ type: "image", src: url });
+    }
+  }
+  return out;
+}
+
+/** Ссылка на страницу VK-видео → embed для iframe. */
+function vkVideoEmbed(url: string): string | null {
+  const m = url.match(/video(-?\d+)_(\d+)/i);
+  if (!m) return null;
+  return `https://vk.com/video_ext.php?oid=${encodeURIComponent(m[1])}&id=${encodeURIComponent(m[2])}&hd=2`;
+}
+
 function fmtDate(iso: string): string {
   try {
     return new Date(iso).toLocaleDateString("ru-RU", {
@@ -76,6 +108,30 @@ export default async function NewsDetailPage({ params }: Props) {
     publisher: { "@type": "Organization", name: "Учебно-развивающая студия «Сфера»" },
   };
 
+  // Все мультимедиа новости: сначала из news_media (если таблица создана),
+  // иначе — разложение по URL из текста. Дубли убираем, обложку из галереи исключаем.
+  const mediaItems: MediaEntry[] = (() => {
+    const items = news.media?.length
+      ? news.media.map((m) => ({
+          type: m.media_type,
+          src: m.media_url,
+        } as MediaEntry))
+      : parseMediaFromContent(String(news.content || ""));
+    const seen = new Set<string>();
+    return items.filter((it) => {
+      if (!it.src) return false;
+      const key = `${it.type}:${it.src}`;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+  })();
+  const cover = news.image_url;
+  const galleryImages = mediaItems.filter(
+    (m) => m.type === "image" && m.src !== cover
+  );
+  const videos = mediaItems.filter((m) => m.type === "video");
+
   return (
     <ContentProvider value={data}>
       <Header />
@@ -117,6 +173,71 @@ export default async function NewsDetailPage({ params }: Props) {
           )}
 
           <NewsBody item={news} className="mt-8" />
+
+          {(videos.length > 0 || galleryImages.length > 0) && (
+            <div className="mt-10 space-y-8">
+              {videos.length > 0 && (
+                <section className="space-y-4" aria-label="Видеоматериалы">
+                  <h2 className="font-display font-bold text-lg text-foreground">Видеоматериалы</h2>
+                  <div className="space-y-5">
+                    {videos.map((vid, idx) => {
+                      const embed = vkVideoEmbed(vid.src);
+                      return (
+                        <div
+                          key={idx}
+                          className="w-full aspect-video rounded-2xl overflow-hidden bg-muted border border-border/60"
+                        >
+                          {embed ? (
+                            <iframe
+                              src={embed}
+                              title={`Видео ${idx + 1}`}
+                              className="w-full h-full"
+                              allow="autoplay; encrypted-media; fullscreen; picture-in-picture; screen-wake-lock"
+                              allowFullScreen
+                            />
+                          ) : (
+                            <a
+                              href={vid.src}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="flex items-center justify-center h-full text-sm font-semibold text-brand-warm-ink hover:text-brand-warm transition-colors"
+                            >
+                              Открыть видео в VK <ExternalLink className="w-4 h-4 ml-1" />
+                            </a>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </section>
+              )}
+
+              {galleryImages.length > 0 && (
+                <section className="space-y-4" aria-label="Фотогалерея">
+                  <h2 className="font-display font-bold text-lg text-foreground">Фотогалерея</h2>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                    {galleryImages.map((img, idx) => (
+                      <a
+                        key={idx}
+                        href={img.src}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="aspect-square rounded-xl overflow-hidden border border-border/50 bg-brand-cream/50 cursor-zoom-in"
+                      >
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={img.src}
+                          alt={`${news.title} — фото ${idx + 1}`}
+                          loading="lazy"
+                          className="w-full h-full object-cover hover:scale-105 transition-transform duration-500"
+                        />
+                      </a>
+                    ))}
+                  </div>
+                </section>
+              )}
+            </div>
+          )}
 
           <div className="mt-10 flex flex-wrap gap-3">
             {news.source_url && (

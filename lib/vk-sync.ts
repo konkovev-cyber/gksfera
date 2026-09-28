@@ -32,34 +32,92 @@ function stripHtml(html: string): string {
     .trim();
 }
 
-/** Извлекает URL обложки из attachments VK */
-function extractCover(post: Record<string, unknown>): string | null {
-  const attachments = post.attachments as Array<Record<string, unknown>> | undefined;
-  if (!attachments) return null;
+/** Тип медиа-строки в news_media. */
+export type MediaEntry = { url: string; type: "image" | "video" };
 
-  for (const att of attachments) {
-    if (att.type === "photo" && att.photo) {
-      const photo = att.photo as Record<string, unknown>;
-      const sizes = (photo.sizes ?? []) as Array<Record<string, unknown>>;
-      const preferred = ["w", "z", "y", "x"];
-      for (const p of preferred) {
-        const found = sizes.find((s) => s.type === p);
-        if (found?.url) return String(found.url).replace(/^http:\/\//i, "https://");
+/**
+ * Собирает ВСЕ медиа из вложений поста и его репостов (copy_history):
+ *  • photo → картинка (зеркалим к себе);
+ *  • video → ссылка на страницу VK (страница встраивается через video_ext.php);
+ *  • doc / audio / link → текстовая строка в теле новости (у VK-ссылок на
+ *    файлы нет расширений, а музыки VK обычно не отдаёт прямых URL).
+ * Дубли убираются по url. Возвращает url превью первого видео (для обложки,
+ * когда фотографий в посте нет).
+ */
+function collectMedia(
+  post: Record<string, unknown>,
+  mediaList: MediaEntry[],
+  linkLines: string[],
+): string | null {
+  let firstVideoThumb: string | null = null;
+
+  const pushMedia = (entry: MediaEntry) => {
+    if (!mediaList.some((m) => m.url === entry.url)) mediaList.push(entry);
+  };
+
+  const processAttachments = (attachments: Array<Record<string, unknown>>) => {
+    for (const att of attachments) {
+      if (att.type === "photo" && att.photo) {
+        const photo = att.photo as Record<string, unknown>;
+        const sizes = (photo.sizes ?? []) as Array<Record<string, unknown>>;
+        const preferred = ["w", "z", "y", "x"];
+        for (const p of preferred) {
+          const found = sizes.find((s) => s.type === p);
+          if (found?.url) {
+            pushMedia({ url: String(found.url).replace(/^http:\/\//i, "https://"), type: "image" });
+            break;
+          }
+        }
+        if (!sizes.some((s) => preferred.includes(String(s.type))) && sizes.length > 0) {
+          const last = sizes[sizes.length - 1];
+          if (last?.url) pushMedia({ url: String(last.url).replace(/^http:\/\//i, "https://"), type: "image" });
+        }
       }
-      if (sizes.length > 0) {
-        const last = sizes[sizes.length - 1];
-        if (last?.url) return String(last.url).replace(/^http:\/\//i, "https://");
+      if (att.type === "video" && att.video) {
+        const video = att.video as Record<string, unknown>;
+        const images = (video.image ?? []) as Array<Record<string, unknown>>;
+        const videoLink = `https://vk.com/video${video.owner_id}_${video.id}`;
+        pushMedia({ url: videoLink, type: "video" });
+        if (!firstVideoThumb) {
+          const big = images.find((i) => (i.width as number) >= 1280 || (i.width as number) >= 800);
+          const thumb = big?.url ?? (images.length > 0 ? images[images.length - 1].url : null);
+          if (thumb) firstVideoThumb = String(thumb).replace(/^http:\/\//i, "https://");
+        }
+      }
+      if (att.type === "doc" && att.doc) {
+        const doc = att.doc as Record<string, unknown>;
+        const docUrl = String(doc.url ?? "").replace(/^http:\/\//i, "https://");
+        if (docUrl) linkLines.push(`📄 Файл: ${String(doc.title ?? "документ")} — ${docUrl}`);
+      }
+      if (att.type === "audio" && att.audio) {
+        const audio = att.audio as Record<string, unknown>;
+        const audioUrl = String(audio.url ?? "").replace(/^http:\/\//i, "https://");
+        if (audioUrl) {
+          linkLines.push(`🎵 Аудио: ${String(audio.artist ?? "")} — ${String(audio.title ?? "")} — ${audioUrl}`);
+        }
+      }
+      if (att.type === "link" && att.link) {
+        const link = att.link as Record<string, unknown>;
+        const linkUrl = String(link.url ?? "").replace(/^http:\/\//i, "https://");
+        if (linkUrl) linkLines.push(`🔗 ${String(link.title ?? linkUrl)} — ${linkUrl}`);
       }
     }
-    if (att.type === "video" && att.video) {
-      const video = att.video as Record<string, unknown>;
-      const images = (video.image ?? []) as Array<Record<string, unknown>>;
-      const big = images.find((i) => (i.width as number) >= 800);
-      if (big?.url) return String(big.url).replace(/^http:\/\//i, "https://");
-      if (images.length > 0) return String(images[images.length - 1].url).replace(/^http:\/\//i, "https://");
+  };
+
+  const attachments = post.attachments as Array<Record<string, unknown>> | undefined;
+  if (attachments) processAttachments(attachments);
+
+  const copyHistory = post.copy_history as Array<Record<string, unknown>> | undefined;
+  if (Array.isArray(copyHistory)) {
+    for (const rep of copyHistory) {
+      const repAtts = rep.attachments as Array<Record<string, unknown>> | undefined;
+      if (repAtts) processAttachments(repAtts);
+      const repText = String(rep.text ?? "");
+      if (repText) linkLines.push(stripHtml(decodeHtml(repText)));
     }
   }
-  return null;
+
+  return firstVideoThumb;
 }
 
 export type SyncResult = {
@@ -141,11 +199,19 @@ export async function syncVkNews(
     return { ok: true, imported: 0, total: 0 };
   }
 
+  const mediaMap = new Map<string, MediaEntry[]>();
   const parsed = items
     .filter((post) => !post.is_pinned)
     .map((post) => {
       const text = stripHtml(decodeHtml(String(post.text ?? "")));
       const sourceUrl = `https://vk.com/wall${post.owner_id}_${post.id}`;
+
+      const mediaList: MediaEntry[] = [];
+      const linkLines: string[] = [];
+      const videoThumb = collectMedia(post, mediaList, linkLines);
+      // Ссылки/файлы/аудио и текст репоста дописываем в тело новости:
+      // так «все мультимедиа» видны даже без галереи.
+      const body = linkLines.length > 0 ? (text + "\n\n" + linkLines.join("\n")).trim() : text;
 
       let title = "Новость Сферы";
       if (text) {
@@ -153,15 +219,17 @@ export async function syncVkNews(
         if (lines.length > 0) title = lines[0].slice(0, 120).trim();
       }
 
-      const cover = extractCover(post);
+      const cover = mediaList.find((m) => m.type === "image")?.url || videoThumb || null;
       const date = post.date
         ? new Date((post.date as number) * 1000).toISOString()
         : new Date().toISOString();
 
+      mediaMap.set(String(post.id), mediaList);
+
       return {
         vk_post_id: String(post.id),
         title,
-        content: text,
+        content: body,
         excerpt: text.slice(0, 200) + (text.length > 200 ? "…" : ""),
         image_url: cover,
         source_url: sourceUrl,
@@ -202,6 +270,18 @@ export async function syncVkNews(
         return null; // пропускаем
       }
 
+      // Зеркалим ВСЕ фото поста, а не только обложку: иначе галерея
+      // ссылается на временные подписи VK, которые через полгода отвалятся.
+      for (const m of mediaMap.get(p.vk_post_id) ?? []) {
+        if (m.type !== "image") continue;
+        const mine = await mirrorVkImage(m.url);
+        if (mine) {
+          if (mine.url !== m.url) m.url = mine.url;
+          if (mine.downloaded) mirrored++;
+          else reused++;
+        }
+      }
+
       const mine = await mirrorVkImage(p.image_url);
       if (mine) {
         if (mine.url !== p.image_url) p.image_url = mine.url;
@@ -218,9 +298,15 @@ export async function syncVkNews(
 
   // Батч-upsert новых постов — один INSERT вместо N.
   if (toInsert.length > 0) {
-    const { error: insErr } = await db.from("news").insert(toInsert.map((p) => ({ ...p, visible: true })));
+    const { data: insertedRows, error: insErr } = await db
+      .from("news")
+      .insert(toInsert.map((p) => ({ ...p, visible: true })))
+      .select("id,vk_post_id");
     if (insErr) {
       return { ok: false, error: `Ошибка БД при сохранении новостей: ${insErr.message}` };
+    }
+    for (const row of insertedRows ?? []) {
+      existingMap.set(String(row.vk_post_id), String(row.id));
     }
     imported = toInsert.length;
   }
@@ -242,6 +328,56 @@ export async function syncVkNews(
       })
     );
     updated = updateResults.filter(Boolean).length;
+  }
+
+  // Дозапись недостающих медиа в news_media (галерея/видео на странице новости).
+  // Существующие строки не трогаем: если зеркалирование фото в этот раз
+  // не удалось, старые ссылки остаются в базе и новость не «лысеет».
+  const newsIds = toProcess
+    .map((p) => existingMap.get(p.vk_post_id))
+    .filter((v): v is string => Boolean(v));
+  if (newsIds.length > 0) {
+    try {
+      const { data: mediaRows } = await db
+        .from("news_media")
+        .select("news_id,media_url")
+        .in("news_id", newsIds);
+      const existingMedia = new Set(
+        (mediaRows ?? []).map((r) => `${r.news_id}:${r.media_url}`)
+      );
+      const missing: Array<{
+        news_id: string;
+        media_url: string;
+        media_type: string;
+        display_order: number;
+      }> = [];
+      for (const p of toProcess) {
+        const id = existingMap.get(p.vk_post_id);
+        if (!id) continue;
+        (mediaMap.get(p.vk_post_id) ?? []).forEach((m, idx) => {
+          const key = `${id}:${m.url}`;
+          if (existingMedia.has(key)) return;
+          existingMedia.add(key);
+          missing.push({
+            news_id: id,
+            media_url: m.url,
+            media_type: m.type,
+            display_order: idx,
+          });
+        });
+      }
+      if (missing.length > 0) {
+        const { error: mErr } = await db.from("news_media").insert(missing);
+        if (mErr && (mErr as { code?: string }).code !== "PGRST205") {
+          // PGRST205 = таблицы news_media ещё нет (миграция не применена) —
+          // это не ошибка синхронизации: все медиа уже есть в content.
+          console.error("Ошибка записи news_media:", mErr);
+        }
+      }
+    } catch (e) {
+      const code = (e as { code?: string }).code;
+      if (code !== "PGRST205") console.error("Ошибка записи news_media:", e);
+    }
   }
 
   return { ok: true, imported, updated, skipped, mirrored, reused, total: parsed.length };

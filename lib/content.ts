@@ -318,12 +318,42 @@ export async function getAllNews(): Promise<NewsItem[]> {
 /**
  * Одна новость по ключу URL. Колонка одна (vk_post_id), поэтому одинаково
  * находится и «130» (пост VK), и «den-otkrytyh-dverey» (slug своей новости).
+ * Вместе с новостью тянем все её медиа из news_media; если таблицы ещё нет
+ * (миграция не применена) — читаем новость без них: страница разложит
+ * мультимедиа по URL из текста.
  */
 export async function getNewsByKey(id: string): Promise<NewsItem | null> {
   const key = String(id ?? "").trim();
   if (!key) return null;
   try {
     const db = service();
+    const withMedia = await db
+      .from("news")
+      .select(`${NEWS_COLUMNS},news_media(media_url,media_type,display_order)`)
+      .eq("vk_post_id", key)
+      .eq("visible", true)
+      .order("display_order", { foreignTable: "news_media", ascending: true })
+      .maybeSingle();
+    if (withMedia.data) {
+      const item = mapNewsRow(withMedia.data as Record<string, unknown>);
+      const rows = (withMedia.data as Record<string, unknown>).news_media as
+        | Array<{ media_url: string; media_type: string }>
+        | null;
+      item.media = (rows ?? [])
+        .filter((m) => Boolean(m.media_url))
+        .map((m) => ({
+          media_url: String(m.media_url),
+          media_type:
+            m.media_type === "video" ? ("video" as const) :
+            m.media_type === "document" ? ("document" as const) :
+            ("image" as const),
+        }));
+      return item;
+    }
+    // Таблицы news_media нет (или пост не найден) — обычный запрос.
+    if (withMedia.error && (withMedia.error as { code?: string }).code !== "PGRST205") {
+      return null;
+    }
     const { data } = await db
       .from("news")
       .select(NEWS_COLUMNS)

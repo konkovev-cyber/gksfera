@@ -112,6 +112,12 @@ export const SITE_ORIGIN = (
   process.env.NEXT_PUBLIC_SITE_URL || "https://gksfera.vercel.app"
 ).replace(/\/+$/, "");
 
+/** Медиа-строка новости: фото из галереи или видео VK. */
+export type NewsMediaItem = {
+  media_url: string;
+  media_type: "image" | "video" | "document";
+};
+
 export type NewsItem = {
   /** Ключ URL: числовой id поста VK либо slug для новости, написанной на сайте. */
   vk_post_id: string;
@@ -122,6 +128,9 @@ export type NewsItem = {
   image_url: string | null;
   source_url: string;
   published_at: string;
+  /** Все мультимедиа новости, а не только обложка. Есть, если создана
+   *  таблица news_media и миграция применена. */
+  media?: NewsMediaItem[];
 };
 
 export type Teacher = {

@@ -67,6 +67,18 @@ create table if not exists news (
   created_at timestamptz default now()
 );
 
+-- Все мультимедиа новости из VK (галерея фото, видео), а не только обложка.
+create table if not exists news_media (
+  id bigint generated always as identity primary key,
+  news_id bigint not null references news(id) on delete cascade,
+  media_url text not null,
+  media_type text not null default 'image' check (media_type in ('image', 'video', 'document')),
+  display_order int not null default 0,
+  created_at timestamptz default now()
+);
+create index if not exists idx_news_media_news_id on news_media(news_id);
+create index if not exists idx_news_media_order on news_media(news_id, display_order);
+
 insert into storage.buckets (id, name, public)
 values ('media', 'media', true)
 on conflict (id) do nothing;
