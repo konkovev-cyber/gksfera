@@ -1,4 +1,4 @@
-/* eslint-disable react-hooks/exhaustive-deps */
+﻿/* eslint-disable react-hooks/exhaustive-deps */
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -1307,34 +1307,26 @@ export default function AdminPage() {
         {/* ── Контент ── */}
         <main className="flex-1 min-w-0 px-3 sm:px-4 md:px-5 py-4 sm:py-5">
 
-        {/* Мобильная навигация (только < md) */}
-        <div className="md:hidden mb-4">
-          <div className="flex flex-col gap-2">
-            <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-hide">
-              {CATEGORIES.map((cat) => {
-                const active = catFilter === cat.id;
-                const hasBadge = cat.id === "leads" && newEnrollmentsCount > 0;
-                return (
-                  <button key={cat.id} onClick={() => {
-                    setCatFilter(cat.id);
-                    if (cat.id !== "all") {
-                      const inCat = TABS.filter((t) => t.category === cat.id);
-                      if (!inCat.some((t) => t.id === tab) && inCat[0]) setTab(inCat[0].id);
-                    }
-                  }}
-                    className={cn(
-                      "inline-flex items-center gap-1.5 h-8 px-2.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all shrink-0",
-                      active ? "bg-foreground text-background" : "bg-muted/60 text-muted-foreground hover:bg-muted"
-                    )}
-                  >
-                    <cat.icon className="w-3.5 h-3.5" />
-                    <span>{cat.label}</span>
-                    {hasBadge && <span className="ml-0.5 px-1.5 rounded-full text-[10px] font-bold bg-amber-500 text-white">{newEnrollmentsCount}</span>}
-                  </button>
-                );
-              })}
-            </div>
-            <div className="flex gap-1.5 overflow-x-auto pb-1 scrollbar-hide">
+        {/* Мобильная навигация (только < md) — одна строка: select категории + вкладки */}
+        <div className="md:hidden mb-3">
+          <div className="flex items-center gap-2 mb-1.5">
+            <select
+              value={catFilter}
+              onChange={(e) => {
+                const v = e.target.value as TabCategory;
+                setCatFilter(v);
+                if (v !== "all") {
+                  const inCat = TABS.filter((t) => t.category === v);
+                  if (!inCat.some((t) => t.id === tab) && inCat[0]) setTab(inCat[0].id);
+                }
+              }}
+              className="h-8 pl-2 pr-6 rounded-lg text-xs font-semibold bg-muted/60 border-0 text-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 shrink-0"
+            >
+              {CATEGORIES.map((cat) => (
+                <option key={cat.id} value={cat.id}>{cat.label}{cat.id === "leads" && newEnrollmentsCount > 0 ? ` (${newEnrollmentsCount})` : ""}</option>
+              ))}
+            </select>
+            <div className="flex gap-1.5 overflow-x-auto pb-1 scrollbar-hide flex-1">
               {filteredTabs.map((t) => {
                 const active = tab === t.id;
                 const isInbox = t.id === "inbox";
@@ -1360,19 +1352,17 @@ export default function AdminPage() {
           </div>
         </div>
 
-        {/* Подсказка: что редактирует текущий раздел */}
+        {/* Заголовок текущего раздела */}
         {(() => {
           const cur = TABS.find((t) => t.id === tab);
           if (!cur) return null;
           return (
-            <div className="flex items-start gap-3 mb-4 rounded-xl border border-border/60 bg-accent/30 px-4 py-3">
-              <span className="mt-0.5 inline-flex w-8 h-8 rounded-lg bg-primary/10 text-primary items-center justify-center shrink-0">
+            <div className="hidden md:flex items-center gap-2 mb-4">
+              <span className="inline-flex w-7 h-7 rounded-lg bg-primary/10 text-primary items-center justify-center shrink-0">
                 <cur.icon className="w-4 h-4" />
               </span>
-              <p className="text-xs text-muted-foreground leading-relaxed pt-1">
-                <span className="font-semibold text-foreground">{cur.label}. </span>
-                {cur.hint}
-              </p>
+              <h2 className="font-display font-bold text-lg leading-none" title={cur.hint}>{cur.label}</h2>
+              <span className="hidden sm:block text-xs text-muted-foreground leading-snug ml-1 max-w-[52ch] truncate" title={cur.hint}>{cur.hint}</span>
             </div>
           );
         })()}
