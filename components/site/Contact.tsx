@@ -188,7 +188,7 @@ export function Contact() {
             <div className="relative w-full h-full min-h-[420px] lg:min-h-0 rounded-2xl overflow-hidden glass p-1.5 flex flex-col">
               <div className="group relative w-full flex-1 min-h-[380px] rounded-xl overflow-hidden bg-muted">
                 <iframe
-                  src="https://widgets.2gis.com/widget?type=firmsonmap&options=%7B%22pos%22%3A%7B%22lon%22%3A39.121602%2C%22lat%22%3A44.629908%2C%22zoom%22%3A16%7D%2C%22opt%22%3A%7B%22city%22%3A%22krasnodar%22%7D%7D"
+                  src="https://widgets.2gis.com/widget?type=firmsonmap&options=%7B%22pos%22%3A%7B%22lon%22%3A39.121598%2C%22lat%22%3A44.629878%2C%22zoom%22%3A16%7D%2C%22opt%22%3A%7B%22city%22%3A%22krasnodar%22%7D%2C%22org%22%3A%5B%7B%22id%22%3A%2270000001093647032%22%7D%5D%7D"
                   width="100%"
                   height="100%"
                   frameBorder="0"
