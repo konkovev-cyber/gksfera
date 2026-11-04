@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { checkAdmin } from "@/lib/admin-auth";
-import { cleanVkDomain } from "@/lib/vk-sync";
+import { parseVkTarget } from "@/lib/vk-sync";
+
+export const dynamic = "force-dynamic";
+export const maxDuration = 60;
 
 const VK_VERSION = "5.199";
 
@@ -19,19 +22,21 @@ export async function POST(req: NextRequest) {
   } | null;
 
   const rawDomain = body?.domain || process.env.VK_COMMUNITY_DOMAIN || "sferaznanei";
-  let domain = cleanVkDomain(rawDomain);
-  if (!domain || domain.toLowerCase() === "sfera_gk") {
-    domain = "sferaznanei";
-  }
+  const target = parseVkTarget(rawDomain);
   const count = Math.min(body?.count || 20, 100);
 
   const params = new URLSearchParams({
-    domain,
     count: String(count),
     extended: "1",
     v: VK_VERSION,
     access_token: serviceKey,
   });
+
+  if (target.ownerId !== undefined) {
+    params.set("owner_id", String(target.ownerId));
+  } else {
+    params.set("domain", target.domain || "sferaznanei");
+  }
   const apiUrl = `https://api.vk.com/method/wall.get?${params}`;
 
   let vkData: Record<string, unknown>;

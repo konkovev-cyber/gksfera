@@ -3,6 +3,9 @@ import { checkAdmin } from "@/lib/admin-auth";
 import { revalidateNews, syncPayload } from "@/lib/news-cache";
 import { syncVkNews } from "@/lib/vk-sync";
 
+export const dynamic = "force-dynamic";
+export const maxDuration = 60;
+
 export async function POST(req: NextRequest) {
   const denied = await checkAdmin();
   if (denied) return denied;

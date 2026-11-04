@@ -17,7 +17,7 @@ import { serviceClient } from "./supabase-server";
 const BUCKET = "media";
 const FOLDER = "news";
 const MAX_BYTES = 15 * 1024 * 1024;
-const FETCH_TIMEOUT_MS = 20_000;
+const FETCH_TIMEOUT_MS = 5_000;
 
 const service = serviceClient;
 

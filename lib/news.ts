@@ -63,3 +63,100 @@ export function newsUrl(item: NewsKeyed | null | undefined): string {
   const key = newsKey(item);
   return key ? `/news/${encodeURIComponent(key)}` : "/news";
 }
+
+export type NewsVideo = {
+  title: string;
+  url: string;
+  image?: string;
+  duration?: number;
+};
+
+export type NewsMedia = {
+  photos?: string[];
+  videos?: NewsVideo[];
+};
+
+/** Очищает упоминания VK вида [club221386348|Сфера] или [id123|Иван] -> Сфера / Иван */
+export function cleanVkMentions(text: string): string {
+  if (!text) return "";
+  return text.replace(/\[(?:(?:id|club)\d+|[a-zA-Z0-9_\.-]+)\|([^\]]+)\]/g, "$1");
+}
+
+const VK_MEDIA_TAG_RE = /<!--\s*vk_media:\s*(\{[\s\S]*?\})\s*-->/;
+
+/**
+ * Извлекает структурированные метаданные медиа из текста content (<!-- vk_media:{...} -->).
+ * Возвращает чистый текст без служебного комментария и объект медиа.
+ */
+export function extractVkMediaMeta(rawContent?: string | null): {
+  cleanContent: string;
+  media: NewsMedia | null;
+} {
+  const text = String(rawContent ?? "");
+  const match = text.match(VK_MEDIA_TAG_RE);
+  if (!match) {
+    return { cleanContent: text.trim(), media: null };
+  }
+
+  let media: NewsMedia | null = null;
+  try {
+    media = JSON.parse(match[1]) as NewsMedia;
+  } catch {
+    media = null;
+  }
+
+  const cleanContent = text.replace(VK_MEDIA_TAG_RE, "").trim();
+  return { cleanContent, media };
+}
+
+/**
+ * Собирает все медиа новости:
+ * - Все уникальные фото (обложка image_url + дополнительные фото из альбома поста)
+ * - Видеозаписи VK
+ * - Список хэштегов из текста
+ * - Очищенный от служебных меток текст
+ */
+export function parseNewsMedia(item: {
+  content?: string | null;
+  excerpt?: string | null;
+  image_url?: string | null;
+}): {
+  text: string;
+  photos: string[];
+  videos: NewsVideo[];
+  tags: string[];
+} {
+  const raw = item.content || item.excerpt || "";
+  const { cleanContent, media } = extractVkMediaMeta(raw);
+
+  const photos: string[] = [];
+  if (item.image_url) {
+    photos.push(item.image_url);
+  }
+  if (media?.photos && Array.isArray(media.photos)) {
+    for (const p of media.photos) {
+      if (p && !photos.includes(p)) {
+        photos.push(p);
+      }
+    }
+  }
+
+  const videos: NewsVideo[] = media && Array.isArray(media.videos) ? media.videos : [];
+
+  // Извлекаем хэштеги в конце или в теле текста
+  const tagMatches = cleanContent.match(/#[а-яА-ЯёЁa-zA-Z0-9_]+/g);
+  const tags: string[] = [];
+  if (tagMatches) {
+    for (const t of tagMatches) {
+      const norm = t.trim();
+      if (!tags.includes(norm)) tags.push(norm);
+    }
+  }
+
+  return {
+    text: cleanVkMentions(cleanContent),
+    photos,
+    videos,
+    tags,
+  };
+}

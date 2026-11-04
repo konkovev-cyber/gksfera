@@ -90,7 +90,7 @@ export function FloatContact() {
 
   return (
     <div
-      className="fixed bottom-6 right-4 sm:right-6 z-[55] flex flex-col items-end gap-2.5"
+      className="fixed bottom-20 right-4 md:bottom-6 md:right-6 z-[55] flex flex-col items-end gap-2.5"
       aria-label="Быстрая связь со студией"
     >
       {/* Кнопки каналов */}

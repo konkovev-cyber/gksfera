@@ -11,13 +11,13 @@ import {
 } from "lucide-react";
 import { gallery as defaultGallery } from "@/data/site";
 import { compressImageFile, isVideoSrc, humanSize, IMAGE_MAX, VIDEO_MAX } from "@/lib/compress";
-import { slugifyRu, uniqueSlug, newsKey, newsUrl, isVkNews } from "@/lib/news";
+import { slugifyRu, uniqueSlug, newsKey, newsUrl, isVkNews, parseNewsMedia } from "@/lib/news";
 import { NewsBody, NewsSourceBadge } from "@/components/site/NewsArticle";
 import { ThemeToggle } from "@/components/site/ThemeToggle";
 import { cn } from "@/lib/utils";
 
 type Tab = "settings" | "hero" | "visibility" | "programs" | "gallery" |
-  "teachers" | "reviews" | "learning" | "faq" | "news" | "seo" | "io" | "inbox" | "blocks" | "schedule" | "banners";
+  "teachers" | "reviews" | "learning" | "faq" | "news" | "seo" | "inbox" | "blocks" | "schedule" | "banners";
 
 type TabCategory = "all" | "leads" | "home" | "study" | "media" | "system";
 
@@ -60,7 +60,6 @@ const TABS: { id: Tab; label: string; icon: any; category: TabCategory; hint: st
   // Настройки и система
   { id: "settings", label: "Реквизиты", icon: Settings, category: "system", hint: "Реквизиты студии: название, телефон, адрес, соцсети, часы работы." },
   { id: "seo", label: "SEO", icon: Search, category: "system", hint: "Метаданные для поиска и соцсетей: title, description, Open Graph." },
-  { id: "io", label: "Резервные копии", icon: Download, category: "system", hint: "Резервная копия и перенос всего контента в JSON (бэкап или миграция)." },
 ];
 
 const VIS_LABELS: Record<string, string> = {
@@ -270,7 +269,6 @@ export default function AdminPage() {
   const [msgBad, setMsgBad] = useState(false);
   const msgTimer = useRef<number>(0);
   const [uploadQueue, setUploadQueue] = useState<{ name: string; status: "pending" | "compressing" | "uploading" | "done" | "error"; message?: string; saved?: number; stored?: string }[]>([]);
-  const fileRef = useRef<HTMLInputElement>(null);
 
   // Плавающая кнопка «наверх»: появляется после прокрутки длинной формы
   const [showTop, setShowTop] = useState(false);
@@ -306,6 +304,7 @@ export default function AdminPage() {
   const [syncingReviews, setSyncingReviews] = useState(false);
   const [syncing, setSyncing] = useState(false);
   const [vkDomain, setVkDomain] = useState("");
+  const [vkCount, setVkCount] = useState<number>(10);
   const [pickerFor, setPickerFor] = useState<null | {
     kind: "program" | "hero" | "heroList" | "step" | "teacher" | "schedule" | "news" | "newsBody";
     index: number;
@@ -693,86 +692,12 @@ export default function AdminPage() {
   const moveLesson = (gi: number, di: number, li: number, dir: -1 | 1) =>
     patchDay(gi, di, { lessons: moveIn(schedule[gi].days[di].lessons ?? [], li, dir) });
 
-  const doExport = async () => {
-    const res = await fetch("/api/admin/export");
-    const blob = await res.blob();
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a"); a.href = url;
-    a.download = `sfera-backup-${new Date().toISOString().slice(0, 10)}.json`;
-    a.click(); URL.revokeObjectURL(url);
-    flash("Экспорт скачан ✓");
-  };
-
-  const doImport = async (file: File) => {
-    if (!confirm("Импорт ЗАМЕНИТ все данные сайта (контент, направления, галерею, отзывы, новости, SEO, заявки). Продолжить?")) return;
-    setSaving(true);
-    const text = await file.text();
-    const body = JSON.parse(text);
-    const res = await fetch("/api/admin/export", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
-    setSaving(false);
-    if (res.ok) { flash("Импорт выполнен ✓"); await loadAll(); }
-    else flash("Ошибка импорта");
-  };
-
-  /** Скачиваем только новости в отдельный JSON. */
-  const exportNews = async () => {
-    setSaving(true);
-    const res = await fetch("/api/admin/news");
-    const j = await res.json().catch(() => ({}));
-    setSaving(false);
-    const list: any[] = j?.news ?? [];
-    if (list.length === 0) { flash("Новостей нет — нечего выгружать"); return; }
-    const payload = { exported_at: new Date().toISOString(), count: list.length, news: list };
-    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `sfera-news-${new Date().toISOString().slice(0, 10)}.json`;
-    a.click();
-    URL.revokeObjectURL(url);
-    flash(`Экспортировано ${list.length} новость/й ✓`);
-  };
-
-  /** Импорт JSON с новостями (из «Новости VK» или внешнего файла).
-   *  По умолчанию REPLACES текущие. Опция Append — добавляет. */
-  const importNews = async (file: File) => {
-    let parsed: { news?: any[] };
-    try {
-      parsed = JSON.parse(await file.text());
-    } catch {
-      flash("Не удалось прочитать JSON: файл повреждён");
-      return;
-    }
-    const items = Array.isArray(parsed.news) ? parsed.news : Array.isArray(parsed) ? parsed : null;
-    if (!items || items.length === 0) {
-      flash("В файле нет массива news");
-      return;
-    }
-    const append = confirm(
-      `Найдено ${items.length} записей новостей.\n\n` +
-      `«OK» = ДОБАВИТЬ к текущим (${news.length})\n` +
-      `«Отмена» = ЗАМЕНИТЬ все новости`,
-    );
-    setSaving(true);
-    const res = await fetch("/api/admin/news" + (append ? "?append=1" : ""), {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ news: items }),
-    });
-    const j = await res.json().catch(() => ({}));
-    setSaving(false);
-    if (!res.ok) { flash(j?.error ?? "Ошибка импорта"); return; }
-    const refreshed = await fetch("/api/admin/news").then((r) => r.json()).catch(() => ({ news: [] }));
-    setNews(refreshed?.news ?? []);
-    flash(`Импортировано ${j.count ?? items.length} новость/й ${append ? "(добавлены)" : "(заменены все)"} ✓`);
-  };
-
   const syncVK = async () => {
     setSyncing(true);
     try {
       const res = await fetch("/api/admin/news/sync", {
         method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ domain: vkDomain.trim() || undefined, count: 10 }),
+        body: JSON.stringify({ domain: vkDomain.trim() || undefined, count: vkCount }),
       });
       const j = await res.json().catch(() => ({}));
       if (res.ok) {
@@ -2510,18 +2435,6 @@ export default function AdminPage() {
                   {syncing ? <Loader2 className="w-4 h-4 animate-spin" /> : <RefreshCw className="w-4 h-4" />}
                   {syncing ? "Синхронизация…" : "Загрузить из VK"}
                 </button>
-                <label className={btnSecondaryCls + " cursor-pointer"}>
-                  <Upload className="w-4 h-4" /> Импорт JSON
-                  <input
-                    type="file"
-                    accept="application/json,.json"
-                    className="hidden"
-                    onChange={(e) => { const f = e.target.files?.[0]; if (f) importNews(f); if (e.target) e.target.value = ""; }}
-                  />
-                </label>
-                <button onClick={exportNews} className={btnSecondaryCls}>
-                  <Download className="w-4 h-4" /> Экспорт
-                </button>
                 <span className="ml-auto text-xs text-muted-foreground tabular-nums">
                   всего {news.length} · видно {news.filter((n) => n.visible !== false).length}
                 </span>
@@ -2534,14 +2447,31 @@ export default function AdminPage() {
                 <summary className="cursor-pointer text-xs text-muted-foreground hover:text-foreground">
                   Настройки синхронизации VK
                 </summary>
-                <div className="mt-2 grid sm:grid-cols-[minmax(0,1fr)_auto] gap-2 items-end">
-                  <Field label="VK-домен сообщества (необязательно)">
-                    <input className={inputCls} value={vkDomain} onChange={(e) => setVkDomain(e.target.value)} placeholder="sferaznanei" />
+                <div className="mt-2 grid sm:grid-cols-[minmax(0,1fr)_120px] gap-2 items-end">
+                  <Field label="VK-сообщество (домен, id или ссылка)">
+                    <input
+                      className={inputCls}
+                      value={vkDomain}
+                      onChange={(e) => setVkDomain(e.target.value)}
+                      placeholder="sferaznanei или https://vk.com/sferaznanei"
+                    />
                   </Field>
-                  <p className="text-[11px] text-muted-foreground pb-2">
-                    Пусто — по умолчанию группа sferaznanei.
-                  </p>
+                  <Field label="Количество">
+                    <select
+                      className={inputCls}
+                      value={vkCount}
+                      onChange={(e) => setVkCount(Number(e.target.value))}
+                    >
+                      <option value={10}>10 постов</option>
+                      <option value={20}>20 постов</option>
+                      <option value={50}>50 постов</option>
+                      <option value={100}>100 постов</option>
+                    </select>
+                  </Field>
                 </div>
+                <p className="text-[11px] text-muted-foreground mt-1">
+                  Пусто — по умолчанию группа sferaznanei. Можно вставлять короткое имя, id или полную ссылку на группу/стену.
+                </p>
               </details>
             </div>
 
@@ -2621,45 +2551,6 @@ export default function AdminPage() {
             <Field label="OG-изображение (URL)"><input className={inputCls} value={siteConfig.seoOgImage ?? ""} onChange={(e) => setSiteConfig((p) => ({ ...p, seoOgImage: e.target.value }))} placeholder="/og-image.png" /></Field>
             <Field label="Theme Color"><input className={inputCls} value={siteConfig.seoThemeColor ?? ""} onChange={(e) => setSiteConfig((p) => ({ ...p, seoThemeColor: e.target.value }))} placeholder="hsl(32 85% 52%)" /></Field>
             <button onClick={saveSettings} disabled={saving} className={btnCls}>{saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />} Сохранить</button>
-          </div>
-        )}
-
-        {/* ─── Import/Export ─── */}
-        {tab === "io" && (
-          <div className="bg-card rounded-2xl border border-border/60 p-5 space-y-6 max-w-lg">
-            <div>
-              <h3 className="font-display font-bold text-base mb-2">Полный бэкап сайта</h3>
-              <p className="text-sm text-muted-foreground mb-3">
-                Экспорт всех данных в JSON: <b>настройки, Hero, видимость, направления, галерея, педагоги,
-                отзывы, занятия, вопросы, блог, <u className="decoration-primary">новости</u>, SEO, заявки</b>.
-              </p>
-              <button onClick={doExport} className={btnCls}><Download className="w-4 h-4" /> Скачать JSON-бэкап</button>
-            </div>
-            <hr className="border-border" />
-            <div>
-              <h3 className="font-display font-bold text-base mb-2">Полный импорт</h3>
-              <p className="text-sm text-muted-foreground mb-3">
-                Восстановление из ранее скачанного бэкапа. <strong className="text-destructive">Все текущие
-                данные — включая новости — будут заменены.</strong>
-              </p>
-              <label className={btnCls + " cursor-pointer"}><Upload className="w-4 h-4" /> Загрузить JSON<input type="file" accept=".json" className="hidden" ref={fileRef} onChange={(e) => { const f = e.target.files?.[0]; if (f) doImport(f); e.target.value = ""; }} /></label>
-            </div>
-            <hr className="border-border" />
-            <div>
-              <h3 className="font-display font-bold text-base mb-2 flex items-center gap-2"><Newspaper className="w-4 h-4" /> Только новости</h3>
-              <p className="text-sm text-muted-foreground mb-3">
-                Экспорт/импорт отдельного файла с новостями. При импорте заменяются <b>только</b> записи в таблице
-                <code className="text-[10px] px-1 mx-1 bg-accent rounded">news</code>, остальной контент не трогается.
-                Удобно чтобы перенести ленту между проектами или делать точечный бэкап перед синхроном VK.
-              </p>
-              <div className="flex flex-wrap gap-2">
-                <button onClick={exportNews} className={btnSecondaryCls}><Download className="w-4 h-4" /> Скачать новости.json</button>
-                <label className={btnSecondaryCls + " cursor-pointer"}>
-                  <Upload className="w-4 h-4" /> Импорт новостей
-                  <input type="file" accept=".json,application/json" className="hidden" onChange={async (e) => { const f = e.target.files?.[0]; if (f) await importNews(f); e.target.value = ""; }} />
-                </label>
-              </div>
-            </div>
           </div>
         )}
 
