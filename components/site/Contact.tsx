@@ -199,24 +199,7 @@ export function Contact() {
                   style={{ border: 0 }}
                 />
 
-                {/* Фирменная карточка-метка */}
-                <div className="absolute top-4 left-4 right-4 sm:right-auto sm:max-w-xs z-10 pointer-events-none">
-                  <div className="bg-card/95 backdrop-blur-md border border-border/80 shadow-lg rounded-xl p-3 sm:p-3.5">
-                    <div className="flex items-center gap-2.5">
-                      <div className="w-8 h-8 rounded-lg bg-primary text-primary-foreground flex items-center justify-center shrink-0 font-bold text-sm">
-                        СФ
-                      </div>
-                      <div className="min-w-0">
-                        <p className="font-semibold text-xs text-foreground truncate">
-                          {content.siteConfig.name}
-                        </p>
-                        <p className="text-[11px] text-muted-foreground truncate">
-                          {content.siteConfig.address}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
+
 
               </div>
             </div>
