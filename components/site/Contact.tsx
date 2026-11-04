@@ -188,7 +188,7 @@ export function Contact() {
             <div className="relative w-full h-full min-h-[420px] lg:min-h-0 rounded-2xl overflow-hidden glass p-1.5 flex flex-col">
               <div className="group relative w-full flex-1 min-h-[380px] rounded-xl overflow-hidden bg-muted">
                 <iframe
-                  src="https://api-maps.yandex.ru/services/constructor/1.0/html/?um=constructor%3Ad3f3eb39182b3e71170e5ef69aed2b44de44fcead1b8d9d1786563aa6328b3fe&lang=ru_RU&scroll=true"
+                  src="https://widgets.2gis.com/widget?type=firmsonmap&options=%7B%22pos%22%3A%7B%22lon%22%3A39.121602%2C%22lat%22%3A44.629908%2C%22zoom%22%3A16%7D%2C%22opt%22%3A%7B%22city%22%3A%22krasnodar%22%7D%7D"
                   width="100%"
                   height="100%"
                   frameBorder="0"
@@ -196,6 +196,7 @@ export function Contact() {
                   loading="lazy"
                   title="Карта: Учебно-развивающая студия «Сфера»"
                   className="absolute inset-0 w-full h-full"
+                  style={{ border: 0 }}
                 />
 
                 {/* Фирменная карточка-метка */}
