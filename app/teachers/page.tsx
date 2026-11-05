@@ -1,6 +1,1 @@
-import { redirect } from "next/navigation";
-
-export default function TeachersPage() {
-  redirect("/specialists");
-}
-
+export { default, metadata, dynamic } from "@/app/specialists/page";
