@@ -4,6 +4,8 @@ export interface TeacherItem {
   role: string;
   bio?: string;
   photo?: string;
+  badge?: string;
+  merits?: string[] | string;
   experience?: string;
   subjects?: string[];
   vk?: string;
@@ -20,3 +22,15 @@ export function isRealTeacher(t?: { name?: string; role?: string } | null): bool
   return name.length >= 2 && !PLACEHOLDER.test(name);
 }
 
+export function getTeacherMerits(t: TeacherItem): string[] {
+  if (Array.isArray(t.merits)) {
+    return t.merits.map((m) => String(m).trim()).filter(Boolean);
+  }
+  if (typeof t.merits === "string" && t.merits.trim()) {
+    return t.merits
+      .split(/[\n,;]+/)
+      .map((m) => m.trim())
+      .filter(Boolean);
+  }
+  return [];
+}

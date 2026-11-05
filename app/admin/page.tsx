@@ -1,4 +1,4 @@
-﻿/* eslint-disable react-hooks/exhaustive-deps */
+/* eslint-disable react-hooks/exhaustive-deps */
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -1773,14 +1773,18 @@ export default function AdminPage() {
         {/* ─── Teachers ─── */}
         {tab === "teachers" && (
           <div className="space-y-4">
-            <p className="text-sm text-muted-foreground">Карточки специалистов студии (отображаются на отдельной странице <code className="text-xs bg-muted px-1.5 py-0.5 rounded font-mono">/specialists</code> и в блоке на главной). Включать и выключать блок можно во вкладке «Порядок секций».</p>
+            <p className="text-sm text-muted-foreground">Карточки специалистов студии (отображаются на отдельной странице <code className="text-xs bg-muted px-1.5 py-0.5 rounded font-mono">/specialists</code> и в блоке на главной). При клике на карточку открывается всплывающее окно со всеми данными и заслугами.</p>
             {teachers.map((t, i) => (
               <div key={t.id ?? i} className="bg-card rounded-2xl border border-border/60 p-4 space-y-3">
                 <div className="grid sm:grid-cols-2 gap-3">
-                  <Field label="Имя и фамилия"><input className={inputCls} value={t.name ?? ""} onChange={(e) => setTeachers((prev) => prev.map((x, j) => j === i ? { ...x, name: e.target.value } : x))} /></Field>
-                  <Field label="Должность / направление"><input className={inputCls} value={t.role ?? ""} onChange={(e) => setTeachers((prev) => prev.map((x, j) => j === i ? { ...x, role: e.target.value } : x))} /></Field>
+                  <Field label="Имя и фамилия"><input className={inputCls} value={t.name ?? ""} onChange={(e) => setTeachers((prev) => prev.map((x, j) => j === i ? { ...x, name: e.target.value } : x))} placeholder="Иванова Анна Сергеевна" /></Field>
+                  <Field label="Должность / направление"><input className={inputCls} value={t.role ?? ""} onChange={(e) => setTeachers((prev) => prev.map((x, j) => j === i ? { ...x, role: e.target.value } : x))} placeholder="начальная школа, подготовка к школе" /></Field>
                 </div>
-                <Field label="О специалисте"><textarea rows={2} className={inputCls + " h-auto py-2"} value={t.bio ?? ""} onChange={(e) => setTeachers((prev) => prev.map((x, j) => j === i ? { ...x, bio: e.target.value } : x))} /></Field>
+                <div className="grid sm:grid-cols-2 gap-3">
+                  <Field label="Плашка над именем (необязательно)"><input className={inputCls} value={t.badge ?? ""} onChange={(e) => setTeachers((prev) => prev.map((x, j) => j === i ? { ...x, badge: e.target.value } : x))} placeholder="Например: Основатель студии / Ведущий педагог" /></Field>
+                  <Field label="Ключевые тезисы / галочки (с новой строки или через запятую)"><textarea rows={2} className={inputCls + " h-auto py-2"} value={Array.isArray(t.merits) ? t.merits.join("\n") : (t.merits ?? "")} onChange={(e) => setTeachers((prev) => prev.map((x, j) => j === i ? { ...x, merits: e.target.value } : x))} placeholder="Высшее образование&#10;Стаж более 10 лет" /></Field>
+                </div>
+                <Field label="Заслуги, опыт и подробная информация (отображается во всплывающей карточке)"><textarea rows={3} className={inputCls + " h-auto py-2"} value={t.bio ?? ""} onChange={(e) => setTeachers((prev) => prev.map((x, j) => j === i ? { ...x, bio: e.target.value } : x))} placeholder="Опишите опыт работы, методику, достижения учеников..." /></Field>
                 <Field label="Фото URL">
                   <div className="flex gap-2">
                     <input className={inputCls + " flex-1"} value={t.photo ?? ""} onChange={(e) => setTeachers((prev) => prev.map((x, j) => j === i ? { ...x, photo: e.target.value } : x))} />
@@ -1788,14 +1792,14 @@ export default function AdminPage() {
                   </div>
                 </Field>
                 <div className="flex items-center gap-2">
-                  <button onClick={() => move(teachers, i, -1, setTeachers)} className="p-2 rounded-lg hover:bg-accent"><ArrowUp className="w-4 h-4" /></button>
-                  <button onClick={() => move(teachers, i, 1, setTeachers)} className="p-2 rounded-lg hover:bg-accent"><ArrowDown className="w-4 h-4" /></button>
-                  <button onClick={() => setTeachers((prev) => prev.filter((_, j) => j !== i))} className="p-2 rounded-lg hover:bg-destructive/10 text-destructive"><Trash2 className="w-4 h-4" /></button>
+                  <button onClick={() => move(teachers, i, -1, setTeachers)} className="p-2 rounded-lg hover:bg-accent" title="Переместить выше"><ArrowUp className="w-4 h-4" /></button>
+                  <button onClick={() => move(teachers, i, 1, setTeachers)} className="p-2 rounded-lg hover:bg-accent" title="Переместить ниже"><ArrowDown className="w-4 h-4" /></button>
+                  <button onClick={() => setTeachers((prev) => prev.filter((_, j) => j !== i))} className="p-2 rounded-lg hover:bg-destructive/10 text-destructive" title="Удалить специалиста"><Trash2 className="w-4 h-4" /></button>
                 </div>
               </div>
             ))}
             <div className="flex flex-col sm:flex-row gap-3">
-              <button onClick={() => setTeachers((prev) => [...prev, { id: `new-${Date.now()}`, name: "", role: "", bio: "", photo: "" }])} className={btnCls + " bg-card border border-border text-foreground hover:bg-accent"}><Plus className="w-4 h-4" /> Добавить специалиста</button>
+              <button onClick={() => setTeachers((prev) => [...prev, { id: `new-${Date.now()}`, name: "", role: "", bio: "", photo: "", badge: "", merits: "" }])} className={btnCls + " bg-card border border-border text-foreground hover:bg-accent"}><Plus className="w-4 h-4" /> Добавить специалиста</button>
               <button onClick={saveSettings} disabled={saving} className={btnCls}>{saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />} Сохранить</button>
             </div>
           </div>

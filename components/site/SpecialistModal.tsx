@@ -13,7 +13,7 @@ import {
   Award,
   CheckCircle2,
 } from "lucide-react";
-import type { TeacherItem } from "@/lib/teachers";
+import { type TeacherItem, getTeacherMerits } from "@/lib/teachers";
 import { useContent } from "./ContentContext";
 
 interface SpecialistModalProps {
@@ -67,6 +67,10 @@ export function SpecialistModal({
       window.removeEventListener("keydown", handleKeyDown);
     };
   }, [isOpen, onClose, handlePrev, handleNext]);
+
+  const merits = specialist ? getTeacherMerits(specialist) : [];
+  const badgeText = specialist?.badge?.trim() || "Специалист студии";
+  const hasBio = Boolean(specialist?.bio && specialist.bio.trim().length > 0);
 
   return (
     <AnimatePresence>
@@ -153,7 +157,7 @@ export function SpecialistModal({
                 <div className="flex-1 min-w-0">
                   <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-brand-warm/15 text-brand-warm-ink mb-2">
                     <Sparkles className="w-3.5 h-3.5" />
-                    <span>Специалист студии «Сфера»</span>
+                    <span>{badgeText}</span>
                   </div>
 
                   <h3 className="font-display font-extrabold text-xl sm:text-2xl md:text-3xl text-foreground leading-tight text-balance">
@@ -166,41 +170,32 @@ export function SpecialistModal({
                     </p>
                   )}
 
-                  {/* Достоинства и подход */}
-                  <div className="mt-4 space-y-2 text-xs sm:text-sm text-muted-foreground">
-                    <div className="flex items-center gap-2">
-                      <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
-                      <span>Индивидуальный подход к ребёнку</span>
+                  {/* Заслуги / тезисы специалиста — отображаются только если заполнены в админке */}
+                  {merits.length > 0 && (
+                    <div className="mt-4 space-y-2 text-xs sm:text-sm text-foreground/80">
+                      {merits.map((item, idx) => (
+                        <div key={idx} className="flex items-start gap-2">
+                          <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
+                          <span>{item}</span>
+                        </div>
+                      ))}
                     </div>
-                    <div className="flex items-center gap-2">
-                      <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
-                      <span>Профильное образование и опыт работы</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
-                      <span>Комфортная и вдохновляющая атмосфера</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Заслуги, опыт и подробная информация */}
-              <div className="rounded-2xl bg-muted/40 border border-border/60 p-4 sm:p-5 space-y-2">
-                <div className="flex items-center gap-2 text-foreground font-semibold text-sm">
-                  <Award className="w-4 h-4 text-brand-warm-ink" />
-                  <span>Заслуги, опыт и информация</span>
-                </div>
-                <div className="text-xs sm:text-sm text-foreground/90 leading-relaxed whitespace-pre-line">
-                  {specialist.bio && specialist.bio.trim().length > 0 ? (
-                    specialist.bio
-                  ) : (
-                    <span className="text-muted-foreground">
-                      Педагог ведёт занятия в учебно-развивающей студии «Сфера» в Горячем Ключе.
-                      Высокая квалификация, внимательное отношение к особенностям восприятия каждого ученика и помощь в достижении уверенных результатов.
-                    </span>
                   )}
                 </div>
               </div>
+
+              {/* Заслуги, опыт, образование — отображается ТОЛЬКО если поле заполнено в админке */}
+              {hasBio && (
+                <div className="rounded-2xl bg-muted/40 border border-border/60 p-4 sm:p-5 space-y-2">
+                  <div className="flex items-center gap-2 text-foreground font-semibold text-sm">
+                    <Award className="w-4 h-4 text-brand-warm-ink" />
+                    <span>Заслуги, опыт и информация</span>
+                  </div>
+                  <div className="text-xs sm:text-sm text-foreground/90 leading-relaxed whitespace-pre-line">
+                    {specialist.bio}
+                  </div>
+                </div>
+              )}
 
               {/* Кнопка записи и контакты */}
               <div className="pt-2 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 border-t border-border/60">
@@ -243,4 +238,3 @@ export function SpecialistModal({
     </AnimatePresence>
   );
 }
-
