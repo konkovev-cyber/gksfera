@@ -48,7 +48,7 @@ const TABS: { id: Tab; label: string; icon: any; category: TabCategory; hint: st
   // Учебный процесс
   { id: "programs", label: "Направления", icon: School, category: "study", hint: "Карточки учебных и творческих направлений (страницы /programs/…). Название, описание, возраст, цена, фото." },
   { id: "schedule", label: "Расписание", icon: CalendarDays, category: "study", hint: "Расписание занятий по группам (страница /raspisanie). Дни, уроки, время и картинка для печати." },
-  { id: "teachers", label: "Педагоги", icon: GraduationCap, category: "study", hint: "Карточки преподавателей: имя, роль, описание, опыт и фото." },
+  { id: "teachers", label: "Специалисты", icon: GraduationCap, category: "study", hint: "Карточки специалистов студии (страница /specialists и блок на главной): имя, направление, описание и фото." },
   { id: "learning", label: "Как учим", icon: BookOpen, category: "study", hint: "Секция «Как проходят занятия» на главной: пошаговый путь (шаги с описанием и фото)." },
 
   // Медиа и статьи
@@ -65,7 +65,7 @@ const TABS: { id: Tab; label: string; icon: any; category: TabCategory; hint: st
 const VIS_LABELS: Record<string, string> = {
   tasks: "С какой задачей пришли", about: "О студии", programs: "Направления",
   results: "Результаты занятий", truststats: "Цифры доверия", learning: "Как проходят занятия",
-  gallery: "Галерея", teachers: "Преподаватели", reviews: "Отзывы", news: "Новости",
+  gallery: "Галерея", teachers: "Специалисты", reviews: "Отзывы", news: "Новости",
   faq: "Частые вопросы", events: "События", parentnav: "Навигатор для родителей",
   cta: "CTA-баннер", enrollment: "Форма записи", contacts: "Контакты и карта",
 };
@@ -74,7 +74,7 @@ const VIS_LABELS: Record<string, string> = {
 const SECTION_LABELS: Record<string, string> = {
   tasks: "Блок «С какой задачей пришли»", about: "О студии", programs: "Направления",
   results: "Результаты занятий", truststats: "Цифры доверия", learning: "Как проходят занятия",
-  gallery: "Галерея", teachers: "Преподаватели", reviews: "Отзывы", events: "События",
+  gallery: "Галерея", teachers: "Специалисты", reviews: "Отзывы", events: "События",
   news: "Новости", faq: "Частые вопросы", parentnav: "Навигатор для родителей",
   cta: "CTA-баннер", enrollment: "Форма записи", contacts: "Контакты и карта",
 };
@@ -1770,14 +1770,14 @@ export default function AdminPage() {
         {/* ─── Teachers ─── */}
         {tab === "teachers" && (
           <div className="space-y-4">
-            <p className="text-sm text-muted-foreground">Добавьте карточки педагогов. Блок появится на сайте, когда в настройках включён переключатель «Блок «Преподаватели»».</p>
+            <p className="text-sm text-muted-foreground">Карточки специалистов студии (отображаются на отдельной странице <code className="text-xs bg-muted px-1.5 py-0.5 rounded font-mono">/specialists</code> и в блоке на главной). Включать и выключать блок можно во вкладке «Порядок секций».</p>
             {teachers.map((t, i) => (
               <div key={t.id ?? i} className="bg-card rounded-2xl border border-border/60 p-4 space-y-3">
                 <div className="grid sm:grid-cols-2 gap-3">
                   <Field label="Имя и фамилия"><input className={inputCls} value={t.name ?? ""} onChange={(e) => setTeachers((prev) => prev.map((x, j) => j === i ? { ...x, name: e.target.value } : x))} /></Field>
                   <Field label="Должность / направление"><input className={inputCls} value={t.role ?? ""} onChange={(e) => setTeachers((prev) => prev.map((x, j) => j === i ? { ...x, role: e.target.value } : x))} /></Field>
                 </div>
-                <Field label="О педагоге"><textarea rows={2} className={inputCls + " h-auto py-2"} value={t.bio ?? ""} onChange={(e) => setTeachers((prev) => prev.map((x, j) => j === i ? { ...x, bio: e.target.value } : x))} /></Field>
+                <Field label="О специалисте"><textarea rows={2} className={inputCls + " h-auto py-2"} value={t.bio ?? ""} onChange={(e) => setTeachers((prev) => prev.map((x, j) => j === i ? { ...x, bio: e.target.value } : x))} /></Field>
                 <Field label="Фото URL">
                   <div className="flex gap-2">
                     <input className={inputCls + " flex-1"} value={t.photo ?? ""} onChange={(e) => setTeachers((prev) => prev.map((x, j) => j === i ? { ...x, photo: e.target.value } : x))} />
@@ -1792,7 +1792,7 @@ export default function AdminPage() {
               </div>
             ))}
             <div className="flex flex-col sm:flex-row gap-3">
-              <button onClick={() => setTeachers((prev) => [...prev, { id: `new-${Date.now()}`, name: "", role: "", bio: "", photo: "" }])} className={btnCls + " bg-card border border-border text-foreground hover:bg-accent"}><Plus className="w-4 h-4" /> Добавить педагога</button>
+              <button onClick={() => setTeachers((prev) => [...prev, { id: `new-${Date.now()}`, name: "", role: "", bio: "", photo: "" }])} className={btnCls + " bg-card border border-border text-foreground hover:bg-accent"}><Plus className="w-4 h-4" /> Добавить специалиста</button>
               <button onClick={saveSettings} disabled={saving} className={btnCls}>{saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />} Сохранить</button>
             </div>
           </div>

@@ -1,4 +1,4 @@
-import type { MetadataRoute } from 'next';
+﻿import type { MetadataRoute } from 'next';
 import { getContent, getAllNews } from '@/lib/content';
 import { newsUrl } from '@/lib/news';
 import { slugify } from '@/lib/utils';
@@ -42,6 +42,15 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         url: `${baseUrl}/raspisanie`,
         lastModified,
         changeFrequency: 'weekly',
+        priority: 0.8,
+      });
+    }
+    // Страница специалистов — если раздел не отключён.
+    if (visibility.teachers !== false) {
+      entries.push({
+        url: `${baseUrl}/specialists`,
+        lastModified,
+        changeFrequency: 'monthly',
         priority: 0.8,
       });
     }

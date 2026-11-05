@@ -1,4 +1,4 @@
-export type Program = {
+﻿export type Program = {
   id: string;
   title: string;
   ageRange: string;
@@ -648,6 +648,7 @@ export const navItems: NavItem[] = [
     href: "#about",
     vis: "about",
     children: [
+      { label: "Специалисты", href: "/specialists", vis: "teachers" },
       { label: "Направления", href: "#programs", vis: "programs" },
       { label: "Расписание", href: "/raspisanie", vis: "raspisanie" },
     ],
@@ -661,6 +662,7 @@ export const navItems: NavItem[] = [
 export const footerLinks = {
   navigation: [
     { label: "О студии", href: "#about", vis: "about" },
+    { label: "Специалисты", href: "/specialists", vis: "teachers" },
     { label: "Направления", href: "#programs", vis: "programs" },
     { label: "Расписание", href: "/raspisanie", vis: "raspisanie" },
     { label: "Галерея", href: "/gallery", vis: "gallery" },
