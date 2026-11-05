@@ -2775,15 +2775,54 @@ export default function AdminPage() {
 
         {/* ─── SEO ─── */}
         {tab === "seo" && (
-          <div className="bg-card rounded-2xl border border-border/60 p-5 space-y-4 max-w-lg">
-            <p className="text-xs text-muted-foreground">Эти метки используются в &lt;head&gt; каждой страницы (meta title, description, Open Graph, keywords).</p>
-            <Field label="Title (по умолчанию)"><input className={inputCls} value={siteConfig.seoTitle ?? ""} onChange={(e) => setSiteConfig((p) => ({ ...p, seoTitle: e.target.value }))} placeholder="Учебно-развивающая студия «Сфера»…" /></Field>
-            <Field label="Title шаблон (для подстраниц)"><input className={inputCls} value={siteConfig.seoTitleTemplate ?? ""} onChange={(e) => setSiteConfig((p) => ({ ...p, seoTitleTemplate: e.target.value }))} placeholder="%s — «Сфера» Горячий Ключ" /></Field>
-            <Field label="Description"><textarea rows={2} className={inputCls + " h-auto py-2"} value={siteConfig.seoDescription ?? ""} onChange={(e) => setSiteConfig((p) => ({ ...p, seoDescription: e.target.value }))} /></Field>
-            <Field label="Keywords (через запятую)"><input className={inputCls} value={siteConfig.seoKeywords ?? ""} onChange={(e) => setSiteConfig((p) => ({ ...p, seoKeywords: e.target.value }))} /></Field>
-            <Field label="OG-изображение (URL)"><input className={inputCls} value={siteConfig.seoOgImage ?? ""} onChange={(e) => setSiteConfig((p) => ({ ...p, seoOgImage: e.target.value }))} placeholder="/og-image.png" /></Field>
-            <Field label="Theme Color"><input className={inputCls} value={siteConfig.seoThemeColor ?? ""} onChange={(e) => setSiteConfig((p) => ({ ...p, seoThemeColor: e.target.value }))} placeholder="hsl(32 85% 52%)" /></Field>
-            <button onClick={saveSettings} disabled={saving} className={btnCls}>{saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />} Сохранить</button>
+          <div className="bg-card rounded-2xl border border-border/60 p-5 space-y-4 max-w-2xl">
+            <div>
+              <h3 className="font-display font-bold text-base text-foreground">Поисковая оптимизация и отображение в соцсетях</h3>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                Эти настройки определяют, как сайт выглядит в результатах поиска Яндекса и Google, а также при отправке ссылок в MAX, VK, Telegram и WhatsApp.
+              </p>
+            </div>
+            <Field
+              label="Главный заголовок сайта в поиске (Title)"
+              hint="Отображается во вкладке браузера и первой строкой в поиске Яндекса и Google. Рекомендуется 50–70 символов с названием студии и городом."
+            >
+              <input className={inputCls} value={siteConfig.seoTitle ?? ""} onChange={(e) => setSiteConfig((p) => ({ ...p, seoTitle: e.target.value }))} placeholder="Учебно-развивающая студия «Сфера» — занятия для детей в Горячем Ключе" />
+            </Field>
+            <Field
+              label="Шаблон заголовков для внутренних страниц"
+              hint="Конструкция вида «%s — «Сфера» Горячий Ключ», где вместо %s автоматически подставляется название страницы (например: Расписание, Специалисты)."
+            >
+              <input className={inputCls} value={siteConfig.seoTitleTemplate ?? ""} onChange={(e) => setSiteConfig((p) => ({ ...p, seoTitleTemplate: e.target.value }))} placeholder="%s — «Сфера» Горячий Ключ" />
+            </Field>
+            <Field
+              label="Краткое описание студии в поиске (Description)"
+              hint="Сниппет из 140–160 символов, который поисковики выводят под ссылкой: основные направления, возраст детей и преимущества."
+            >
+              <textarea rows={3} className={inputCls + " h-auto py-2"} value={siteConfig.seoDescription ?? ""} onChange={(e) => setSiteConfig((p) => ({ ...p, seoDescription: e.target.value }))} placeholder="Учебно-развивающая студия «Сфера» в Горячем Ключе. Подготовка к школе, помощь школьникам, английский язык..." />
+            </Field>
+            <Field
+              label="Ключевые поисковые слова (Keywords)"
+              hint="Фразы через запятую, по которым родители ищут занятия: подготовка к школе Горячий Ключ, репетитор начальных классов, Сфера."
+            >
+              <input className={inputCls} value={siteConfig.seoKeywords ?? ""} onChange={(e) => setSiteConfig((p) => ({ ...p, seoKeywords: e.target.value }))} placeholder="развивающие занятия Горячий Ключ, подготовка к школе..." />
+            </Field>
+            <Field
+              label="Картинка-превью для соцсетей (Open Graph)"
+              hint="Превью-изображение (рекомендуемый размер 1200×630 px), которое автоматически прикрепляется к ссылке при отправке в чаты и соцсети."
+            >
+              <input className={inputCls} value={siteConfig.seoOgImage ?? ""} onChange={(e) => setSiteConfig((p) => ({ ...p, seoOgImage: e.target.value }))} placeholder="/og-image.png" />
+            </Field>
+            <Field
+              label="Цвет адресной строки браузера на смартфонах (Theme Color)"
+              hint="Фирменный цвет (шестнадцатеричный код или HSL), в который окрашивается верхняя панель браузера на телефонах (например #F28C28)."
+            >
+              <input className={inputCls} value={siteConfig.seoThemeColor ?? ""} onChange={(e) => setSiteConfig((p) => ({ ...p, seoThemeColor: e.target.value }))} placeholder="#F28C28" />
+            </Field>
+            <div>
+              <button onClick={saveSettings} disabled={saving} className={btnCls}>
+                {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />} Сохранить SEO-настройки
+              </button>
+            </div>
           </div>
         )}
 
