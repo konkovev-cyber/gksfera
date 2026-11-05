@@ -2,9 +2,14 @@
 
 import { useState } from "react";
 import Image from "next/image";
+import dynamic from "next/dynamic";
 import { GraduationCap } from "lucide-react";
 import type { TeacherItem } from "@/lib/teachers";
-import { SpecialistModal } from "./SpecialistModal";
+
+const SpecialistModal = dynamic(
+  () => import("./SpecialistModal").then((mod) => mod.SpecialistModal),
+  { ssr: false }
+);
 
 interface SpecialistsPageViewProps {
   teachers: TeacherItem[];
@@ -76,13 +81,15 @@ export function SpecialistsPageView({ teachers }: SpecialistsPageViewProps) {
         </div>
       </div>
 
-      {/* Модальное окно с подробными данными и заслугами */}
-      <SpecialistModal
-        specialists={teachers}
-        currentIndex={selectedIndex}
-        onClose={() => setSelectedIndex(null)}
-        onNavigate={(newIdx) => setSelectedIndex(newIdx)}
-      />
+      {/* Модальное окно с подробными данными и заслугами (подгружается только при клике) */}
+      {selectedIndex !== null && (
+        <SpecialistModal
+          specialists={teachers}
+          currentIndex={selectedIndex}
+          onClose={() => setSelectedIndex(null)}
+          onNavigate={(newIdx) => setSelectedIndex(newIdx)}
+        />
+      )}
     </>
   );
 }

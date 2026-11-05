@@ -14,6 +14,8 @@ import { SITE_ORIGIN } from "@/data/site";
 
 type Props = { params: { id: string } };
 
+export const revalidate = 60;
+
 function ogImage(item: { image_url: string | null }, siteUrl: string): string | undefined {
   if (!item.image_url) return undefined;
   return item.image_url.startsWith("http") ? item.image_url : `${siteUrl}${item.image_url}`;

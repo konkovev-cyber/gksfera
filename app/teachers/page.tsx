@@ -1,1 +1,1 @@
-export { default, metadata, dynamic } from "@/app/specialists/page";
+export { default, metadata, revalidate } from "@/app/specialists/page";

@@ -16,8 +16,6 @@ const manrope = Manrope({
   display: 'swap',
 });
 
-export const dynamic = "force-dynamic";
-
 export async function generateMetadata(): Promise<Metadata> {
   const { data } = await getContent();
   const cfg = data.siteConfig as Record<string, unknown>;

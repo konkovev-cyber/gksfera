@@ -21,8 +21,8 @@ export const metadata: Metadata = {
   },
 };
 
-// Галерея обновляется из админки — показываем свежие файлы без устаревшего кэша.
-export const dynamic = "force-dynamic";
+// Галерея кэшируется с ISR (60с) и сбрасывается мгновенно при загрузке новых фото в админке.
+export const revalidate = 60;
 
 export default async function GalleryPage() {
   const { data, visibility } = await getContent();

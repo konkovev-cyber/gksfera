@@ -20,6 +20,8 @@ export const metadata: Metadata = {
   },
 };
 
+export const revalidate = 60;
+
 function fmtDate(iso: string): string {
   try {
     return new Date(iso).toLocaleDateString("ru-RU", {

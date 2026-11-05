@@ -18,8 +18,8 @@ export const metadata: Metadata = {
   },
 };
 
-// Расписание должно отражать правки из админки сразу, без устаревшего кэша.
-export const dynamic = "force-dynamic";
+// Расписание кэшируется с ISR (60с) и сбрасывается мгновенно при правках в админке.
+export const revalidate = 60;
 
 export default async function SchedulePage() {
   const { data, visibility } = await getContent();

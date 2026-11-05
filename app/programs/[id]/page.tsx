@@ -17,6 +17,8 @@ import { SITE_ORIGIN, type Program, programInterestMap, resultsAfterLearning } f
 
 type Props = { params: { id: string } };
 
+export const revalidate = 60;
+
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { data } = await getContent();
   const program = data.programs.find((p) => slugify(p.title) === params.id);

@@ -1,5 +1,9 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  compress: true,
+  experimental: {
+    optimizePackageImports: ["lucide-react", "framer-motion", "date-fns"],
+  },
   // eslint.ignoreDuringBuilds снят: линт проходит чисто (next lint — 0 warnings),
   // а отключённая проверка на сборке позволяла предупреждениям копиться незаметно.
   // Оптимизация изображений включена: с unoptimized:true главная тянула ~5.7 МБ
@@ -21,6 +25,20 @@ const nextConfig = {
     minimumCacheTTL: 60 * 60 * 24, // сутки: фото меняются редко, пережатие дорогое
   },
   distDir: process.env.NEXT_DIST_DIR || ".next",
+  async headers() {
+    return [
+      {
+        source: "/:all*(svg|jpg|jpeg|png|webp|avif|ico|woff2)",
+        locale: false,
+        headers: [
+          {
+            key: "Cache-Control",
+            value: "public, max-age=31536000, immutable",
+          },
+        ],
+      },
+    ];
+  },
   async redirects() {
     return [
       {

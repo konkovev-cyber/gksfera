@@ -25,7 +25,9 @@ import { getContent, type Visibility } from "@/lib/content";
 import { ContentProvider } from "@/components/site/ContentContext";
 import { Suspense, type ReactNode } from "react";
 
-export const dynamic = "force-dynamic";
+// ISR: страница кэшируется на Edge CDN Vercel на 60 секунд.
+// При любых сохранениях в админке кэш сбрасывается мгновенно через revalidatePath("/", "layout").
+export const revalidate = 60;
 
 // Canonical теперь задаётся каждой страницей: из корневого layout он текла на
 // все маршруты без своего значения (см. app/layout.tsx).

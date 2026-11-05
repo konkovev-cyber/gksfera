@@ -6,8 +6,13 @@ import Link from "next/link";
 import { GraduationCap, ArrowRight, ChevronLeft, ChevronRight } from "lucide-react";
 import { useContent } from "./ContentContext";
 import { Reveal } from "./Reveal";
+import dynamic from "next/dynamic";
 import { isRealTeacher } from "@/lib/teachers";
-import { SpecialistModal } from "./SpecialistModal";
+
+const SpecialistModal = dynamic(
+  () => import("./SpecialistModal").then((mod) => mod.SpecialistModal),
+  { ssr: false }
+);
 
 export { isRealTeacher };
 
@@ -219,13 +224,15 @@ export function Teachers() {
         </Reveal>
       </div>
 
-      {/* Модальное окно специалиста */}
-      <SpecialistModal
-        specialists={teachers}
-        currentIndex={selectedTeacherIndex}
-        onClose={() => setSelectedTeacherIndex(null)}
-        onNavigate={(newIdx) => setSelectedTeacherIndex(newIdx)}
-      />
+      {/* Модальное окно специалиста (подгружается только при клике) */}
+      {selectedTeacherIndex !== null && (
+        <SpecialistModal
+          specialists={teachers}
+          currentIndex={selectedTeacherIndex}
+          onClose={() => setSelectedTeacherIndex(null)}
+          onNavigate={(newIdx) => setSelectedTeacherIndex(newIdx)}
+        />
+      )}
     </section>
   );
 }
