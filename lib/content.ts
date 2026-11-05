@@ -1,4 +1,4 @@
-import { unstable_cache } from "next/cache";
+﻿import { unstable_cache } from "next/cache";
 import { serviceClient } from "./supabase-server";
 import * as defaults from "@/data/site";
 import type { Program, GalleryItem, Review, NewsItem, FAQItem, ScheduleGroup, HeroBanner, NavItem } from "@/data/site";
@@ -216,6 +216,11 @@ async function _getContent(): Promise<{
   } catch (e) {
     console.error("[content] Supabase недоступен, используем значения по умолчанию:", e);
   }
+
+  // Синхронизируем флаги siteConfig с visibility
+  data.siteConfig.showTeachers = visibility.teachers !== false;
+  data.siteConfig.showReviews = visibility.reviews !== false;
+  data.siteConfig.showEvents = visibility.events !== false;
 
   // Порядок секций нормализуем: берём сохранённый, добавляем недостающие
   // (появились новые блоки) и убираем несуществующие.

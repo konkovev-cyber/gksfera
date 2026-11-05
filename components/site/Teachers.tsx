@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import Image from "next/image";
 import { GraduationCap } from "lucide-react";
@@ -13,18 +13,16 @@ import { Reveal, Stagger, StaggerItem } from "./Reveal";
  * вымышленные люди с вымышленным опытом. Поэтому показываем только карточки с
  * настоящим именем: нет людей — нет блока, а не три заглушки.
  */
-const PLACEHOLDER = /^(имя преподавателя|ф и. о\.?|и\. о\.?|должность|педагог$)/i;
+const PLACEHOLDER = /^(имя преподавателя|ф и\.?\s*о\.?|и\.?\s*о\.?|преподаватель|педагог)$/i;
 function isRealTeacher(t: { name?: string; role?: string }) {
   const name = (t.name || "").trim();
-  return name.length >= 3 && !PLACEHOLDER.test(name) && !/преподавателя/i.test(name);
+  return name.length >= 2 && !PLACEHOLDER.test(name);
 }
 
 export function Teachers() {
   const content = useContent();
   const teachers = (content.teachers || []).filter(isRealTeacher);
-  // Флаг + наличие реальных людей: оба условия, иначе переключатель в админке
-  // сам по себе выводит на сайт пустой или фиктивный блок.
-  if (!content.siteConfig.showTeachers || teachers.length === 0) return null;
+  if (teachers.length === 0) return null;
 
   return (
     <section id="teachers" className="section-padding relative overflow-hidden">

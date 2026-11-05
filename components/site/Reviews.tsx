@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 import { Quote, ExternalLink, ChevronDown } from "lucide-react";
@@ -11,7 +11,7 @@ const MAX_LENGTH = 180;
 
 export function Reviews() {
   const content = useContent();
-  if (!content.siteConfig.showReviews) return null;
+  if (!content.reviews || content.reviews.length === 0) return null;
 
   return (
     <section id="reviews" className="section-padding relative overflow-hidden">

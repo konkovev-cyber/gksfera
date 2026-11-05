@@ -652,6 +652,45 @@ export default function AdminPage() {
     const copy = [...arr]; [copy[i], copy[j]] = [copy[j], copy[i]]; setter(copy);
   };
 
+  const toggleVisibility = async (key: string, checked: boolean) => {
+    const nextVis = { ...visibility, [key]: checked };
+    setVisibility(nextVis);
+    try {
+      await mutate("/api/admin/settings", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          visibility: nextVis,
+          sectionsOrder: homeOrder,
+        }),
+      });
+      flash(`Блок «${SECTION_LABELS[key] ?? key}»: ${checked ? "включён" : "скрыт"}`);
+    } catch (e) {
+      flash(`Ошибка сохранения: ${(e as Error).message}`);
+    }
+  };
+
+  const moveSectionOrder = async (i: number, dir: -1 | 1) => {
+    const j = i + dir;
+    if (j < 0 || j >= homeOrder.length) return;
+    const copy = [...homeOrder];
+    [copy[i], copy[j]] = [copy[j], copy[i]];
+    setHomeOrder(copy);
+    try {
+      await mutate("/api/admin/settings", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          visibility,
+          sectionsOrder: copy,
+        }),
+      });
+      flash("Порядок сохранён");
+    } catch (e) {
+      flash(`Ошибка сохранения: ${(e as Error).message}`);
+    }
+  };
+
   // ─── Расписание: вложенные хелперы (группы → дни → уроки) ───
   const moveIn = <T,>(arr: T[], i: number, dir: -1 | 1): T[] => {
     const j = i + dir; if (j < 0 || j >= arr.length) return arr;
@@ -1146,7 +1185,7 @@ export default function AdminPage() {
     </div>
   );
 
-  const cfgEntries = Object.entries(siteConfig).filter(([, v]) => ["string", "number", "boolean"].includes(typeof v));
+  const cfgEntries = Object.entries(siteConfig).filter(([k, v]) => ["string", "number", "boolean"].includes(typeof v) && !["showTeachers", "showEvents", "showReviews"].includes(k));
   const newEnrollmentsCount = enrollments.filter((e) => (e.status ?? "new") === "new").length;
   const filteredTabs = TABS.filter((t) => {
     const matchCat = catFilter === "all" || t.category === catFilter;
@@ -1441,56 +1480,73 @@ export default function AdminPage() {
 
         {/* ─── Visibility & Order ─── */}
         {tab === "visibility" && (
-          <div className="bg-card rounded-2xl border border-border/60 p-5 space-y-2 max-w-2xl">
-            <p className="text-sm text-muted-foreground mb-3">
-              Порядок блоков главной страницы. Стрелками переставляйте сверху вниз, галочкой —
-              показывать или скрывать (контент не удаляется). Первый экран и подвал закреплены.
-            </p>
+          <div className="bg-card rounded-2xl border border-border/60 p-5 space-y-3 max-w-2xl">
+            <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
+              <p className="text-sm text-muted-foreground max-w-md">
+                Галочка включает или скрывает блок на главной (сохраняется мгновенно). Стрелками меняется порядок секций.
+              </p>
+              <button onClick={saveSettings} disabled={saving} className={btnCls + " text-xs !h-9 !px-3 shrink-0"}>
+                {saving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />} Сохранить всё
+              </button>
+            </div>
             {homeOrder.map((id, i) => {
               const hideable = id in VIS_LABELS;
               const on = hideable ? visibility[id] !== false : true;
               return (
-                <div key={id} className="flex items-center gap-2 py-1.5 border-b border-border/40 last:border-0">
-                  <span className="w-5 text-center text-xs text-muted-foreground tabular-nums">{i + 1}</span>
+                <div key={id} className={cn("flex items-center gap-2 py-2 px-2.5 rounded-xl border transition-colors", on ? "bg-background/60 border-border/40" : "bg-muted/20 border-transparent opacity-60")}>
+                  <span className="w-5 text-center text-xs text-muted-foreground tabular-nums font-mono">{i + 1}</span>
                   <div className="flex flex-col">
-                    <button onClick={() => move(homeOrder, i, -1, setHomeOrder)} disabled={i === 0} className="p-0.5 rounded hover:bg-accent disabled:opacity-25" title="Выше"><ArrowUp className="w-3.5 h-3.5" /></button>
-                    <button onClick={() => move(homeOrder, i, 1, setHomeOrder)} disabled={i === homeOrder.length - 1} className="p-0.5 rounded hover:bg-accent disabled:opacity-25" title="Ниже"><ArrowDown className="w-3.5 h-3.5" /></button>
+                    <button onClick={() => moveSectionOrder(i, -1)} disabled={i === 0} className="p-0.5 rounded hover:bg-accent disabled:opacity-20" title="Выше"><ArrowUp className="w-3.5 h-3.5" /></button>
+                    <button onClick={() => moveSectionOrder(i, 1)} disabled={i === homeOrder.length - 1} className="p-0.5 rounded hover:bg-accent disabled:opacity-20" title="Ниже"><ArrowDown className="w-3.5 h-3.5" /></button>
                   </div>
-                  <span className={"flex-1 text-sm " + (on ? "text-foreground" : "text-muted-foreground line-through")}>
+                  <span className={"flex-1 text-sm font-medium " + (on ? "text-foreground" : "text-muted-foreground line-through")}>
                     {SECTION_LABELS[id] ?? id}
                   </span>
                   {hideable ? (
-                    <label className="flex items-center gap-1.5 text-xs text-muted-foreground cursor-pointer">
-                      <input type="checkbox" checked={on} onChange={(e) => setVisibility((p) => ({ ...p, [id]: e.target.checked }))} className="w-4 h-4" />
-                      <span className="w-14">виден</span>
+                    <label className="flex items-center gap-2 text-xs font-semibold cursor-pointer select-none px-2 py-1 rounded-lg hover:bg-accent/50">
+                      <input
+                        type="checkbox"
+                        checked={on}
+                        onChange={(e) => toggleVisibility(id, e.target.checked)}
+                        className="w-4 h-4 rounded text-primary focus:ring-primary/40 cursor-pointer"
+                      />
+                      <span className={on ? "text-emerald-600 dark:text-emerald-400 font-bold" : "text-muted-foreground"}>
+                        {on ? "включён" : "скрыт"}
+                      </span>
                     </label>
                   ) : (
-                    <span className="text-[10px] uppercase tracking-wide text-muted-foreground/60 w-14 text-right">всегда</span>
+                    <span className="text-[10px] uppercase tracking-wide text-muted-foreground/60 px-2 text-right">всегда</span>
                   )}
                 </div>
               );
             })}
-            <div className="pt-3 mt-1 border-t border-border/50">
+            <div className="pt-3 mt-2 border-t border-border/50">
               <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-2">
                 Отдельные страницы
               </p>
-              <label className="flex items-center justify-between gap-3 text-sm py-1">
-                <span>
-                  Расписание <span className="text-xs text-muted-foreground">/raspisanie — страница и пункт меню</span>
-                </span>
-                <input type="checkbox" checked={visibility.raspisanie !== false} onChange={(e) => setVisibility((p) => ({ ...p, raspisanie: e.target.checked }))} className="w-4 h-4" />
-              </label>
-              <p className="text-[11px] text-muted-foreground mt-1">
-                Если выключить — страница станет недоступна (404), а пункт «Расписание» исчезнет из меню и из подвала.
-              </p>
-              <p className="text-[11px] text-muted-foreground mt-2">
-                Галерея тоже вынесена на отдельную страницу{" "}
-                <code className="text-[11px] px-1 bg-accent rounded">/gallery</code>, но её
-                включ/выключ — в списке блоков выше (галочка «Галерея»): он скрывает и блок на
-                главной, и страницу (404), и пункт меню с ссылкой в подвале.
-              </p>
+              <div className="p-2.5 rounded-xl border border-border/40 bg-background/60">
+                <label className="flex items-center justify-between gap-3 text-sm cursor-pointer select-none">
+                  <div>
+                    <span className="font-medium">Расписание</span>{" "}
+                    <span className="text-xs text-muted-foreground">/raspisanie — страница и пункт меню</span>
+                  </div>
+                  <input
+                    type="checkbox"
+                    checked={visibility.raspisanie !== false}
+                    onChange={(e) => toggleVisibility("raspisanie", e.target.checked)}
+                    className="w-4 h-4 rounded text-primary focus:ring-primary/40 cursor-pointer"
+                  />
+                </label>
+                <p className="text-[11px] text-muted-foreground mt-1.5">
+                  Если выключить — страница станет недоступна (404), а пункт «Расписание» исчезнет из шапки и подвала.
+                </p>
+              </div>
             </div>
-            <button onClick={saveSettings} disabled={saving} className={btnCls + " mt-3"}>{saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />} Сохранить порядок</button>
+            <div className="pt-2">
+              <button onClick={saveSettings} disabled={saving} className={btnCls + " w-full sm:w-auto justify-center"}>
+                {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />} Сохранить порядок и видимость
+              </button>
+            </div>
           </div>
         )}
 

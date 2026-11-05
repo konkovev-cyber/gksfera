@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import Image from "next/image";
 import { CalendarDays } from "lucide-react";
@@ -21,7 +21,7 @@ function formatDate(dateStr: string): string {
 
 export function Events() {
   const content = useContent();
-  if (!content.siteConfig.showEvents) return null;
+  if (!content.events || content.events.length === 0) return null;
 
   return (
     <section id="events" className="section-padding bg-brand-cream/50 relative overflow-hidden">

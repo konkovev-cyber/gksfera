@@ -1,5 +1,5 @@
-import { NextRequest, NextResponse } from "next/server";
-import { revalidatePath } from "next/cache";
+﻿import { NextRequest, NextResponse } from "next/server";
+import { revalidatePath, revalidateTag } from "next/cache";
 import { checkAdmin } from "@/lib/admin-auth";
 import { getContent } from "@/lib/content";
 import { serviceClient } from "@/lib/supabase-server";
@@ -55,7 +55,18 @@ export async function PUT(req: NextRequest) {
   const db = service();
   const rows: { key: string; value: unknown }[] = [];
   if (body.hero) rows.push({ key: "hero", value: body.hero });
-  if (body.visibility) rows.push({ key: "visibility", value: body.visibility });
+  if (body.visibility) {
+    rows.push({ key: "visibility", value: body.visibility });
+    if (typeof body.visibility.teachers === "boolean") {
+      rows.push({ key: "showTeachers", value: body.visibility.teachers });
+    }
+    if (typeof body.visibility.reviews === "boolean") {
+      rows.push({ key: "showReviews", value: body.visibility.reviews });
+    }
+    if (typeof body.visibility.events === "boolean") {
+      rows.push({ key: "showEvents", value: body.visibility.events });
+    }
+  }
 
   for (const row of rows) {
     const { error } = await db
@@ -70,6 +81,9 @@ export async function PUT(req: NextRequest) {
   // 'settings', который нет в switch-цепочке content.ts и поэтому при
   // следующем чтении просто игнорируется.
   if (body.settings) {
+    delete body.settings.showTeachers;
+    delete body.settings.showReviews;
+    delete body.settings.showEvents;
     for (const [k, v] of Object.entries(body.settings)) {
       const { error } = await db
         .from("site_settings")
@@ -179,6 +193,9 @@ export async function PUT(req: NextRequest) {
   // Область "layout": без неё валидным оставался бы только сам "/", а
   // статические /programs/[id], /news, /reviews доживали до ближайшей
   // пересборки — отсюда «в админке поменял, на сайте нет».
+  try {
+    revalidateTag("content");
+  } catch {}
   revalidatePath("/", "layout");
   return NextResponse.json({ ok: true });
 }
