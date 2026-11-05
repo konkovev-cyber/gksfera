@@ -19,3 +19,4 @@ export function isRealTeacher(t?: { name?: string; role?: string } | null): bool
   const name = (t.name || "").trim();
   return name.length >= 2 && !PLACEHOLDER.test(name);
 }
+

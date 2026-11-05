@@ -3,10 +3,11 @@
 import { useRef, useState, useEffect, useCallback } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { GraduationCap, ArrowRight, ChevronLeft, ChevronRight } from "lucide-react";
+import { GraduationCap, ArrowRight, ChevronLeft, ChevronRight, ArrowUpRight } from "lucide-react";
 import { useContent } from "./ContentContext";
 import { Reveal } from "./Reveal";
 import { isRealTeacher } from "@/lib/teachers";
+import { SpecialistModal } from "./SpecialistModal";
 
 export { isRealTeacher };
 
@@ -17,6 +18,7 @@ export function Teachers() {
   const scrollerRef = useRef<HTMLDivElement>(null);
   const [edges, setEdges] = useState({ start: true, end: false, scrollable: true });
   const [scrollProgress, setScrollProgress] = useState(0);
+  const [selectedTeacherIndex, setSelectedTeacherIndex] = useState<number | null>(null);
 
   const updateEdges = useCallback(() => {
     const el = scrollerRef.current;
@@ -58,11 +60,9 @@ export function Teachers() {
   const handleWheel = (e: React.WheelEvent<HTMLDivElement>) => {
     const el = scrollerRef.current;
     if (!el) return;
-    // Если есть горизонтальное смещение (тачпад/Shift+колесо)
     if (Math.abs(e.deltaX) > Math.abs(e.deltaY)) {
       return;
     }
-    // Если вертикальное колесо мыши над каруселью — скроллим горизонтально
     const max = el.scrollWidth - el.clientWidth;
     if (max <= 0) return;
     const atStart = el.scrollLeft <= 2;
@@ -87,7 +87,7 @@ export function Teachers() {
               Люди, которые помогают детям расти
             </h2>
             <p className="mt-2 text-xs sm:text-sm text-muted-foreground max-w-2xl leading-relaxed">
-              Педагоги и наставники «Сферы» — терпение, опыт и внимание к каждому ребёнку.
+              Педагоги и наставники «Сферы» — терпение, опыт и внимание к каждому ребёнку. Нажмите на карточку, чтобы узнать больше.
             </p>
           </Reveal>
           <div className="flex items-center gap-2.5 sm:gap-3 shrink-0 self-start sm:self-end">
@@ -155,13 +155,19 @@ export function Teachers() {
               tabIndex={0}
               className="flex gap-3.5 sm:gap-4 overflow-x-auto snap-x snap-mandatory scroll-smooth pb-3 pt-1 -mx-4 px-4 sm:mx-0 sm:px-0 overscroll-x-contain focus:outline-none focus-visible:ring-2 focus-visible:ring-ring/60 [scrollbar-width:thin] [scrollbar-color:hsl(var(--muted-foreground)/0.25)_transparent]"
             >
-              {teachers.map((teacher) => (
+              {teachers.map((teacher, index) => (
                 <div
                   key={teacher.id}
                   data-specialist-card
                   className="w-[155px] sm:w-[170px] md:w-[185px] shrink-0 snap-start"
                 >
-                  <div className="card-hover glass rounded-2xl overflow-hidden h-full flex flex-col group border border-border/60">
+                  <button
+                    type="button"
+                    onClick={() => setSelectedTeacherIndex(index)}
+                    aria-label={`Открыть данные специалиста: ${teacher.name}`}
+                    className="w-full text-left card-hover glass rounded-2xl overflow-hidden h-full flex flex-col group border border-border/60 hover:border-primary/40 transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                  >
+                    {/* object-top предотвращает срезание головы/макушки у портретов */}
                     <div className="relative aspect-[4/4.3] bg-muted overflow-hidden">
                       {teacher.photo ? (
                         <Image
@@ -169,30 +175,39 @@ export function Teachers() {
                           alt={teacher.name}
                           fill
                           sizes="(max-width: 640px) 155px, 185px"
-                          className="object-cover transition-transform duration-300 group-hover:scale-105"
+                          className="object-cover object-top transition-transform duration-300 group-hover:scale-105"
                         />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center bg-brand-warm/10">
                           <GraduationCap className="w-10 h-10 text-brand-warm-ink/30" />
                         </div>
                       )}
+                      <div className="absolute top-2 right-2 w-6 h-6 rounded-full bg-background/80 backdrop-blur-sm border border-border/60 flex items-center justify-center text-foreground opacity-0 group-hover:opacity-100 transition-opacity shadow-sm">
+                        <ArrowUpRight className="w-3 h-3 text-primary" />
+                      </div>
                     </div>
-                    <div className="p-3 flex-1 flex flex-col">
-                      <h3 className="font-display font-bold text-xs sm:text-sm text-foreground leading-snug line-clamp-2">
-                        {teacher.name}
-                      </h3>
-                      {teacher.role && (
-                        <p className="text-[11px] sm:text-xs font-medium text-brand-warm-ink mt-0.5 line-clamp-2">
-                          {teacher.role}
-                        </p>
-                      )}
-                      {teacher.bio && (
-                        <p className="text-[11px] text-muted-foreground mt-1 leading-relaxed line-clamp-2">
-                          {teacher.bio}
-                        </p>
-                      )}
+                    <div className="p-3 flex-1 flex flex-col justify-between">
+                      <div>
+                        <h3 className="font-display font-bold text-xs sm:text-sm text-foreground leading-snug line-clamp-2 group-hover:text-primary transition-colors">
+                          {teacher.name}
+                        </h3>
+                        {teacher.role && (
+                          <p className="text-[11px] sm:text-xs font-medium text-brand-warm-ink mt-0.5 line-clamp-2">
+                            {teacher.role}
+                          </p>
+                        )}
+                        {teacher.bio && (
+                          <p className="text-[11px] text-muted-foreground mt-1 leading-relaxed line-clamp-2">
+                            {teacher.bio}
+                          </p>
+                        )}
+                      </div>
+                      <div className="mt-2 pt-2 border-t border-border/30 flex items-center justify-between text-[10px] font-semibold text-primary">
+                        <span>Подробнее</span>
+                        <ArrowUpRight className="w-2.5 h-2.5" />
+                      </div>
                     </div>
-                  </div>
+                  </button>
                 </div>
               ))}
             </div>
@@ -210,6 +225,14 @@ export function Teachers() {
           </div>
         </Reveal>
       </div>
+
+      {/* Модальное окно специалиста */}
+      <SpecialistModal
+        specialists={teachers}
+        currentIndex={selectedTeacherIndex}
+        onClose={() => setSelectedTeacherIndex(null)}
+        onNavigate={(newIdx) => setSelectedTeacherIndex(newIdx)}
+      />
     </section>
   );
 }

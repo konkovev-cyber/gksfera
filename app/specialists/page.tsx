@@ -1,8 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import Image from "next/image";
 import { notFound } from "next/navigation";
-import { ArrowLeft, GraduationCap, Phone, Sparkles } from "lucide-react";
+import { ArrowLeft, Phone, Sparkles } from "lucide-react";
 import { getContent } from "@/lib/content";
 import { ldScript } from "@/lib/utils";
 import { SITE_ORIGIN } from "@/data/site";
@@ -11,6 +10,7 @@ import { Header } from "@/components/site/Header";
 import { Footer } from "@/components/site/Footer";
 import { MobileCTA } from "@/components/site/MobileCTA";
 import { isRealTeacher } from "@/lib/teachers";
+import { SpecialistsPageView } from "@/components/site/SpecialistsPageView";
 
 export const metadata: Metadata = {
   title: "Специалисты — студия «Сфера» Горячий Ключ",
@@ -80,53 +80,7 @@ export default async function SpecialistsPage() {
           </p>
         </div>
 
-        {teachers.length === 0 ? (
-          <div className="container-page mt-12">
-            <div className="rounded-2xl border border-dashed border-border/70 p-8 text-center text-muted-foreground">
-              Список специалистов сейчас формируется и скоро появится здесь.
-            </div>
-          </div>
-        ) : (
-          <div className="container-page mt-10">
-            {/* 2 строчки по 5 на десктопе: lg:grid-cols-5 */}
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3.5 sm:gap-4 lg:gap-5">
-              {teachers.map((t) => (
-                <div key={t.id} className="card-hover glass rounded-2xl overflow-hidden flex flex-col group h-full">
-                  <div className="relative aspect-[4/4.5] bg-muted overflow-hidden">
-                    {t.photo ? (
-                      <Image
-                        src={t.photo}
-                        alt={t.name}
-                        fill
-                        sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"
-                        className="object-cover transition-transform duration-300 group-hover:scale-105"
-                      />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center bg-brand-warm/10">
-                        <GraduationCap className="w-12 h-12 text-brand-warm-ink/30" />
-                      </div>
-                    )}
-                  </div>
-                  <div className="p-3.5 sm:p-4 flex-1 flex flex-col">
-                    <h3 className="font-display font-bold text-sm sm:text-base text-foreground leading-snug">
-                      {t.name}
-                    </h3>
-                    {t.role && (
-                      <p className="text-xs sm:text-sm font-medium text-brand-warm-ink mt-1">
-                        {t.role}
-                      </p>
-                    )}
-                    {t.bio && (
-                      <p className="text-xs text-muted-foreground mt-2 leading-relaxed">
-                        {t.bio}
-                      </p>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
+        <SpecialistsPageView teachers={teachers} />
 
         {/* CTA блок записи */}
         <div className="container-page mt-14 sm:mt-16">
