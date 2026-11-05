@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Image from "next/image";
-import { GraduationCap, ArrowUpRight } from "lucide-react";
+import { GraduationCap } from "lucide-react";
 import type { TeacherItem } from "@/lib/teachers";
 import { SpecialistModal } from "./SpecialistModal";
 
@@ -51,9 +51,6 @@ export function SpecialistsPageView({ teachers }: SpecialistsPageViewProps) {
                     <GraduationCap className="w-12 h-12 text-brand-warm-ink/30" />
                   </div>
                 )}
-                <div className="absolute top-2.5 right-2.5 w-7 h-7 rounded-full bg-background/80 backdrop-blur-sm border border-border/60 flex items-center justify-center text-foreground opacity-0 group-hover:opacity-100 transition-opacity shadow-sm">
-                  <ArrowUpRight className="w-3.5 h-3.5 text-primary" />
-                </div>
               </div>
 
               {/* Текстовая информация */}
@@ -72,11 +69,6 @@ export function SpecialistsPageView({ teachers }: SpecialistsPageViewProps) {
                       {teacher.bio}
                     </p>
                   )}
-                </div>
-
-                <div className="mt-3 pt-2.5 border-t border-border/40 flex items-center justify-between text-[11px] font-semibold text-primary">
-                  <span>Подробнее</span>
-                  <ArrowUpRight className="w-3 h-3 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
                 </div>
               </div>
             </button>
