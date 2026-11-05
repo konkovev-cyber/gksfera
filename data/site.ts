@@ -648,11 +648,11 @@ export const navItems: NavItem[] = [
     href: "#about",
     vis: "about",
     children: [
-      { label: "Специалисты", href: "/specialists", vis: "teachers" },
       { label: "Направления", href: "#programs", vis: "programs" },
       { label: "Расписание", href: "/raspisanie", vis: "raspisanie" },
     ],
   },
+  { label: "Специалисты", href: "/specialists", vis: "teachers" },
   { label: "Галерея", href: "/gallery", vis: "gallery" },
   { label: "Отзывы", href: "/reviews", vis: "reviews" },
   { label: "Новости", href: "/news", vis: "news" },

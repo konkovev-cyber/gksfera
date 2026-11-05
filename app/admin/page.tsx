@@ -1540,6 +1540,9 @@ export default function AdminPage() {
                 <p className="text-[11px] text-muted-foreground mt-1.5">
                   Если выключить — страница станет недоступна (404), а пункт «Расписание» исчезнет из шапки и подвала.
                 </p>
+                <p className="text-[11px] text-muted-foreground mt-2 pt-2 border-t border-border/30">
+                  Страницы «Специалисты» (<code className="text-[11px] px-1 bg-muted rounded font-mono">/specialists</code>) и «Галерея» (<code className="text-[11px] px-1 bg-muted rounded font-mono">/gallery</code>) управляются галочками в списке блоков выше: отключение блока также скрывает страницу и отдельный пункт из меню.
+                </p>
               </div>
             </div>
             <div className="pt-2">
