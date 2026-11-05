@@ -10,7 +10,7 @@ import { ContentProvider } from "@/components/site/ContentContext";
 import { Header } from "@/components/site/Header";
 import { Footer } from "@/components/site/Footer";
 import { MobileCTA } from "@/components/site/MobileCTA";
-import { isRealTeacher } from "@/components/site/Teachers";
+import { isRealTeacher } from "@/lib/teachers";
 
 export const metadata: Metadata = {
   title: "Специалисты — студия «Сфера» Горячий Ключ",
@@ -92,7 +92,7 @@ export default async function SpecialistsPage() {
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3.5 sm:gap-4 lg:gap-5">
               {teachers.map((t) => (
                 <div key={t.id} className="card-hover glass rounded-2xl overflow-hidden flex flex-col group h-full">
-                  <div className="relative aspect-[3/4] bg-muted overflow-hidden">
+                  <div className="relative aspect-[4/4.5] bg-muted overflow-hidden">
                     {t.photo ? (
                       <Image
                         src={t.photo}
