@@ -3,7 +3,7 @@
 import { useRef, useState, useEffect, useCallback } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { GraduationCap, ArrowRight, ChevronLeft, ChevronRight, ArrowUpRight } from "lucide-react";
+import { GraduationCap, ArrowRight, ChevronLeft, ChevronRight } from "lucide-react";
 import { useContent } from "./ContentContext";
 import { Reveal } from "./Reveal";
 import { isRealTeacher } from "@/lib/teachers";
@@ -182,9 +182,6 @@ export function Teachers() {
                           <GraduationCap className="w-10 h-10 text-brand-warm-ink/30" />
                         </div>
                       )}
-                      <div className="absolute top-2 right-2 w-6 h-6 rounded-full bg-background/80 backdrop-blur-sm border border-border/60 flex items-center justify-center text-foreground opacity-0 group-hover:opacity-100 transition-opacity shadow-sm">
-                        <ArrowUpRight className="w-3 h-3 text-primary" />
-                      </div>
                     </div>
                     <div className="p-3 flex-1 flex flex-col justify-between">
                       <div>
@@ -201,10 +198,6 @@ export function Teachers() {
                             {teacher.bio}
                           </p>
                         )}
-                      </div>
-                      <div className="mt-2 pt-2 border-t border-border/30 flex items-center justify-between text-[10px] font-semibold text-primary">
-                        <span>Подробнее</span>
-                        <ArrowUpRight className="w-2.5 h-2.5" />
                       </div>
                     </div>
                   </button>
