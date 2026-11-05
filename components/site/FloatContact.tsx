@@ -1,6 +1,7 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect } from "react";
+import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { MessageCircle, Phone, X } from "lucide-react";
 import { useContent } from "./ContentContext";
@@ -12,17 +13,20 @@ import { cn } from "@/lib/utils";
  * Разворачивается в веер с каналами: MAX, ВКонтакте, телефон.
  */
 export function FloatContact() {
+  const pathname = usePathname();
   const content = useContent();
+  const isAdmin = pathname?.startsWith("/admin");
   const [open, setOpen] = useState(false);
   const [visible, setVisible] = useState(false);
 
   // Появляется после прокрутки на 300px
   useEffect(() => {
+    if (isAdmin) return;
     const onScroll = () => setVisible(window.scrollY > 300);
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
-  }, []);
+  }, [isAdmin]);
 
   // Закрытие по Escape
   useEffect(() => {
@@ -33,6 +37,8 @@ export function FloatContact() {
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
   }, [open]);
+
+  if (isAdmin) return null;
 
   const cfg = content.siteConfig;
 
