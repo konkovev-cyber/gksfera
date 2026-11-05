@@ -125,45 +125,93 @@ const sourceOfEnrollment = (row: { source?: string; comment?: string | null }): 
 };
 
 const SITE_LABELS: Record<string, string> = {
-  name: "Название (короткое)",
-  fullName: "Полное название",
-  tagline: "Слоган",
-  secondaryTagline: "Второй слоган",
+  name: "Краткое название",
+  fullName: "Официальное полное название",
+  tagline: "Главный слоган",
+  secondaryTagline: "Дополнительный слоган",
   city: "Город",
-  address: "Адрес",
-  addressDetails: "Детали адреса (этаж, офис)",
-  addressFull: "Адрес полностью",
-  phone: "Телефон",
-  phoneHref: "Телефон — ссылка (tel:)",
-  vkUrl: "Ссылка на группу VK",
-  vkDisplay: "VK — как показывать на сайте",
-  maxUrl: "MAX Messenger — ссылка",
-  ageRange: "Возраст детей",
-  workingHours: "Часы работы (полные)",
-  workingHoursShort: "Часы работы (кратко)",
-  yearsExperience: "Опыт работы",
-  mapQuery: "Адрес для поиска на карте",
-  showTeachers: "Блок «Преподаватели»",
-  showEvents: "Блок «События»",
-  showReviews: "Блок «Отзывы»",
+  address: "Улица и номер дома",
+  addressDetails: "Уточнение (этаж, кабинет, вход)",
+  addressFull: "Полный юридический адрес",
+  phone: "Номер телефона для связи",
+  phoneHref: "Телефон для звонка в 1 клик",
+  vkUrl: "Ссылка на группу ВКонтакте",
+  vkDisplay: "Как показывать ссылку VK",
+  maxUrl: "Ссылка на мессенджер MAX",
+  ageRange: "Возраст учеников",
+  workingHours: "Режим работы (полный)",
+  workingHoursShort: "Режим работы (краткий)",
+  yearsExperience: "Опыт работы студии",
+  mapQuery: "Точка на интерактивной карте",
+};
+
+const SITE_HINTS: Record<string, string> = {
+  name: "Отображается в логотипе, шапке и мобильном меню (например: Сфера)",
+  fullName: "Официальное название студии для подвала сайта и документов",
+  tagline: "Слоган под логотипом и в шапке (например: Занятия для детей в Горячем Ключе)",
+  secondaryTagline: "Второй слоган или поясняющая фраза-девиз",
+  city: "Город расположения студии (например: Горячий Ключ)",
+  address: "Короткий адрес (например: Спортивный пер., 13)",
+  addressDetails: "Подсказка для родителей (например: 2 этаж, вход со двора)",
+  addressFull: "Полный почтовый адрес для подвала и страницы контактов",
+  phone: "Номер для отображения на сайте (например: +7 (928) 434-91-08)",
+  phoneHref: "Номер без пробелов и скобок для звонка со смартфона (например: +79284349108)",
+  vkUrl: "Прямая ссылка на ваше сообщество (например: https://vk.com/sferaznanei)",
+  vkDisplay: "Красивый текст ссылки на сайте (например: vk.com/sferaznanei)",
+  maxUrl: "Ссылка для быстрой консультации в мессенджере MAX",
+  ageRange: "Возрастная категория детей студии (например: от 5 до 15 лет)",
+  workingHours: "Полный график работы (например: Пн–Сб 9:00–19:00, Вс — выходной)",
+  workingHoursShort: "Короткий график для компактных блоков (например: 9:00–19:00)",
+  yearsExperience: "Сколько лет студия работает (например: 15+)",
+  mapQuery: "Координаты точки или адрес для отметки на карте",
 };
 
 const HERO_LABELS: Record<string, string> = {
-  badge: "Бейдж над заголовком",
-  title: "Заголовок",
-  highlight: "Выделенное слово в заголовке",
-  tagline: "Слоган (мерцающая строка)",
-  description: "Описание под заголовком",
-  primaryCta: "Кнопка 1 — главная",
-  secondaryCta: "Кнопка 2 — вторичная",
-  image: "Фото — URL",
-  imageAlt: "Фото — описание (alt)",
+  badge: "Плашка над заголовком",
+  title: "Главный заголовок первого экрана",
+  highlight: "Выделенная фраза в заголовке",
+  tagline: "Мерцающая динамическая строка",
+  description: "Текст под заголовком",
+  primaryCta: "Текст главной кнопки (запись)",
+  secondaryCta: "Текст второй кнопки",
+  image: "Основное фото (запасное)",
+  imageAlt: "Описание фото для поисковиков",
 };
 
-const PAIN_ICON_OPTIONS = [
-  "GraduationCap", "BookOpen", "Languages", "PenLine", "Drama", "Palette",
-  "Backpack", "BrainCircuit", "PenTool", "Pencil", "Sparkles", "MessageSquare",
-  "Star", "HelpCircle",
+const HERO_HINTS: Record<string, string> = {
+  badge: "Привлекает внимание (например: «Набор на 2024–2025 учебный год»)",
+  title: "Крупный заголовок по центру: первая фраза, которую видит посетитель",
+  highlight: "Словосочетание из заголовка, которое подсвечивается тёплым цветом",
+  tagline: "Короткая фраза со стильным мерцающим эффектом",
+  description: "2–3 предложения о ценностях, подходе и атмосфере в студии",
+  primaryCta: "Название кнопки целевого действия (по умолчанию: «Записаться на занятие»)",
+  secondaryCta: "Вторая кнопка (по умолчанию: «Узнать расписание»)",
+  image: "Используется, если список ротации фото ниже пуст",
+  imageAlt: "Помогает Яндексу и Google понимать содержимое фотографии",
+};
+
+const PAIN_ICON_ITEMS: { value: string; label: string }[] = [
+  { value: "GraduationCap", label: "🎓 Подготовка к школе / Учёба" },
+  { value: "BookOpen", label: "📖 Чтение и школьные предметы" },
+  { value: "Languages", label: "🇬🇧 Английский язык" },
+  { value: "PenLine", label: "✍️ Чистописание и почерк" },
+  { value: "Palette", label: "🎨 Творчество и декор" },
+  { value: "Drama", label: "🎭 Театр и риторика" },
+  { value: "BrainCircuit", label: "🧠 Нейропсихолог и память" },
+  { value: "Backpack", label: "🎒 Начальная школа" },
+  { value: "Sparkles", label: "✨ Развивающие занятия" },
+  { value: "MessageSquare", label: "💬 Общение и речь" },
+  { value: "Star", label: "⭐ Успехи и уверенность" },
+  { value: "HelpCircle", label: "❓ Помощь школьникам" },
+];
+
+const PAIN_COLOR_ITEMS: { value: string; label: string }[] = [
+  { value: "amber", label: "Янтарный (тёплый бренд)" },
+  { value: "blue", label: "Синий" },
+  { value: "emerald", label: "Изумрудный (зелёный)" },
+  { value: "purple", label: "Фиолетовый" },
+  { value: "rose", label: "Розовый" },
+  { value: "orange", label: "Оранжевый" },
 ];
 
 /**
@@ -241,8 +289,14 @@ async function mutate(url: string, init: RequestInit): Promise<any> {
 }
 const btnSecondaryCls = "inline-flex items-center justify-center gap-2 h-10 px-4 rounded-full border-2 border-border text-sm font-semibold hover:border-primary hover:text-primary disabled:opacity-50 w-full sm:w-auto";
 
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
-  return <label className="block"><span className="block text-xs font-medium text-foreground mb-1.5">{label}</span>{children}</label>;
+function Field({ label, hint, children }: { label: string; hint?: string; children: React.ReactNode }) {
+  return (
+    <label className="block">
+      <span className="block text-xs font-semibold text-foreground mb-1">{label}</span>
+      {children}
+      {hint && <span className="block text-[11px] text-muted-foreground mt-1 leading-normal">{hint}</span>}
+    </label>
+  );
 }
 
 function Section({ title, subtitle, children }: { title: string; subtitle?: string; children: React.ReactNode }) {
@@ -1408,20 +1462,94 @@ export default function AdminPage() {
 
         {/* ─── Настройки ─── */}
         {tab === "settings" && (
-          <div className="grid sm:grid-cols-2 gap-4 bg-card rounded-2xl border border-border/60 p-5">
-            {cfgEntries.map(([k, v]) => (
-              <Field key={k} label={SITE_LABELS[k] ?? k}>
-                {typeof v === "boolean" ? (
-                  <label className="inline-flex items-center gap-2 h-10 text-sm">
-                    <input type="checkbox" checked={v} onChange={(e) => setSiteConfig((p) => ({ ...p, [k]: e.target.checked }))} className="w-4 h-4" />
-                    {v ? "вкл" : "выкл"}
-                  </label>
-                ) : (
-                  <input className={inputCls} value={String(v ?? "")} onChange={(e) => setSiteConfig((p) => ({ ...p, [k]: e.target.value }))} />
-                )}
-              </Field>
-            ))}
-            <div className="sm:col-span-2"><button onClick={saveSettings} disabled={saving} className={btnCls}>{saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />} Сохранить</button></div>
+          <div className="space-y-6">
+            {/* Контакты */}
+            <Section title="📞 Телефоны и мессенджеры" subtitle="Способы связи для родителей (отображаются в шапке, подвале и контактах)">
+              <div className="grid sm:grid-cols-2 gap-4">
+                <Field label={SITE_LABELS.phone ?? "Телефон"} hint={SITE_HINTS.phone}>
+                  <input className={inputCls} value={String(siteConfig.phone ?? "")} onChange={(e) => setSiteConfig((p) => ({ ...p, phone: e.target.value }))} placeholder="+7 (928) 434-91-08" />
+                </Field>
+                <Field label={SITE_LABELS.phoneHref ?? "Телефон для звонка в 1 клик"} hint={SITE_HINTS.phoneHref}>
+                  <input className={inputCls} value={String(siteConfig.phoneHref ?? "")} onChange={(e) => setSiteConfig((p) => ({ ...p, phoneHref: e.target.value }))} placeholder="+79284349108" />
+                </Field>
+                <Field label={SITE_LABELS.maxUrl ?? "Ссылка MAX"} hint={SITE_HINTS.maxUrl}>
+                  <input className={inputCls} value={String(siteConfig.maxUrl ?? "")} onChange={(e) => setSiteConfig((p) => ({ ...p, maxUrl: e.target.value }))} placeholder="https://max.im/..." />
+                </Field>
+                <Field label={SITE_LABELS.vkUrl ?? "Ссылка на группу VK"} hint={SITE_HINTS.vkUrl}>
+                  <input className={inputCls} value={String(siteConfig.vkUrl ?? "")} onChange={(e) => setSiteConfig((p) => ({ ...p, vkUrl: e.target.value }))} placeholder="https://vk.com/sferaznanei" />
+                </Field>
+                <div className="sm:col-span-2">
+                  <Field label={SITE_LABELS.vkDisplay ?? "Отображение ссылки VK"} hint={SITE_HINTS.vkDisplay}>
+                    <input className={inputCls} value={String(siteConfig.vkDisplay ?? "")} onChange={(e) => setSiteConfig((p) => ({ ...p, vkDisplay: e.target.value }))} placeholder="vk.com/sferaznanei" />
+                  </Field>
+                </div>
+              </div>
+            </Section>
+
+            {/* Адрес и карта */}
+            <Section title="📍 Адрес студии и интерактивная карта" subtitle="Где находится студия и как до неё добраться">
+              <div className="grid sm:grid-cols-2 gap-4">
+                <Field label={SITE_LABELS.city ?? "Город"} hint={SITE_HINTS.city}>
+                  <input className={inputCls} value={String(siteConfig.city ?? "")} onChange={(e) => setSiteConfig((p) => ({ ...p, city: e.target.value }))} placeholder="Горячий Ключ" />
+                </Field>
+                <Field label={SITE_LABELS.address ?? "Улица и дом"} hint={SITE_HINTS.address}>
+                  <input className={inputCls} value={String(siteConfig.address ?? "")} onChange={(e) => setSiteConfig((p) => ({ ...p, address: e.target.value }))} placeholder="Спортивный пер., 13" />
+                </Field>
+                <Field label={SITE_LABELS.addressDetails ?? "Уточнение (этаж, вход)"} hint={SITE_HINTS.addressDetails}>
+                  <input className={inputCls} value={String(siteConfig.addressDetails ?? "")} onChange={(e) => setSiteConfig((p) => ({ ...p, addressDetails: e.target.value }))} placeholder="2 этаж, вход со двора" />
+                </Field>
+                <Field label={SITE_LABELS.mapQuery ?? "Точка на карте"} hint={SITE_HINTS.mapQuery}>
+                  <input className={inputCls} value={String(siteConfig.mapQuery ?? "")} onChange={(e) => setSiteConfig((p) => ({ ...p, mapQuery: e.target.value }))} placeholder="44.629878,39.121598" />
+                </Field>
+                <div className="sm:col-span-2">
+                  <Field label={SITE_LABELS.addressFull ?? "Полный адрес"} hint={SITE_HINTS.addressFull}>
+                    <input className={inputCls} value={String(siteConfig.addressFull ?? "")} onChange={(e) => setSiteConfig((p) => ({ ...p, addressFull: e.target.value }))} placeholder="г. Горячий Ключ, Спортивный пер., 13" />
+                  </Field>
+                </div>
+              </div>
+            </Section>
+
+            {/* График и возраст */}
+            <Section title="⏰ Режим работы и возраст детей" subtitle="Основная информация для ориентирования родителей">
+              <div className="grid sm:grid-cols-2 gap-4">
+                <Field label={SITE_LABELS.workingHours ?? "Часы работы (полные)"} hint={SITE_HINTS.workingHours}>
+                  <input className={inputCls} value={String(siteConfig.workingHours ?? "")} onChange={(e) => setSiteConfig((p) => ({ ...p, workingHours: e.target.value }))} placeholder="Пн–Сб 9:00–19:00, Вс выходной" />
+                </Field>
+                <Field label={SITE_LABELS.workingHoursShort ?? "Часы работы (кратко)"} hint={SITE_HINTS.workingHoursShort}>
+                  <input className={inputCls} value={String(siteConfig.workingHoursShort ?? "")} onChange={(e) => setSiteConfig((p) => ({ ...p, workingHoursShort: e.target.value }))} placeholder="9:00–19:00" />
+                </Field>
+                <Field label={SITE_LABELS.ageRange ?? "Возраст детей"} hint={SITE_HINTS.ageRange}>
+                  <input className={inputCls} value={String(siteConfig.ageRange ?? "")} onChange={(e) => setSiteConfig((p) => ({ ...p, ageRange: e.target.value }))} placeholder="от 5 до 15 лет" />
+                </Field>
+                <Field label={SITE_LABELS.yearsExperience ?? "Стаж работы студии"} hint={SITE_HINTS.yearsExperience}>
+                  <input className={inputCls} value={String(siteConfig.yearsExperience ?? "")} onChange={(e) => setSiteConfig((p) => ({ ...p, yearsExperience: e.target.value }))} placeholder="15+ лет" />
+                </Field>
+              </div>
+            </Section>
+
+            {/* Названия и слоганы */}
+            <Section title="🏷️ Названия и слоганы студии" subtitle="Как студия именуется на страницах сайта и в подписи">
+              <div className="grid sm:grid-cols-2 gap-4">
+                <Field label={SITE_LABELS.name ?? "Короткое название"} hint={SITE_HINTS.name}>
+                  <input className={inputCls} value={String(siteConfig.name ?? "")} onChange={(e) => setSiteConfig((p) => ({ ...p, name: e.target.value }))} placeholder="Сфера" />
+                </Field>
+                <Field label={SITE_LABELS.fullName ?? "Полное название"} hint={SITE_HINTS.fullName}>
+                  <input className={inputCls} value={String(siteConfig.fullName ?? "")} onChange={(e) => setSiteConfig((p) => ({ ...p, fullName: e.target.value }))} placeholder="Учебно-развивающая студия «Сфера»" />
+                </Field>
+                <Field label={SITE_LABELS.tagline ?? "Основной слоган"} hint={SITE_HINTS.tagline}>
+                  <input className={inputCls} value={String(siteConfig.tagline ?? "")} onChange={(e) => setSiteConfig((p) => ({ ...p, tagline: e.target.value }))} placeholder="Занятия для детей в Горячем Ключе" />
+                </Field>
+                <Field label={SITE_LABELS.secondaryTagline ?? "Второй слоган"} hint={SITE_HINTS.secondaryTagline}>
+                  <input className={inputCls} value={String(siteConfig.secondaryTagline ?? "")} onChange={(e) => setSiteConfig((p) => ({ ...p, secondaryTagline: e.target.value }))} placeholder="Помогаем учиться легко" />
+                </Field>
+              </div>
+            </Section>
+
+            <div>
+              <button onClick={saveSettings} disabled={saving} className={btnCls}>
+                {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />} Сохранить реквизиты
+              </button>
+            </div>
           </div>
         )}
 
@@ -1429,7 +1557,7 @@ export default function AdminPage() {
         {tab === "hero" && (
           <div className="grid sm:grid-cols-2 gap-4 bg-card rounded-2xl border border-border/60 p-5">
             {Object.entries(hero).filter(([, v]) => typeof v === "string").map(([k, v]) => (
-              <Field key={k} label={HERO_LABELS[k] ?? k}>
+              <Field key={k} label={HERO_LABELS[k] ?? k} hint={HERO_HINTS[k]}>
                 {k === "image" ? (
                   <div className="flex gap-2">
                     <input className={inputCls + " flex-1"} value={String(v ?? "")} onChange={(e) => setHero((p) => ({ ...p, [k]: e.target.value }))} />
@@ -1556,26 +1684,40 @@ export default function AdminPage() {
         {/* ─── Programs ─── */}
         {tab === "programs" && (
           <div className="space-y-4">
+            <p className="text-sm text-muted-foreground">Направления занятий отображаются в каталоге курсов на главной странице и на отдельных страницах <code className="text-xs bg-muted px-1.5 py-0.5 rounded font-mono">/programs/[id]</code>.</p>
             {programs.map((p, i) => (
-              <div key={p.id ?? i} className="bg-card rounded-2xl border border-border/60 p-4 grid sm:grid-cols-2 gap-3">
-                <Field label="Название"><input className={inputCls} value={p.title ?? ""} onChange={(e) => setPrograms((prev) => prev.map((x, j) => j === i ? { ...x, title: e.target.value } : x))} /></Field>
-                <Field label="Возраст"><input className={inputCls} value={p.age_range ?? ""} onChange={(e) => setPrograms((prev) => prev.map((x, j) => j === i ? { ...x, age_range: e.target.value } : x))} /></Field>
-                <div className="sm:col-span-2">
-                  <Field label="Категория (раздел)">
-                    <select className={inputCls} value={p.category ?? "educational"} onChange={(e) => setPrograms((prev) => prev.map((x, j) => j === i ? { ...x, category: e.target.value } : x))}>
-                      <option value="educational">Учебное направление</option>
-                      <option value="creative">Творческий факультатив</option>
-                    </select>
+              <div key={p.id ?? i} className="bg-card rounded-2xl border border-border/60 p-4 space-y-3">
+                <div className="flex items-center justify-between text-xs font-semibold text-muted-foreground border-b border-border/40 pb-2">
+                  <span className="text-foreground font-bold">{p.title || `Направление #${i + 1}`}</span>
+                  <div className="flex items-center gap-1">
+                    <button onClick={() => move(programs, i, -1, setPrograms)} className="p-1.5 rounded-lg hover:bg-accent" title="Выше"><ArrowUp className="w-3.5 h-3.5" /></button>
+                    <button onClick={() => move(programs, i, 1, setPrograms)} className="p-1.5 rounded-lg hover:bg-accent" title="Ниже"><ArrowDown className="w-3.5 h-3.5" /></button>
+                  </div>
+                </div>
+                <div className="grid sm:grid-cols-2 gap-3">
+                  <Field label="Название направления" hint="Например: Подготовка к школе, Чистописание, Английский язык">
+                    <input className={inputCls} value={p.title ?? ""} onChange={(e) => setPrograms((prev) => prev.map((x, j) => j === i ? { ...x, title: e.target.value } : x))} placeholder="Подготовка к школе" />
+                  </Field>
+                  <Field label="Возрастная группа" hint="Например: 5–7 лет или 1–4 классы">
+                    <input className={inputCls} value={p.age_range ?? ""} onChange={(e) => setPrograms((prev) => prev.map((x, j) => j === i ? { ...x, age_range: e.target.value } : x))} placeholder="5–7 лет" />
                   </Field>
                 </div>
-                <div className="sm:col-span-2"><Field label="Описание"><textarea rows={2} className={inputCls + " h-auto py-2"} value={p.description ?? ""} onChange={(e) => setPrograms((prev) => prev.map((x, j) => j === i ? { ...x, description: e.target.value } : x))} /></Field></div>
-                <div className="sm:col-span-2"><Field label="Фото URL">
+                <Field label="Категория (раздел на сайте)" hint="Помогает родителям фильтровать курсы по типам">
+                  <select className={inputCls} value={p.category ?? "educational"} onChange={(e) => setPrograms((prev) => prev.map((x, j) => j === i ? { ...x, category: e.target.value } : x))}>
+                    <option value="educational">Учебное направление (школьные предметы, подготовка)</option>
+                    <option value="creative">Творческий факультатив (декор, театр, рисование)</option>
+                  </select>
+                </Field>
+                <Field label="Краткое описание" hint="2–3 предложения для карточки на главной и в каталоге">
+                  <textarea rows={2} className={inputCls + " h-auto py-2"} value={p.description ?? ""} onChange={(e) => setPrograms((prev) => prev.map((x, j) => j === i ? { ...x, description: e.target.value } : x))} placeholder="Развиваем усидчивость, учим читать и писать без стресса..." />
+                </Field>
+                <Field label="Фотография направления" hint="Обложка карточки курса">
                   <div className="flex gap-2">
-                    <input className={inputCls + " flex-1"} value={p.image ?? ""} onChange={(e) => setPrograms((prev) => prev.map((x, j) => j === i ? { ...x, image: e.target.value } : x))} />
+                    <input className={inputCls + " flex-1"} value={p.image ?? ""} onChange={(e) => setPrograms((prev) => prev.map((x, j) => j === i ? { ...x, image: e.target.value } : x))} placeholder="https://..." />
                     {pickBtn("program", i)}
                   </div>
-                </Field></div>
-                <div className="sm:col-span-2"><Field label="Точка фокуса при кадрировании (object-position)">
+                </Field>
+                <Field label="Точка фокусировки фото (object-position)" hint="Если на фото обрезается голова или лицо ребёнка — выберите «верх»">
                   <div className="flex items-center gap-2 flex-wrap">
                     <select className={inputCls + " w-auto"} value={p.pos ?? "50% 50%"} onChange={(e) => setPrograms((prev) => prev.map((x, j) => j === i ? { ...x, pos: e.target.value === "50% 50%" ? "" : e.target.value } : x))}>
                       <option value="50% 50%">центр (по умолчанию)</option>
@@ -1593,16 +1735,18 @@ export default function AdminPage() {
                       </div>
                     )}
                   </div>
-                  <p className="text-xs text-muted-foreground mt-1">Если фото вертикальное и обрезается голова/лицо — поставьте <code className="px-1 bg-accent rounded">50% 15%</code>.</p>
-                </Field></div>
-                <div className="flex items-end gap-4">
-                  <label className="inline-flex items-center gap-2 text-sm h-10"><input type="checkbox" checked={p.visible !== false} onChange={(e) => setPrograms((prev) => prev.map((x, j) => j === i ? { ...x, visible: e.target.checked } : x))} className="w-4 h-4" />показывать</label>
-                  <button onClick={() => move(programs, i, -1, setPrograms)} className="p-2 rounded-lg hover:bg-accent"><ArrowUp className="w-4 h-4" /></button>
-                  <button onClick={() => move(programs, i, 1, setPrograms)} className="p-2 rounded-lg hover:bg-accent"><ArrowDown className="w-4 h-4" /></button>
+                </Field>
+                <div className="flex items-center justify-between pt-1">
+                  <label className="inline-flex items-center gap-2 text-sm cursor-pointer select-none">
+                    <input type="checkbox" checked={p.visible !== false} onChange={(e) => setPrograms((prev) => prev.map((x, j) => j === i ? { ...x, visible: e.target.checked } : x))} className="w-4 h-4 rounded text-primary" />
+                    <span className={p.visible !== false ? "font-semibold text-foreground" : "text-muted-foreground"}>
+                      {p.visible !== false ? "Показывается на сайте" : "Скрыто"}
+                    </span>
+                  </label>
                 </div>
               </div>
             ))}
-            <button onClick={savePrograms} disabled={saving} className={btnCls}>{saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />} Сохранить</button>
+            <button onClick={savePrograms} disabled={saving} className={btnCls}>{saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />} Сохранить направления</button>
           </div>
         )}
 
@@ -1902,67 +2046,103 @@ export default function AdminPage() {
           <div className="space-y-6">
 
             {/* Задачи родителя */}
-            <Section title="«С какой задачей пришли?»" subtitle="Карточки-ссылки на странице, по 1 эмодзи + заголовок + подзаголовок + ссылка">
+            <Section title="«С какой задачей вы пришли?»" subtitle="Интерактивные карточки частых родительских ситуаций на главной странице">
+              <p className="text-xs text-muted-foreground -mt-1">
+                Родитель нажимает на близкую ему ситуацию (например: «Скоро в школу, а читать не хочет») и сразу переходит к подходящему курсу.
+              </p>
               {parentPains.map((pain, i) => (
-                <div key={i} className="bg-card rounded-2xl border border-border/60 p-4 grid sm:grid-cols-4 gap-3">
-                  <Field label="Иконка">
-                    <select className={inputCls} value={pain.icon ?? "Sparkles"} onChange={(e) => setParentPains((p) => p.map((x, j) => j === i ? { ...x, icon: e.target.value } : x))}>
-                      {PAIN_ICON_OPTIONS.map((o) => <option key={o} value={o}>{o}</option>)}
-                    </select>
-                  </Field>
-                  <Field label="Заголовок"><input className={inputCls} value={pain.title ?? ""} onChange={(e) => setParentPains((p) => p.map((x, j) => j === i ? { ...x, title: e.target.value } : x))} /></Field>
-                  <Field label="Подзаголовок"><input className={inputCls} value={pain.subtitle ?? ""} onChange={(e) => setParentPains((p) => p.map((x, j) => j === i ? { ...x, subtitle: e.target.value } : x))} /></Field>
-                  <Field label="Ссылка"><input className={inputCls} value={pain.href ?? ""} onChange={(e) => setParentPains((p) => p.map((x, j) => j === i ? { ...x, href: e.target.value } : x))} /></Field>
-                  <Field label="Цвет">
-                    <select className={inputCls} value={pain.color ?? "amber"} onChange={(e) => setParentPains((p) => p.map((x, j) => j === i ? { ...x, color: e.target.value } : x))}>
-                      {["amber", "blue", "emerald", "purple", "rose", "orange"].map((c) => <option key={c} value={c}>{c}</option>)}
-                    </select>
-                  </Field>
-                  <div className="sm:col-span-4 flex gap-2">
-                    <button onClick={() => move(parentPains, i, -1, setParentPains)} className="p-2 rounded-lg hover:bg-accent"><ArrowUp className="w-4 h-4" /></button>
-                    <button onClick={() => move(parentPains, i, 1, setParentPains)} className="p-2 rounded-lg hover:bg-accent"><ArrowDown className="w-4 h-4" /></button>
-                    <button onClick={() => setParentPains((p) => p.filter((_, j) => j !== i))} className="p-2 rounded-lg hover:bg-destructive/10 text-destructive"><Trash2 className="w-4 h-4" /></button>
+                <div key={i} className="bg-card rounded-2xl border border-border/60 p-4 space-y-3">
+                  <div className="flex items-center justify-between text-xs font-semibold text-muted-foreground border-b border-border/40 pb-2">
+                    <span className="text-foreground font-bold">Карточка запроса #{i + 1}</span>
+                    <div className="flex items-center gap-1">
+                      <button onClick={() => move(parentPains, i, -1, setParentPains)} className="p-1.5 rounded-lg hover:bg-accent" title="Выше"><ArrowUp className="w-3.5 h-3.5" /></button>
+                      <button onClick={() => move(parentPains, i, 1, setParentPains)} className="p-1.5 rounded-lg hover:bg-accent" title="Ниже"><ArrowDown className="w-3.5 h-3.5" /></button>
+                      <button onClick={() => setParentPains((p) => p.filter((_, j) => j !== i))} className="p-1.5 rounded-lg hover:bg-destructive/10 text-destructive" title="Удалить карточку"><Trash2 className="w-3.5 h-3.5" /></button>
+                    </div>
+                  </div>
+                  <div className="grid sm:grid-cols-2 gap-3">
+                    <Field label="Иконка карточки" hint="Символ направления">
+                      <select className={inputCls} value={pain.icon ?? "Sparkles"} onChange={(e) => setParentPains((p) => p.map((x, j) => j === i ? { ...x, icon: e.target.value } : x))}>
+                        {PAIN_ICON_ITEMS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
+                      </select>
+                    </Field>
+                    <Field label="Цветовой акцент" hint="Цвет карточки">
+                      <select className={inputCls} value={pain.color ?? "amber"} onChange={(e) => setParentPains((p) => p.map((x, j) => j === i ? { ...x, color: e.target.value } : x))}>
+                        {PAIN_COLOR_ITEMS.map((c) => <option key={c.value} value={c.value}>{c.label}</option>)}
+                      </select>
+                    </Field>
+                    <Field label="Заголовок проблемы" hint="Вопрос или жалоба родителя (например: «Скоро в 1 класс, а усидчивости нет»)">
+                      <input className={inputCls} value={pain.title ?? ""} onChange={(e) => setParentPains((p) => p.map((x, j) => j === i ? { ...x, title: e.target.value } : x))} placeholder="Скоро в первый класс..." />
+                    </Field>
+                    <Field label="Предлагаемое решение" hint="Короткий ответ студии (например: «Подготовка в мини-группах без слёз»)">
+                      <input className={inputCls} value={pain.subtitle ?? ""} onChange={(e) => setParentPains((p) => p.map((x, j) => j === i ? { ...x, subtitle: e.target.value } : x))} placeholder="Бережная подготовка..." />
+                    </Field>
+                    <div className="sm:col-span-2">
+                      <Field label="Куда ведёт клик по карточке" hint="Ссылка на страницу направления или секцию (например: /programs или #programs)">
+                        <input className={inputCls} value={pain.href ?? ""} onChange={(e) => setParentPains((p) => p.map((x, j) => j === i ? { ...x, href: e.target.value } : x))} placeholder="/programs/podgotovka-k-shkole или #programs" />
+                      </Field>
+                    </div>
                   </div>
                 </div>
               ))}
-              <button onClick={() => setParentPains((p) => [...p, { icon: "Sparkles", title: "", subtitle: "", href: "/", color: "amber" }])} className={btnCls + " bg-card border border-border text-foreground hover:bg-accent"}><Plus className="w-4 h-4" /> Добавить карточку</button>
+              <button onClick={() => setParentPains((p) => [...p, { icon: "Sparkles", title: "", subtitle: "", href: "/#programs", color: "amber" }])} className={btnCls + " bg-card border border-border text-foreground hover:bg-accent"}><Plus className="w-4 h-4" /> Добавить карточку запроса</button>
             </Section>
 
             {/* Цитата-миссия */}
-            <Section title="Миссия студии" subtitle="Позиционирующая цитата в блоке «Почему нас выбирают» и TaskPicker">
-              <Field label="Цитата"><textarea rows={3} className={inputCls + " h-auto py-2"} value={studioMotto} onChange={(e) => setStudioMotto(e.target.value)} placeholder="Мы не пытаемся…" /></Field>
+            <Section title="Миссия и главный девиз студии" subtitle="Вдохновляющая цитата на главной странице (в блоке преимуществ)">
+              <Field label="Текст девиза / цитаты" hint="Главная мысль о подходе к детям. Показывает родителям, почему вам можно доверять.">
+                <textarea rows={3} className={inputCls + " h-auto py-2.5"} value={studioMotto} onChange={(e) => setStudioMotto(e.target.value)} placeholder="Мы не пытаемся переделать ребёнка под шаблон — мы бережно раскрываем его сильные стороны…" />
+              </Field>
             </Section>
 
             {/* Результаты */}
-            <Section title="«Что изменится у ребёнка»" subtitle="Конкретные результаты — показываем в блоке Results на главной">
+            <Section title="«Что изменится у ребёнка»" subtitle="Конкретные результаты после курса занятий (блок Results на главной странице)">
+              <p className="text-xs text-muted-foreground -mt-1">
+                Каждый пункт отвечает на вопрос родителя: «Какую пользу получит мой ребёнок через пару месяцев?».
+              </p>
               {resultsAfterLearning.map((r, i) => (
-                <div key={i} className="flex gap-2">
-                  <input className={inputCls + " flex-1"} value={r} onChange={(e) => setResultsAfterLearning((p) => p.map((x, j) => j === i ? e.target.value : x))} />
-                  <button onClick={() => setResultsAfterLearning((p) => p.filter((_, j) => j !== i))} className="p-2 rounded-lg hover:bg-destructive/10 text-destructive shrink-0"><Trash2 className="w-4 h-4" /></button>
+                <div key={i} className="flex gap-2 items-center">
+                  <span className="w-6 text-center text-xs font-mono font-bold text-muted-foreground shrink-0">{i + 1}.</span>
+                  <input className={inputCls + " flex-1"} value={r} onChange={(e) => setResultsAfterLearning((p) => p.map((x, j) => j === i ? e.target.value : x))} placeholder="Например: Делает уроки сам без слёз и напоминаний" />
+                  <button onClick={() => setResultsAfterLearning((p) => p.filter((_, j) => j !== i))} className="p-2 rounded-lg hover:bg-destructive/10 text-destructive shrink-0" title="Удалить"><Trash2 className="w-4 h-4" /></button>
                 </div>
               ))}
-              <button onClick={() => setResultsAfterLearning((p) => [...p, ""])} className={btnCls + " bg-card border border-border text-foreground hover:bg-accent"}><Plus className="w-4 h-4" /> Добавить результат</button>
+              <button onClick={() => setResultsAfterLearning((p) => [...p, ""])} className={btnCls + " bg-card border border-border text-foreground hover:bg-accent"}><Plus className="w-4 h-4" /> Добавить пункт результата</button>
             </Section>
 
             {/* Статистика доверия */}
-            <Section title="«Коротко, по делу» — статистика" subtitle="4 карточки: цифра + подпись + описание">
+            <Section title="«Коротко, по делу» — ключевые факты о студии" subtitle="4 наглядные плашки на главной странице: опыт, возраст детей, размер групп и локация">
+              <p className="text-xs text-muted-foreground -mt-1">
+                Этот блок знакомит родителей с масштабом и форматом студии. Например: «15+ лет / работаем с детьми», «Небольшие группы / каждый ребёнок в фокусе».
+              </p>
               {trustStats.map((s, i) => (
-                <div key={i} className="bg-card rounded-2xl border border-border/60 p-4 grid grid-cols-3 gap-3">
-                  <Field label="Число"><input className={inputCls} value={s.value ?? ""} onChange={(e) => setTrustStats((p) => p.map((x, j) => j === i ? { ...x, value: e.target.value } : x))} /></Field>
-                  <Field label="Подпись"><input className={inputCls} value={s.label ?? ""} onChange={(e) => setTrustStats((p) => p.map((x, j) => j === i ? { ...x, label: e.target.value } : x))} /></Field>
-                  <Field label="Описание"><input className={inputCls} value={s.description ?? ""} onChange={(e) => setTrustStats((p) => p.map((x, j) => j === i ? { ...x, description: e.target.value } : x))} /></Field>
-                  <div className="col-span-3 flex gap-2">
-                    <button onClick={() => move(trustStats, i, -1, setTrustStats)} className="p-2 rounded-lg hover:bg-accent"><ArrowUp className="w-4 h-4" /></button>
-                    <button onClick={() => move(trustStats, i, 1, setTrustStats)} className="p-2 rounded-lg hover:bg-accent"><ArrowDown className="w-4 h-4" /></button>
-                    <button onClick={() => setTrustStats((p) => p.filter((_, j) => j !== i))} className="p-2 rounded-lg hover:bg-destructive/10 text-destructive"><Trash2 className="w-4 h-4" /></button>
+                <div key={i} className="bg-card rounded-2xl border border-border/60 p-4 space-y-3">
+                  <div className="flex items-center justify-between text-xs font-semibold text-muted-foreground border-b border-border/40 pb-2">
+                    <span className="text-foreground font-bold">Карточка факта #{i + 1}</span>
+                    <div className="flex items-center gap-1">
+                      <button onClick={() => move(trustStats, i, -1, setTrustStats)} className="p-1.5 rounded-lg hover:bg-accent" title="Выше"><ArrowUp className="w-3.5 h-3.5" /></button>
+                      <button onClick={() => move(trustStats, i, 1, setTrustStats)} className="p-1.5 rounded-lg hover:bg-accent" title="Ниже"><ArrowDown className="w-3.5 h-3.5" /></button>
+                      <button onClick={() => setTrustStats((p) => p.filter((_, j) => j !== i))} className="p-1.5 rounded-lg hover:bg-destructive/10 text-destructive" title="Удалить карточку"><Trash2 className="w-3.5 h-3.5" /></button>
+                    </div>
+                  </div>
+                  <div className="grid sm:grid-cols-3 gap-3">
+                    <Field label="Главная цифра или факт" hint="Крупный текст на карточке (например: 15+, 5–15, Небольшие, Центр)">
+                      <input className={inputCls} value={s.value ?? ""} onChange={(e) => setTrustStats((p) => p.map((x, j) => j === i ? { ...x, value: e.target.value } : x))} placeholder="15+" />
+                    </Field>
+                    <Field label="Приписка к цифре" hint="Текст рядом с числом (например: лет, группы, города)">
+                      <input className={inputCls} value={s.label ?? ""} onChange={(e) => setTrustStats((p) => p.map((x, j) => j === i ? { ...x, label: e.target.value } : x))} placeholder="лет" />
+                    </Field>
+                    <Field label="Пояснение для родителей" hint="Нижняя строчка (например: работаем с детьми, каждый ребёнок в фокусе)">
+                      <input className={inputCls} value={s.description ?? ""} onChange={(e) => setTrustStats((p) => p.map((x, j) => j === i ? { ...x, description: e.target.value } : x))} placeholder="работаем с детьми" />
+                    </Field>
                   </div>
                 </div>
               ))}
-              <button onClick={() => setTrustStats((p) => [...p, { value: "", label: "", description: "" }])} className={btnCls + " bg-card border border-border text-foreground hover:bg-accent"}><Plus className="w-4 h-4" /> Добавить карточку</button>
+              <button onClick={() => setTrustStats((p) => [...p, { value: "", label: "", description: "" }])} className={btnCls + " bg-card border border-border text-foreground hover:bg-accent"}><Plus className="w-4 h-4" /> Добавить факт</button>
             </Section>
 
             {/* Результаты по направлениям */}
-            <Section title="Результаты по направлениям" subtitle="Для страниц /programs/[slug] — 4–6 пунктов «Что сможет ребёнок»">
+            <Section title="Результаты по конкретным направлениям" subtitle="Для страниц /programs/[slug] — 4–6 пунктов «Что сможет ребёнок через несколько месяцев»">
               <p className="text-xs text-muted-foreground mb-3">Если направление не указано, на его странице показываются общие результаты из блока выше.</p>
               {Object.entries(programOutcomes).map(([title, items]) => (
                 <div key={title} className="bg-card rounded-2xl border border-border/60 p-4 space-y-2">
